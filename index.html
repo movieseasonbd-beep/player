@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Player</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Font Awesome-এর আর প্রয়োজন নেই, তাই এই লাইনটি মুছে ফেলা যেতে পারে -->
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"> -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
     <div class="player-container">
+        <!-- === পরিবর্তন এখানে (সেন্ট্রাল প্লে বাটন) === -->
         <div class="central-play-btn" title="Play">
-            <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"></path></svg>
+            <svg class="play-icon" viewBox="0 0 24 24"><path d="M6,4.06V19.94C6,20.57 6.6,20.94 7.15,20.61L19.42,12.67C19.92,12.38 19.92,11.62 19.42,11.33L7.15,3.39C6.6,3.06 6,3.43 6,4.06Z" fill="currentColor"/></svg>
         </div>
         <video class="video" src=""></video>
 
@@ -45,8 +44,9 @@
 
             <div class="control-group">
                 <div class="controls-left">
+                    <!-- === পরিবর্তন এখানে (কন্ট্রোল বারের প্লে বাটন) === -->
                     <button class="control-btn" id="play-pause-btn" title="Play/Pause">
-                        <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"></path></svg>
+                        <svg class="play-icon" viewBox="0 0 24 24"><path d="M6,4.06V19.94C6,20.57 6.6,20.94 7.15,20.61L19.42,12.67C19.92,12.38 19.92,11.62 19.42,11.33L7.15,3.39C6.6,3.06 6,3.43 6,4.06Z" fill="currentColor"/></svg>
                         <svg class="pause-icon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="currentColor"></path></svg>
                     </button>
                     <button class="control-btn" id="rewind-btn" title="Rewind 10s">
