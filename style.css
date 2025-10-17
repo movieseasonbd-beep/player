@@ -1,6 +1,6 @@
 :root {
     --theme-color: #2ecc71; /* সবুজ রঙ */
-    --progress-bar-height: 5px;
+    --progress-bar-height: 4px;
 }
 
 body {
@@ -26,9 +26,11 @@ body {
 }
 
 .player-container.playing .central-play-btn { display: none; }
-.player-container:hover .video-title,
 .player-container:hover .controls-container,
-.player-container.paused .controls-container { opacity: 1; }
+.player-container.paused .controls-container {
+    opacity: 1;
+    transform: translateY(0);
+}
 
 .video {
     width: 100%;
@@ -37,30 +39,20 @@ body {
     display: block;
 }
 
-.video-title {
-    position: absolute;
-    top: 15px;
-    left: 20px;
-    font-size: 16px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: 3;
-    text-shadow: 1px 1px 5px rgba(0,0,0,0.7);
-}
-
 .central-play-btn {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 70px;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 60px;
+    color: rgba(255, 255, 255, 0.8);
     cursor: pointer;
     transition: color 0.2s ease, transform 0.2s ease;
     z-index: 2;
+    text-shadow: 1px 1px 10px rgba(0,0,0,0.5);
 }
 .central-play-btn:hover {
-    color: var(--theme-color);
+    color: white;
     transform: translate(-50%, -50%) scale(1.1);
 }
 
@@ -69,11 +61,12 @@ body {
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: 10px 15px;
+    padding: 10px 25px; /* ডান ও বামে প্যাডিং বাড়ানো হয়েছে */
     background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
     z-index: 3;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: opacity 0.25s ease, transform 0.25s ease; /* অ্যানিমেশন স্মুথ করা হয়েছে */
 }
 
 .progress-range { width: 100%; padding: 5px 0; cursor: pointer; }
@@ -81,17 +74,17 @@ body {
 .progress-bar {
     -webkit-appearance: none; appearance: none;
     width: 100%; height: var(--progress-bar-height);
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.4);
     outline: none; border-radius: 5px;
     transition: height 0.2s ease;
 }
-.progress-range:hover .progress-bar { height: 8px; }
+.progress-range:hover .progress-bar { height: 7px; }
 .progress-bar::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
-    width: 16px; height: 16px;
+    width: 15px; height: 15px;
     background: var(--theme-color); border-radius: 50%;
     cursor: pointer; transform: scale(0);
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease-out;
 }
 .progress-range:hover .progress-bar::-webkit-slider-thumb { transform: scale(1); }
 
@@ -100,144 +93,30 @@ body {
 
 .control-btn {
     background: none; border: none;
-    color: white; font-size: 18px;
-    cursor: pointer; padding: 5px 10px;
+    color: white; font-size: 20px;
+    cursor: pointer; padding: 8px;
+    transition: transform 0.1s ease;
 }
-.control-btn i { pointer-events: none; }
-.control-btn span {
-    font-size: 12px; position: absolute;
-    margin-left: -18px; margin-top: 2px;
-    font-weight: bold;
+.control-btn:hover {
+    transform: scale(1.15);
 }
 
 .volume-container { display: flex; align-items: center; }
 .volume-slider {
     -webkit-appearance: none; appearance: none;
     width: 0; height: 5px;
-    background: rgba(255, 255, 255, 0.4);
+    background: white;
     border-radius: 5px; outline: none;
     transition: width 0.3s ease-in-out;
+    cursor: pointer;
 }
 .volume-container:hover .volume-slider { width: 80px; }
 .volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 12px; height: 12px;
-    background: white; border-radius: 50%;
-    cursor: pointer;
+    -webkit-appearance: none; width: 14px; height: 14px;
+    background: white; border: 2px solid #333;
+    border-radius: 50%; cursor: pointer;
 }
 
-.time-display { font-size: 14px; margin-left: 10px; }
+.time-display { font-size: 14px; margin-left: 12px; }
 
-#fullscreen-btn.active i::before { content: '\f066'; }```
-
-#### 3. ফাইল: `script.js`
-
-```javascript
-const playerContainer = document.querySelector('.player-container');
-const video = document.querySelector('.video');
-const videoTitle = document.querySelector('.video-title');
-const centralPlayBtn = document.querySelector('.central-play-btn');
-const playPauseBtn = document.getElementById('play-pause-btn');
-const rewindBtn = document.getElementById('rewind-btn');
-const forwardBtn = document.getElementById('forward-btn');
-const volumeBtn = document.getElementById('volume-btn');
-const volumeSlider = document.querySelector('.volume-slider');
-const progressBar = document.querySelector('.progress-bar');
-const timeDisplay = document.querySelector('.time-display');
-const fullscreenBtn = document.getElementById('fullscreen-btn');
-
-function togglePlay() {
-    if (video.src) {
-        video.paused ? video.play() : video.pause();
-    }
-}
-
-function updatePlayState() {
-    const icon = playPauseBtn.querySelector('i');
-    if (video.paused) {
-        icon.className = 'fas fa-play';
-        playerContainer.classList.remove('playing');
-        playerContainer.classList.add('paused');
-    } else {
-        icon.className = 'fas fa-pause';
-        playerContainer.classList.add('playing');
-        playerContainer.classList.remove('paused');
-    }
-}
-
-function updateProgress() {
-    const progressPercent = (video.currentTime / video.duration) * 100;
-    progressBar.value = progressPercent;
-    progressBar.style.background = `linear-gradient(to right, var(--theme-color) ${progressPercent}%, rgba(255, 255, 255, 0.3) ${progressPercent}%)`;
-    const totalDuration = isNaN(video.duration) ? 0 : video.duration;
-    timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
-}
-
-function setProgress(e) {
-    const newTime = (e.target.value / 100) * video.duration;
-    video.currentTime = newTime;
-}
-
-function formatTime(seconds) {
-    const date = new Date(seconds * 1000);
-    const hh = date.getUTCHours();
-    const mm = date.getUTCMinutes().toString().padStart(2, '0');
-    const ss = date.getUTCSeconds().toString().padStart(2, '0');
-    return hh ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
-}
-
-function changeVolume(e) {
-    video.volume = e.target.value;
-    updateVolumeIcon();
-}
-
-function updateVolumeIcon() {
-    const icon = volumeBtn.querySelector('i');
-    if (video.volume === 0 || video.muted) { icon.className = 'fas fa-volume-mute'; } 
-    else if (video.volume < 0.5) { icon.className = 'fas fa-volume-down'; } 
-    else { icon.className = 'fas fa-volume-up'; }
-}
-
-function toggleMute() {
-    video.muted = !video.muted;
-    volumeSlider.value = video.muted ? 0 : video.volume;
-    updateVolumeIcon();
-}
-
-function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        playerContainer.requestFullscreen().catch(err => alert(`Fullscreen error: ${err.message}`));
-    } else {
-        document.exitFullscreen();
-    }
-}
-document.addEventListener('fullscreenchange', () => {
-    document.fullscreenElement ? fullscreenBtn.classList.add('active') : fullscreenBtn.classList.remove('active');
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const videoUrl = urlParams.get('id');
-    if (videoUrl) {
-        video.src = videoUrl;
-        try {
-            const url = new URL(videoUrl);
-            videoTitle.textContent = decodeURIComponent(url.pathname.split('/').pop());
-        } catch (e) { videoTitle.textContent = "Loading video..."; }
-    } else {
-        videoTitle.textContent = "No video URL provided. Use '?id=VIDEO_LINK' in the URL.";
-    }
-});
-
-video.addEventListener('click', togglePlay);
-video.addEventListener('play', updatePlayState);
-video.addEventListener('pause', updatePlayState);
-video.addEventListener('timeupdate', updateProgress);
-video.addEventListener('canplay', updateProgress);
-centralPlayBtn.addEventListener('click', togglePlay);
-playPauseBtn.addEventListener('click', togglePlay);
-rewindBtn.addEventListener('click', () => { video.currentTime -= 10; });
-forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
-progressBar.addEventListener('input', setProgress);
-volumeSlider.addEventListener('input', changeVolume);
-volumeBtn.addEventListener('click', toggleMute);
-fullscreenBtn.addEventListener('click', toggleFullscreen);
+#fullscreen-btn.active i::before { content: '\f066'; }
