@@ -10,7 +10,6 @@ const progressFilled = document.querySelector('.progress-filled');
 const bufferBar = document.querySelector('.buffer-bar');
 const timeDisplay = document.querySelector('.time-display');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
-const fullscreenTooltip = fullscreenBtn.querySelector('.tooltip');
 const settingsBtn = document.getElementById('settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
 const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
@@ -76,7 +75,6 @@ function toggleFullscreen() {
 function updateFullscreenState() {
     const isFullscreen = !!document.fullscreenElement;
     fullscreenBtn.classList.toggle('active', isFullscreen);
-    fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
 }
 
 function toggleSettingsMenu() { settingsMenu.classList.toggle('active'); }
