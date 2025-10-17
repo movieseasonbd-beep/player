@@ -2,6 +2,7 @@
     --theme-color: #00b894;
     --theme-color-darker: #008a6e;
     --progress-bar-height: 5px;
+    --thumb-size: 16px;
 }
 body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif; color: white; overflow: hidden; }
 .player-container { width: 100vw; height: 100vh; position: relative; background-color: #000; display: flex; justify-content: center; align-items: center; }
@@ -9,23 +10,32 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container:hover .controls-container, .player-container.paused .controls-container { opacity: 1; transform: translateY(0); }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
-/* সেন্ট্রাল প্লে-বাটনের ইন্টারেক্টিভ স্টাইল */
 .central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; font-size: 50px; color: rgba(255, 255, 255, 0.8); transition: transform 0.2s ease, color 0.2s ease; }
 .central-play-btn:hover { color: var(--theme-color); transform: translate(-50%, -50%) scale(1.1); }
 .central-play-btn:active { color: var(--theme-color-darker); transform: translate(-50%, -50%) scale(1.0); }
 
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
-.progress-range { width: 100%; padding: 8px 0; cursor: pointer; position: relative; }
-.progress-background, .buffer-bar, .progress-filled { position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: var(--progress-bar-height); border-radius: 5px; pointer-events: none; }
+
+/* প্রোগ্রেস বারের অ্যালাইনমেন্ট ঠিক করা হয়েছে */
+.progress-range { width: 100%; padding: 8px 0; cursor: pointer; position: relative; display: flex; align-items: center; }
+.progress-background, .buffer-bar, .progress-filled { position: absolute; left: 0; height: var(--progress-bar-height); border-radius: 5px; pointer-events: none; }
 .progress-background { width: 100%; background: rgba(255, 255, 255, 0.2); }
 .buffer-bar { background: rgba(255, 255, 255, 0.4); width: 0; transition: width 0.1s linear; }
 .progress-filled { background: var(--theme-color); width: 0; }
-.progress-bar { -webkit-appearance: none; appearance: none; width: 100%; background: transparent; outline: none; position: relative; z-index: 2; height: 20px; margin: -8px 0; }
-.progress-bar::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: white; border-radius: 50%; cursor: pointer; }
+.progress-bar { -webkit-appearance: none; appearance: none; width: 100%; background: transparent; outline: none; position: relative; z-index: 2; margin: 0; height: var(--progress-bar-height); }
+.progress-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: var(--thumb-size);
+    height: var(--thumb-size);
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-top: calc((var(--progress-bar-height) - var(--thumb-size)) / 2); /* এই লাইনটি আইকনকে মাঝখানে আনে */
+}
 
-.control-group { display: flex; justify-content: space-between; align-items: center; }
+.control-group { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .controls-left, .controls-right { display: flex; align-items: center; gap: 20px; }
-/* কন্ট্রোল বাটনের ইন্টারেক্টিভ স্টাইল */
 .control-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; }
 .control-btn:hover { color: var(--theme-color); transform: scale(1.15); }
 .control-btn:active { color: var(--theme-color-darker); transform: scale(1.05); }
@@ -35,7 +45,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
 
-/* সেটিংস মেনুর স্টাইল */
 .settings-menu { position: absolute; bottom: 80px; right: 20px; background-color: rgba(40, 40, 40, 0.9); border-radius: 8px; z-index: 5; width: 200px; padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, transform 0.2s ease; transform: translateY(10px); }
 .settings-menu.active { opacity: 1; visibility: visible; transform: translateY(0); }
 .menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 16px; font-weight: bold; }
