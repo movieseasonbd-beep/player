@@ -17,39 +17,14 @@ const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
 const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
-let currentVideoUrl = '';
 
 function loadVideo(videoUrl) {
-    currentVideoUrl = videoUrl;
     hls.destroy(); hls = new Hls();
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
     } else {
         video.src = videoUrl;
-    }
-}
-
-function saveProgress() {
-    // ভিডিওর সময় ১ সেকেন্ডের বেশি হলেই কেবল সেভ হবে
-    if (video.currentTime > 1 && currentVideoUrl) {
-        localStorage.setItem(`video-progress-${currentVideoUrl}`, video.currentTime);
-    }
-}
-
-function loadProgress() {
-    if (currentVideoUrl) {
-        const savedTime = localStorage.getItem(`video-progress-${currentVideoUrl}`);
-        // ভিডিওর মোট সময়ের চেয়ে সেভ করা সময় কম হলেই কেবল লোড হবে
-        if (savedTime && video.duration && parseFloat(savedTime) < video.duration - 1) {
-            video.currentTime = parseFloat(savedTime);
-        }
-    }
-}
-
-function clearProgress() {
-    if (currentVideoUrl) {
-        localStorage.removeItem(`video-progress-${currentVideoUrl}`);
     }
 }
 
@@ -118,21 +93,16 @@ function toggleSettingsMenu() {
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
 }
 
-// === Event Listeners (পরিবর্তন এখানে করা হয়েছে) ===
+// Event Listeners
 video.addEventListener('click', togglePlay);
 video.addEventListener('play', updatePlayState);
-video.addEventListener('pause', () => {
-    updatePlayState();
-    saveProgress(); // শুধুমাত্র পজ করলেই সময় সেভ হবে
-});
-video.addEventListener('ended', clearProgress); // ভিডিও শেষ হলে সেভ করা সময় মুছে যাবে
-video.addEventListener('timeupdate', updateProgressUI); // শুধু UI আপডেটের জন্য ব্যবহার হবে
+video.addEventListener('pause', updatePlayState);
+video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
-    loadProgress(); // ভিডিও প্রস্তুত হলে সেভ করা সময় লোড হবে
 });
 video.addEventListener('volumechange', updateVolumeIcon);
 
@@ -165,6 +135,3 @@ document.addEventListener('DOMContentLoaded', () => {
         loadVideo(videoUrl);
     }
 });
-
-// পেজ বন্ধ করার আগে সময় সেভ করা হবে
-window.addEventListener('beforeunload', saveProgress);
