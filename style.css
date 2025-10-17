@@ -58,7 +58,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     height: 3px;
     margin: 0 auto 12px auto;
     position: relative;
-    background: transparent;
+    overflow: hidden;
 }
 
 .loading-bar {
@@ -66,8 +66,19 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     height: 100%;
     border-radius: 1.5px;
     background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
-    box-shadow: 0 0 12px var(--loading-theme-color);
-    animation: loading-pulse 2s infinite ease-in-out;
+    opacity: 0.5;
+}
+
+.loading-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, transparent 0%, white 50%, transparent 100%);
+    filter: blur(2px);
+    animation: loading-scan 2.5s infinite linear;
 }
 
 .loading-text {
@@ -86,11 +97,15 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     color: transparent;
 }
 
-@keyframes loading-pulse {
-    0% { opacity: 0.7; }
-    50% { opacity: 1; }
-    100% { opacity: 0.7; }
+@keyframes loading-scan {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(200%);
+    }
 }
+
 
 /* === সেন্ট্রাল প্লে বাটন === */
 .central-play-btn { 
