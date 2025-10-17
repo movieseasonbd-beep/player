@@ -35,16 +35,23 @@ function updatePlayState() {
     playerContainer.classList.toggle('paused', video.paused);
 }
 
+// === ১ নম্বর পরিবর্তন এখানে করা হয়েছে ===
 function updateProgressUI() {
-    const progressPercent = (video.currentTime / video.duration) * 100;
+    // NaN (Not a Number) সমস্যা সমাধানের জন্য এই পরিবর্তন
+    let progressPercent = 0;
+    if (video.duration) {
+        progressPercent = (video.currentTime / video.duration) * 100;
+    }
+
     progressFilled.style.width = `${progressPercent}%`;
     progressBar.value = progressPercent;
+
     const totalDuration = isNaN(video.duration) ? 0 : video.duration;
     timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
 }
 
 function updateBufferBar() {
-    if (video.buffered.length > 0) {
+    if (video.duration > 0 && video.buffered.length > 0) {
         const bufferEnd = video.buffered.end(video.buffered.length - 1);
         const bufferPercent = (bufferEnd / video.duration) * 100;
         bufferBar.style.width = `${bufferPercent}%`;
@@ -107,8 +114,8 @@ video.addEventListener('volumechange', updateVolumeIcon);
 
 centralPlayBtn.addEventListener('click', togglePlay);
 playPauseBtn.addEventListener('click', togglePlay);
-rewindBtn.addEventListener('click', () => { video.currentTime -= 10; });
-forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
+rewindBtn.addEventListener('click', () => { if(video.duration) video.currentTime -= 10; });
+forwardBtn.addEventListener('click', () => { if(video.duration) video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
@@ -125,14 +132,11 @@ speedOptions.forEach(option => {
     });
 });
 
-// === পরিবর্তন এখানে করা হয়েছে ===
+// === ২ নম্বর পরিবর্তন এখানে করা হয়েছে ===
 document.addEventListener('DOMContentLoaded', () => {
-    updatePlayState(); // পেইজ লোড হওয়ার সাথে সাথে প্রাথমিক অবস্থা সেট করা
-
-    // প্রোগ্রেস বার এবং টাইম ডিসপ্লে রিসেট করে একদম শুরুতে আনা হয়েছে
-    progressBar.value = 0;
-    progressFilled.style.width = '0%';
-    timeDisplay.textContent = '00:00 / 00:00';
+    // UI-এর প্রাথমিক অবস্থা নিশ্চিতভাবে সেট করা
+    updatePlayState();
+    updateProgressUI();
 
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
