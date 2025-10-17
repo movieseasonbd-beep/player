@@ -6,7 +6,7 @@
     --central-play-btn-color: #2ecc71;
     --gradient-start-color: #e74c3c;
     --gradient-end-color: #f1c40f;
-    --loading-theme-color: #00b14f;
+    --loading-theme-color: #e74c3c;
 }
 
 body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif; color: white; overflow: hidden; }
@@ -40,39 +40,54 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 
 .loading-logo {
-    width: 200px;
-    height: auto;
-    margin-bottom: 20px;
-    fill: var(--loading-theme-color);
+    font-family: 'Arial', sans-serif;
+    font-size: 48px;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 15px;
+}
+
+.logo-season {
+    color: var(--loading-theme-color);
 }
 
 .loading-bar-container {
-    width: 250px;
-    height: 4px;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 2px;
+    width: 300px;
+    height: 3px;
     margin: 0 auto 15px auto;
-    overflow: hidden;
     position: relative;
+    overflow: hidden;
+    background: transparent;
 }
 
 .loading-bar {
     width: 100%;
     height: 100%;
-    background: linear-gradient(to right, transparent, var(--loading-theme-color), transparent);
     border-radius: 2px;
     position: absolute;
-    animation: loading-animation 1.5s infinite;
+    background: linear-gradient(to right, 
+        transparent 0%, 
+        rgba(231, 76, 60, 0.2) 20%, 
+        var(--loading-theme-color) 50%, 
+        rgba(231, 76, 60, 0.2) 80%, 
+        transparent 100%
+    );
+    animation: loading-pulse 2s infinite;
 }
 
 .loading-text {
-    color: var(--loading-theme-color);
+    color: #aaa;
     font-size: 16px;
 }
 
-@keyframes loading-animation {
-    0% { left: -100%; }
-    100% { left: 100%; }
+.loading-subtext {
+    color: var(--loading-theme-color);
+}
+
+@keyframes loading-pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
 }
 
 /* === সেন্ট্রাল প্লে বাটন === */
@@ -118,9 +133,9 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-btn:active { transform: scale(1.05); }
 .control-btn.active { color: var(--theme-color); }
 .control-btn svg { width: 24px; height: 24px; transition: fill 0.1s ease; }
+.control-btn svg path { fill: white; }
 .control-btn:hover svg path { fill: var(--theme-color); }
 .control-btn.active svg path { fill: var(--theme-color); }
-.control-btn svg path { fill: white; }
 .time-display { font-size: 16px; user-select: none; }
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
