@@ -11,6 +11,12 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
 .central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; font-size: 50px; color: rgba(255, 255, 255, 0.8); transition: transform 0.2s ease, color 0.2s ease; }
+
+/* নতুন কোড: পজ অবস্থায় সেন্ট্রাল প্লে-বাটনের রঙ পরিবর্তন */
+.player-container.paused .central-play-btn {
+    color: var(--theme-color);
+}
+
 .central-play-btn:hover { color: var(--theme-color); transform: translate(-50%, -50%) scale(1.1); }
 .central-play-btn:active { color: var(--theme-color-darker); transform: translate(-50%, -50%) scale(1.0); }
 
@@ -31,10 +37,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-btn:hover { color: var(--theme-color); transform: scale(1.15); }
 .control-btn:active { color: var(--theme-color-darker); transform: scale(1.05); }
 
-/* নতুন কোড: অ্যাক্টিভ বাটনের রঙ পরিবর্তন */
-.control-btn.active {
-    color: var(--theme-color);
-}
+.control-btn.active { color: var(--theme-color); }
 
 .time-display { font-size: 16px; user-select: none; }
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
