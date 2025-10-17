@@ -15,14 +15,18 @@ const settingsBtn = document.getElementById('settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
 const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
 const speedOptions = settingsMenu.querySelectorAll('li');
+const loadingSpinner = document.querySelector('.loading-spinner');
 
 let hls = new Hls();
 
+const showSpinner = () => { loadingSpinner.style.display = 'block'; };
+const hideSpinner = () => { loadingSpinner.style.display = 'none'; };
+
 function loadVideo(videoUrl) {
+    showSpinner();
     hls.destroy(); hls = new Hls();
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
-        hls.loadSource(videoUrl);
-        hls.attachMedia(video);
+        hls.loadSource(videoUrl); hls.attachMedia(video);
     } else { video.src = videoUrl; }
 }
 
@@ -98,10 +102,13 @@ video.addEventListener('play', updatePlayState);
 video.addEventListener('pause', updatePlayState);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
+video.addEventListener('waiting', showSpinner);
+video.addEventListener('playing', hideSpinner);
 video.addEventListener('canplay', () => {
+    hideSpinner();
     updateProgressUI();
     updateBufferBar();
-    updatePlayState(); // <<<<<<<<<<<< এই লাইনটি যোগ করা হয়েছে
+    updatePlayState();
 });
 video.addEventListener('volumechange', updateVolumeIcon);
 
@@ -112,9 +119,7 @@ forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
-
 progressBar.addEventListener('input', scrub);
-
 settingsBtn.addEventListener('click', toggleSettingsMenu);
 closeSettingsBtn.addEventListener('click', toggleSettingsMenu);
 speedOptions.forEach(option => {
@@ -126,7 +131,9 @@ speedOptions.forEach(option => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    updatePlayState(); // পেইজ লোড হওয়ার সাথে সাথে প্রাথমিক অবস্থা সেট করা
+    progressBar.value = 0;
+    progressFilled.style.width = '0%';
+    updatePlayState();
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
