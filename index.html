@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Player</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
 </head>
 <body>
     <div class="player-container">
         
-        <div class="central-play-btn" title="Play"><i class="fas fa-play"></i></div>
+        <div class="central-play-btn" title="Play">
+            <div class="play-icon-background">
+                <i class="fas fa-play"></i>
+            </div>
+        </div>
 
         <video class="video" src=""></video>
 
@@ -30,20 +33,22 @@
         </div>
 
         <div class="controls-container">
-            <!-- থাম্ব ছাড়া নতুন প্রোগ্রেস বার -->
             <div class="progress-range" title="Seek">
                 <div class="progress-background"></div>
                 <div class="buffer-bar"></div>
                 <div class="progress-filled"></div>
+                <input type="range" class="progress-bar" value="0" min="0" max="100" step="0.1">
             </div>
 
             <div class="control-group">
                 <div class="controls-left">
                     <button class="control-btn" id="play-pause-btn" title="Play/Pause"><i class="fas fa-play"></i></button>
                     <button class="control-btn seek-btn" id="rewind-btn" title="Rewind 10s">
+                        <i class="fa-solid fa-rotate-left"></i>
                         <span>10</span>
                     </button>
                     <button class="control-btn seek-btn" id="forward-btn" title="Forward 10s">
+                        <i class="fa-solid fa-rotate-right"></i>
                         <span>10</span>
                     </button>
                     <button class="control-btn" id="volume-btn" title="Mute/Unmute"><i class="fas fa-volume-high"></i></button>
@@ -51,7 +56,10 @@
                 </div>
                 <div class="controls-right">
                     <button class="control-btn" id="settings-btn" title="Settings"><i class="fas fa-cog"></i></button>
-                    <button class="control-btn" id="fullscreen-btn" title="Fullscreen"><i class="fas fa-expand"></i></button>
+                    <button class="control-btn" id="fullscreen-btn">
+                        <i class="fas fa-expand"></i>
+                        <span class="tooltip">Fullscreen</span>
+                    </button>
                 </div>
             </div>
         </div>
