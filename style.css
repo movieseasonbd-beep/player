@@ -28,7 +28,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .control-group { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px; }
 .controls-left, .controls-right { display: flex; align-items: center; gap: 20px; }
-.control-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; }
+.control-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; display: flex; align-items: center; justify-content: center; } /* display:flex যোগ করা হয়েছে */
 .control-btn:hover { color: var(--theme-color); transform: scale(1.15); }
 .control-btn:active { color: var(--theme-color-darker); transform: scale(1.05); }
 .control-btn.active { color: var(--theme-color); }
@@ -46,3 +46,19 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .settings-menu li { padding: 8px 12px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s ease; }
 .settings-menu li:hover { background-color: rgba(255, 255, 255, 0.1); }
 .settings-menu li.active { color: var(--theme-color); font-weight: bold; }
+
+/* === নতুন আইকন স্টাইল করার জন্য এই কোড যোগ করা হয়েছে === */
+.control-btn svg {
+    width: 24px;  /* আইকনের সাইজ ঠিক করা */
+    height: 24px;
+    fill: white; /* আইকনের ডিফল্ট রঙ */
+    transition: fill 0.1s ease; /* রঙ পরিবর্তনে স্মুথ ইফেক্ট */
+}
+
+.control-btn:hover svg {
+    fill: var(--theme-color); /* হোভার করলে রঙ পরিবর্তন হবে */
+}
+
+.control-btn:active svg {
+    fill: var(--theme-color-darker); /* ক্লিক করলে রঙ পরিবর্তন হবে */
+}
