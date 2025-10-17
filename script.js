@@ -17,13 +17,33 @@ const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
 const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
+let currentVideoUrl = ''; // === পরিবর্তন ১: বর্তমান ভিডিওর URL রাখার জন্য ভ্যারিয়েবল ===
 
 function loadVideo(videoUrl) {
+    currentVideoUrl = videoUrl; // URL সেভ করা হচ্ছে
     hls.destroy(); hls = new Hls();
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
     } else { video.src = videoUrl; }
+}
+
+// === পরিবর্তন ২: ভিডিওর সময় সেভ করার ফাংশন ===
+function saveProgress() {
+    if (video.currentTime > 0 && currentVideoUrl) {
+        // প্রতিটি ভিডিওর জন্য আলাদাভাবে সময় সেভ করা হচ্ছে
+        localStorage.setItem(`video-progress-${currentVideoUrl}`, video.currentTime);
+    }
+}
+
+// === পরিবর্তন ৩: সেভ করা সময় লোড করার ফাংশন ===
+function loadProgress() {
+    if (currentVideoUrl) {
+        const savedTime = localStorage.getItem(`video-progress-${currentVideoUrl}`);
+        if (savedTime) {
+            video.currentTime = parseFloat(savedTime);
+        }
+    }
 }
 
 function togglePlay() { if (video.src) video.paused ? video.play() : video.pause(); }
@@ -35,17 +55,13 @@ function updatePlayState() {
     playerContainer.classList.toggle('paused', video.paused);
 }
 
-// === ১ নম্বর পরিবর্তন এখানে করা হয়েছে ===
 function updateProgressUI() {
-    // NaN (Not a Number) সমস্যা সমাধানের জন্য এই পরিবর্তন
     let progressPercent = 0;
     if (video.duration) {
         progressPercent = (video.currentTime / video.duration) * 100;
     }
-
     progressFilled.style.width = `${progressPercent}%`;
     progressBar.value = progressPercent;
-
     const totalDuration = isNaN(video.duration) ? 0 : video.duration;
     timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
 }
@@ -103,12 +119,20 @@ function toggleSettingsMenu() {
 video.addEventListener('click', togglePlay);
 video.addEventListener('play', updatePlayState);
 video.addEventListener('pause', updatePlayState);
-video.addEventListener('timeupdate', updateProgressUI);
+
+// === পরিবর্তন ৪: সময় সেভ করার জন্য timeupdate ইভেন্ট লিসেনার ===
+// প্রতি ২ সেকেন্ড পর পর সময় সেভ হবে
+video.addEventListener('timeupdate', () => {
+    updateProgressUI();
+    saveProgress();
+});
+
 video.addEventListener('progress', updateBufferBar);
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
+    loadProgress(); // === পরিবর্তন ৫: ভিডিও প্লে করার জন্য প্রস্তুত হলে সেভ করা সময় লোড হবে ===
 });
 video.addEventListener('volumechange', updateVolumeIcon);
 
@@ -132,9 +156,7 @@ speedOptions.forEach(option => {
     });
 });
 
-// === ২ নম্বর পরিবর্তন এখানে করা হয়েছে ===
 document.addEventListener('DOMContentLoaded', () => {
-    // UI-এর প্রাথমিক অবস্থা নিশ্চিতভাবে সেট করা
     updatePlayState();
     updateProgressUI();
 
@@ -144,3 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
         loadVideo(videoUrl);
     }
 });
+
+// === পরিবর্তন ৬: পেজ বন্ধ করার সময়ও যেন সময় সেভ হয় ===
+window.addEventListener('beforeunload', saveProgress);
