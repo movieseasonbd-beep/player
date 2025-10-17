@@ -16,39 +16,13 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
 
-/* প্রোগ্রেস বারের অ্যালাইনমেন্টের চূড়ান্ত সমাধান */
-.progress-range {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr;
-    align-items: center;
-    width: 100%;
-    padding: 8px 0;
-    cursor: pointer;
-    position: relative;
-}
-.progress-background, .buffer-bar, .progress-filled, .progress-bar {
-    grid-column: 1;
-    grid-row: 1;
-}
-.progress-background, .buffer-bar, .progress-filled {
-    height: var(--progress-bar-height);
-    border-radius: 5px;
-    pointer-events: none;
-}
-.progress-background { background: rgba(255, 255, 255, 0.2); }
+/* প্রোগ্রেস বারের অ্যালাইনমেন্ট ঠিক করা হয়েছে */
+.progress-range { width: 100%; padding: 8px 0; cursor: pointer; position: relative; display: flex; align-items: center; }
+.progress-background, .buffer-bar, .progress-filled { position: absolute; left: 0; height: var(--progress-bar-height); border-radius: 5px; pointer-events: none; }
+.progress-background { width: 100%; background: rgba(255, 255, 255, 0.2); }
 .buffer-bar { background: rgba(255, 255, 255, 0.4); width: 0; transition: width 0.1s linear; }
 .progress-filled { background: var(--theme-color); width: 0; }
-.progress-bar {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    background: transparent;
-    outline: none;
-    margin: 0;
-    padding: 0;
-    z-index: 2;
-}
+.progress-bar { -webkit-appearance: none; appearance: none; width: 100%; background: transparent; outline: none; position: relative; z-index: 2; margin: 0; height: var(--progress-bar-height); }
 .progress-bar::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -57,9 +31,10 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     background: white;
     border-radius: 50%;
     cursor: pointer;
+    margin-top: calc((var(--progress-bar-height) - var(--thumb-size)) / 2); /* এই লাইনটি আইকনকে মাঝখানে আনে */
 }
 
-.control-group { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px; }
+.control-group { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .controls-left, .controls-right { display: flex; align-items: center; gap: 20px; }
 .control-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; }
 .control-btn:hover { color: var(--theme-color); transform: scale(1.15); }
