@@ -101,7 +101,7 @@ video.addEventListener('progress', updateBufferBar);
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
-    updatePlayState(); // <<<<<<<<<<<< এই লাইনটি যোগ করা হয়েছে
+    updatePlayState();
 });
 video.addEventListener('volumechange', updateVolumeIcon);
 
@@ -125,8 +125,15 @@ speedOptions.forEach(option => {
     });
 });
 
+// === পরিবর্তন এখানে করা হয়েছে ===
 document.addEventListener('DOMContentLoaded', () => {
     updatePlayState(); // পেইজ লোড হওয়ার সাথে সাথে প্রাথমিক অবস্থা সেট করা
+
+    // প্রোগ্রেস বার এবং টাইম ডিসপ্লে রিসেট করে একদম শুরুতে আনা হয়েছে
+    progressBar.value = 0;
+    progressFilled.style.width = '0%';
+    timeDisplay.textContent = '00:00 / 00:00';
+
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
