@@ -5,15 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Player</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <!-- Font Awesome এর 최신 সংস্করণ ব্যবহার করা হয়েছে -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
 </head>
 <body>
 
     <div class="player-container">
-        <!-- ভিডিওর টাইটেল এখান থেকে সরিয়ে দেওয়া হয়েছে -->
         
+        <!-- সেন্ট্রাল প্লে বাটনের নতুন ডিজাইন -->
         <div class="central-play-btn">
-            <i class="fas fa-play"></i>
+            <div class="play-icon-background">
+                <i class="fas fa-play"></i>
+            </div>
         </div>
 
         <video class="video" src=""></video>
@@ -26,16 +29,21 @@
             <div class="control-group">
                 <div class="controls-left">
                     <button class="control-btn" id="play-pause-btn" title="Play/Pause"><i class="fas fa-play"></i></button>
-                    <button class="control-btn" id="rewind-btn" title="Rewind 10s"><i class="fas fa-undo"></i></button>
-                    <button class="control-btn" id="forward-btn" title="Forward 10s"><i class="fas fa-redo"></i></button>
+                    <!-- নতুন Rewind/Forward বাটন -->
+                    <button class="control-btn seek-btn" id="rewind-btn" title="Rewind 10s">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>10</span>
+                    </button>
+                    <button class="control-btn seek-btn" id="forward-btn" title="Forward 10s">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>10</span>
+                    </button>
                     <div class="volume-container">
                         <button class="control-btn" id="volume-btn" title="Mute/Unmute"><i class="fas fa-volume-high"></i></button>
-                        <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="1" title="Volume">
                     </div>
                     <span class="time-display">00:00 / 00:00</span>
                 </div>
                 <div class="controls-right">
-                    <button class="control-btn" id="caption-btn" title="Subtitles/Captions"><i class="fas fa-closed-captioning"></i></button>
                     <button class="control-btn" id="settings-btn" title="Settings"><i class="fas fa-cog"></i></button>
                     <button class="control-btn" id="fullscreen-btn" title="Fullscreen"><i class="fas fa-expand"></i></button>
                 </div>
