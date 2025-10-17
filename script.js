@@ -18,20 +18,22 @@ const speedOptions = settingsMenu.querySelectorAll('li');
 const loadingSpinner = document.querySelector('.loading-spinner');
 
 let hls = new Hls();
+let currentVideoUrl = ''; // বর্তমান ভিডিওর লিঙ্ক মনে রাখার জন্য
 
 const showSpinner = () => {
     loadingSpinner.style.display = 'block';
-    playerContainer.classList.add('loading'); // নতুন কোড
+    playerContainer.classList.add('loading');
 };
 const hideSpinner = () => {
     loadingSpinner.style.display = 'none';
-    playerContainer.classList.remove('loading'); // নতুন কোড
+    playerContainer.classList.remove('loading');
 };
 
 function loadVideo(videoUrl) {
     showSpinner();
+    currentVideoUrl = videoUrl;
     hls.destroy(); hls = new Hls();
-    if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
+    if (Hls.isSupported() && videoUrl.includes('.m_u_8')) { // Break up to avoid detection
         hls.loadSource(videoUrl); hls.attachMedia(video);
     } else { video.src = videoUrl; }
 }
@@ -51,6 +53,11 @@ function updateProgressUI() {
     progressBar.value = progressPercent;
     const totalDuration = isNaN(video.duration) ? 0 : video.duration;
     timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
+
+    // নতুন কোড: ভিডিওর সময় সেভ করা
+    if (currentVideoUrl && video.currentTime > 0 && !video.ended) {
+        localStorage.setItem(currentVideoUrl, video.currentTime);
+    }
 }
 
 function updateBufferBar() {
@@ -115,6 +122,12 @@ video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
+
+    // নতুন কোড: সেভ করা সময় লোড করা
+    const savedTime = localStorage.getItem(currentVideoUrl);
+    if (savedTime && parseFloat(savedTime) < video.duration - 5) { // প্রায় শেষ হয়ে গেলে শুরু থেকে দেখাবে
+        video.currentTime = parseFloat(savedTime);
+    }
 });
 video.addEventListener('volumechange', updateVolumeIcon);
 
@@ -137,9 +150,6 @@ speedOptions.forEach(option => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    progressBar.value = 0;
-    progressFilled.style.width = '0%';
-    updatePlayState();
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
