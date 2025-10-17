@@ -55,28 +55,23 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 
 .loading-bar-container {
-    width: 200px;
-    height: 3px;
-    margin: 0 auto 12px auto;
+    width: 220px;
+    height: 15px;
+    margin: 0 auto 10px auto;
     position: relative;
     overflow: hidden;
 }
 
-.loading-bar {
+.loading-bar::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
     width: 100%;
-    height: 100%;
-    border-radius: 1.5px;
-    background-image: linear-gradient(
-        90deg, 
-        rgba(255,0,0,0), 
-        #4d0000, 
-        #a30000, 
-        #ff8c8c,
-        #a30000, 
-        #4d0000,
-        rgba(255,0,0,0)
-    );
-    background-size: 300% 100%;
+    height: 2px;
+    transform: translateY(-50%);
+    background: radial-gradient(ellipse at center, #ff8c8c 0%, var(--loading-theme-color) 40%, rgba(255,0,0,0) 70%);
+    box-shadow: 0 0 10px var(--loading-theme-color);
     animation: loading-glow-scan 3s infinite linear;
 }
 
@@ -97,8 +92,8 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 
 @keyframes loading-glow-scan {
-    0% { background-position: 150% 0; }
-    100% { background-position: -150% 0; }
+    0% { transform: translateY(-50%) translateX(-100%); }
+    100% { transform: translateY(-50%) translateX(100%); }
 }
 
 @keyframes logo-grow-once {
@@ -106,6 +101,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     50% { transform: scale(1.05); }
     100% { transform: scale(1.05); }
 }
+
 
 /* === সেন্ট্রাল প্লে বাটন === */
 .central-play-btn { 
