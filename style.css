@@ -41,6 +41,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     text-align: center;
 }
 
+/* === পরিবর্তন এখানে (লোগোর অ্যানিমেশন) === */
 .loading-logo {
     font-family: 'Arial', sans-serif;
     font-size: 28px;
@@ -51,35 +52,35 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    /* অ্যানিমেশন যোগ করা হয়েছে */
+    animation: logo-grow-effect 3s infinite linear;
 }
 
+/* === পরিবর্তন এখানে (লোডিং বারের অ্যানিমেশন) === */
 .loading-bar-container {
     width: 200px;
     height: 3px;
     margin: 0 auto 12px auto;
     position: relative;
-    overflow: hidden;
+    overflow: hidden; /* খুবই জরুরি */
+    background: transparent;
 }
 
 .loading-bar {
     width: 100%;
     height: 100%;
     border-radius: 1.5px;
-    background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
-    box-shadow: 0 0 15px var(--loading-theme-color);
-    opacity: 0.6;
-}
-
-.loading-bar::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(to right, transparent 0%, white 50%, transparent 100%);
-    filter: blur(4px);
-    animation: loading-scan 3s infinite linear;
+    /* একটি প্রশস্ত গ্রেডিয়েন্ট তৈরি করা হয়েছে যা অ্যানিমেট হবে */
+    background-image: linear-gradient(
+        90deg, 
+        #4d0000, 
+        #a30000, 
+        #ff8c8c, /* উজ্জ্বল আলোর কেন্দ্র */
+        #a30000, 
+        #4d0000
+    );
+    background-size: 300% 100%; /* গ্রেডিয়েন্টকে বারের চেয়ে বড় করা হয়েছে */
+    animation: loading-glow-scan 3s infinite linear;
 }
 
 .loading-text {
@@ -98,15 +99,27 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     color: transparent;
 }
 
-@keyframes loading-scan {
-    0% {
-        transform: translateX(-100%);
+/* === পরিবর্তন এখানে (নতুন অ্যানিমেশন কীফ্রেম) === */
+@keyframes loading-glow-scan {
+    from {
+        background-position: 150% 0;
     }
-    100% {
-        transform: translateX(166%);
+    to {
+        background-position: -150% 0;
     }
 }
 
+@keyframes logo-grow-effect {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05); /* আলোর আভা যখন মাঝখানে, তখন লেখা বড় হবে */
+    }
+}
+
+
+/* ... বাকি সমস্ত CSS কোড অপরিবর্তিত ... */
 
 /* === সেন্ট্রাল প্লে বাটন === */
 .central-play-btn { 
