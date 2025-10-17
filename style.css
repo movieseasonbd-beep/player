@@ -1,6 +1,6 @@
 :root {
     --theme-color: #3498db; /* আপনার পরিবর্তিত নীল রঙ */
-    --theme-color-darker: #2980b9; /* আপনার পরিবর্তিত গাঢ় নীল রঙ */
+    --theme-color-darker: #2980b9;
     --progress-bar-height: 5px;
     --thumb-size: 16px;
 }
@@ -10,18 +10,31 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container:hover .controls-container, .player-container.paused .controls-container { opacity: 1; transform: translateY(0); }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
-.central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; font-size: 50px; color: rgba(255, 255, 255, 0.8); transition: transform 0.2s ease, color 0.2s ease; }
-
-/* নতুন কোড: পজ অবস্থায় সেন্ট্রাল প্লে-বাটনের রঙ পরিবর্তন */
-.player-container.paused .central-play-btn {
-    color: var(--theme-color);
+/* নতুন লোডিং স্পিনারের স্টাইল */
+.loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-top-color: var(--theme-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 3;
+    display: none; /* ডিফল্টভাবে লুকানো থাকবে */
+}
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
+.central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; font-size: 50px; color: rgba(255, 255, 255, 0.8); transition: transform 0.2s ease, color 0.2s ease; }
+.player-container.paused .central-play-btn { color: var(--theme-color); }
 .central-play-btn:hover { color: var(--theme-color); transform: translate(-50%, -50%) scale(1.1); }
 .central-play-btn:active { color: var(--theme-color-darker); transform: translate(-50%, -50%) scale(1.0); }
 
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
-
 .progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 8px 0; cursor: pointer; position: relative; }
 .progress-background, .buffer-bar, .progress-filled, .progress-bar { grid-column: 1; grid-row: 1; }
 .progress-background, .buffer-bar, .progress-filled { height: var(--progress-bar-height); border-radius: 5px; pointer-events: none; }
@@ -36,13 +49,10 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; }
 .control-btn:hover { color: var(--theme-color); transform: scale(1.15); }
 .control-btn:active { color: var(--theme-color-darker); transform: scale(1.05); }
-
 .control-btn.active { color: var(--theme-color); }
-
 .time-display { font-size: 16px; user-select: none; }
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
-
 .settings-menu { position: absolute; bottom: 80px; right: 20px; background-color: rgba(40, 40, 40, 0.9); border-radius: 8px; z-index: 5; width: 200px; padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, transform 0.2s ease; transform: translateY(10px); }
 .settings-menu.active { opacity: 1; visibility: visible; transform: translateY(0); }
 .menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 16px; font-weight: bold; }
