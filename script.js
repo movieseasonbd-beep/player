@@ -17,10 +17,11 @@ const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
 const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
-let currentVideoUrl = ''; // === পরিবর্তন ১: বর্তমান ভিডিওর URL রাখার জন্য ভ্যারিয়েবল ===
+let currentVideoUrl = '';
+let saveProgressThrottled = false; // === পরিবর্তন ১: থ্রটলিং এর জন্য একটি ফ্ল্যাগ ===
 
 function loadVideo(videoUrl) {
-    currentVideoUrl = videoUrl; // URL সেভ করা হচ্ছে
+    currentVideoUrl = videoUrl;
     hls.destroy(); hls = new Hls();
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         hls.loadSource(videoUrl);
@@ -28,15 +29,12 @@ function loadVideo(videoUrl) {
     } else { video.src = videoUrl; }
 }
 
-// === পরিবর্তন ২: ভিডিওর সময় সেভ করার ফাংশন ===
 function saveProgress() {
     if (video.currentTime > 0 && currentVideoUrl) {
-        // প্রতিটি ভিডিওর জন্য আলাদাভাবে সময় সেভ করা হচ্ছে
         localStorage.setItem(`video-progress-${currentVideoUrl}`, video.currentTime);
     }
 }
 
-// === পরিবর্তন ৩: সেভ করা সময় লোড করার ফাংশন ===
 function loadProgress() {
     if (currentVideoUrl) {
         const savedTime = localStorage.getItem(`video-progress-${currentVideoUrl}`);
@@ -120,11 +118,18 @@ video.addEventListener('click', togglePlay);
 video.addEventListener('play', updatePlayState);
 video.addEventListener('pause', updatePlayState);
 
-// === পরিবর্তন ৪: সময় সেভ করার জন্য timeupdate ইভেন্ট লিসেনার ===
-// প্রতি ২ সেকেন্ড পর পর সময় সেভ হবে
+// === পরিবর্তন ২: থ্রটলিং কৌশল প্রয়োগ করা হয়েছে ===
 video.addEventListener('timeupdate', () => {
-    updateProgressUI();
-    saveProgress();
+    updateProgressUI(); // UI আপডেট সবসময় হবে, কারণ এটি একটি হালকা কাজ
+
+    // কিন্তু সময় সেভ হবে প্রতি ২ সেকেন্ডে একবার
+    if (!saveProgressThrottled) {
+        saveProgress();
+        saveProgressThrottled = true;
+        setTimeout(() => {
+            saveProgressThrottled = false;
+        }, 2000); // ২ সেকেন্ডের জন্য সময় সেভ করা বন্ধ থাকবে
+    }
 });
 
 video.addEventListener('progress', updateBufferBar);
@@ -132,7 +137,7 @@ video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
-    loadProgress(); // === পরিবর্তন ৫: ভিডিও প্লে করার জন্য প্রস্তুত হলে সেভ করা সময় লোড হবে ===
+    loadProgress();
 });
 video.addEventListener('volumechange', updateVolumeIcon);
 
@@ -167,5 +172,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// === পরিবর্তন ৬: পেজ বন্ধ করার সময়ও যেন সময় সেভ হয় ===
 window.addEventListener('beforeunload', saveProgress);
