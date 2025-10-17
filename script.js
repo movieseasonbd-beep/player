@@ -22,6 +22,7 @@ function updatePlayState() {
     const icon = playPauseBtn.querySelector('i');
     icon.className = video.paused ? 'fas fa-play' : 'fas fa-pause';
     playerContainer.classList.toggle('playing', !video.paused);
+    playerContainer.classList.toggle('paused', video.paused);
 }
 
 function updateProgressUI() {
