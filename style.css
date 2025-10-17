@@ -1,5 +1,5 @@
 :root {
-    --theme-color: #3498db; /* আপনার পরিবর্তিত নীল রঙ */
+    --theme-color: #3498db;
     --theme-color-darker: #2980b9;
     --progress-bar-height: 5px;
     --thumb-size: 16px;
@@ -10,29 +10,28 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container:hover .controls-container, .player-container.paused .controls-container { opacity: 1; transform: translateY(0); }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
-/* নতুন লোডিং স্পিনারের স্টাইল */
 .loading-spinner {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 50px;
-    height: 50px;
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); width: 50px; height: 50px;
     border: 5px solid rgba(255, 255, 255, 0.3);
     border-top-color: var(--theme-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    z-index: 3;
-    display: none; /* ডিফল্টভাবে লুকানো থাকবে */
+    border-radius: 50%; animation: spin 1s linear infinite;
+    z-index: 3; display: none;
 }
 @keyframes spin {
     to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-.central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; font-size: 50px; color: rgba(255, 255, 255, 0.8); transition: transform 0.2s ease, color 0.2s ease; }
+.central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; font-size: 50px; color: rgba(255, 255, 255, 0.8); transition: transform 0.2s ease, color 0.2s ease, opacity 0.2s ease; }
 .player-container.paused .central-play-btn { color: var(--theme-color); }
 .central-play-btn:hover { color: var(--theme-color); transform: translate(-50%, -50%) scale(1.1); }
 .central-play-btn:active { color: var(--theme-color-darker); transform: translate(-50%, -50%) scale(1.0); }
+
+/* নতুন কোড: লোডিং অবস্থায় প্লে-বাটন লুকানো */
+.player-container.loading .central-play-btn {
+    opacity: 0;
+    pointer-events: none;
+}
 
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
 .progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 8px 0; cursor: pointer; position: relative; }
