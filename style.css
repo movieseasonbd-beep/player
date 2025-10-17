@@ -1,6 +1,6 @@
 :root {
-    --theme-color: #2ecc71; /* সবুজ রঙ */
-    --progress-bar-height: 4px;
+    --theme-color: #00b894; /* ছবির মতো সবুজ রঙ */
+    --progress-bar-height: 5px;
 }
 
 body {
@@ -39,21 +39,32 @@ body {
     display: block;
 }
 
+/* সেন্ট্রাল প্লে বাটনের নতুন স্টাইল */
 .central-play-btn {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 60px;
-    color: rgba(255, 255, 255, 0.8);
-    cursor: pointer;
-    transition: color 0.2s ease, transform 0.2s ease;
     z-index: 2;
-    text-shadow: 1px 1px 10px rgba(0,0,0,0.5);
+    cursor: pointer;
 }
-.central-play-btn:hover {
+.play-icon-background {
+    width: 80px;
+    height: 80px;
+    background-color: rgba(0, 184, 148, 0.8); /* সবুজ ব্যাকগ্রাউন্ড */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+.play-icon-background i {
+    font-size: 36px;
     color: white;
-    transform: translate(-50%, -50%) scale(1.1);
+    margin-left: 5px; /* আইকনটিকে মাঝখানে আনার জন্য */
+}
+.central-play-btn:hover .play-icon-background {
+    transform: scale(1.1);
 }
 
 .controls-container {
@@ -61,62 +72,60 @@ body {
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: 10px 25px; /* ডান ও বামে প্যাডিং বাড়ানো হয়েছে */
+    padding: 15px 25px;
     background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
     z-index: 3;
     opacity: 0;
     transform: translateY(100%);
-    transition: opacity 0.25s ease, transform 0.25s ease; /* অ্যানিমেশন স্মুথ করা হয়েছে */
+    transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .progress-range { width: 100%; padding: 5px 0; cursor: pointer; }
 
+/* প্রোগ্রেস বারের নতুন স্টাইল */
 .progress-bar {
     -webkit-appearance: none; appearance: none;
     width: 100%; height: var(--progress-bar-height);
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.3);
     outline: none; border-radius: 5px;
-    transition: height 0.2s ease;
 }
-.progress-range:hover .progress-bar { height: 7px; }
 .progress-bar::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
-    width: 15px; height: 15px;
-    background: var(--theme-color); border-radius: 50%;
-    cursor: pointer; transform: scale(0);
-    transition: transform 0.2s ease-out;
+    width: 16px; height: 16px;
+    background: white; /* সাদা থাম্ব */
+    border-radius: 50%;
+    cursor: pointer;
 }
-.progress-range:hover .progress-bar::-webkit-slider-thumb { transform: scale(1); }
 
 .control-group { display: flex; justify-content: space-between; align-items: center; }
-.controls-left, .controls-right { display: flex; align-items: center; }
+.controls-left, .controls-right { display: flex; align-items: center; gap: 15px; }
 
 .control-btn {
     background: none; border: none;
-    color: white; font-size: 20px;
-    cursor: pointer; padding: 8px;
+    color: white; font-size: 22px;
+    cursor: pointer; padding: 0;
     transition: transform 0.1s ease;
 }
 .control-btn:hover {
     transform: scale(1.15);
 }
 
-.volume-container { display: flex; align-items: center; }
-.volume-slider {
-    -webkit-appearance: none; appearance: none;
-    width: 0; height: 5px;
-    background: white;
-    border-radius: 5px; outline: none;
-    transition: width 0.3s ease-in-out;
-    cursor: pointer;
+/* Rewind/Forward বাটনের নতুন স্টাইল */
+.seek-btn {
+    position: relative;
+    font-size: 24px;
 }
-.volume-container:hover .volume-slider { width: 80px; }
-.volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 14px; height: 14px;
-    background: white; border: 2px solid #333;
-    border-radius: 50%; cursor: pointer;
+.seek-btn span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: bold;
+    color: white;
 }
 
-.time-display { font-size: 14px; margin-left: 12px; }
+.volume-container { display: flex; align-items: center; }
+.time-display { font-size: 16px; user-select: none; }
 
 #fullscreen-btn.active i::before { content: '\f066'; }
