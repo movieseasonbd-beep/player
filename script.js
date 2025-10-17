@@ -5,7 +5,7 @@ const playPauseBtn = document.getElementById('play-pause-btn');
 const rewindBtn = document.getElementById('rewind-btn');
 const forwardBtn = document.getElementById('forward-btn');
 const volumeBtn = document.getElementById('volume-btn');
-const progressBar = document.querySelector('.progress-bar');
+const progressRange = document.querySelector('.progress-range'); // থাম্ব ছাড়া বারের জন্য
 const progressFilled = document.querySelector('.progress-filled');
 const bufferBar = document.querySelector('.buffer-bar');
 const timeDisplay = document.querySelector('.time-display');
@@ -27,8 +27,6 @@ function updatePlayState() {
 function updateProgressUI() {
     const progressPercent = (video.currentTime / video.duration) * 100;
     progressFilled.style.width = `${progressPercent}%`;
-    progressBar.value = progressPercent;
-    
     const totalDuration = isNaN(video.duration) ? 0 : video.duration;
     timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
 }
@@ -41,15 +39,12 @@ function updateBufferBar() {
     }
 }
 
+// থাম্ব ছাড়া প্রোগ্রেস বারের জন্য নতুন ফাংশন
 function scrub(e) {
-    const value = e.target.value;
-    const scrubTime = (value / 100) * video.duration;
+    const scrubTime = (e.offsetX / progressRange.offsetWidth) * video.duration;
     if (!isNaN(scrubTime)) {
         video.currentTime = scrubTime;
     }
-    progressFilled.style.width = `${value}%`;
-    const totalDuration = isNaN(video.duration) ? 0 : video.duration;
-    timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(totalDuration)}`;
 }
 
 function formatTime(seconds) {
@@ -96,20 +91,10 @@ volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
 
-progressBar.addEventListener('input', scrub);
-
-settingsBtn.addEventListener('click', toggleSettingsMenu);
-closeSettingsBtn.addEventListener('click', toggleSettingsMenu);
-speedOptions.forEach(option => {
-    option.addEventListener('click', () => {
-        video.playbackRate = option.dataset.speed;
-        speedOptions.forEach(opt => opt.classList.remove('active'));
-        option.classList.add('active');
-    });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const videoUrl = urlParams.get('id');
-    if (videoUrl) { video.src = videoUrl; }
-});
+// থাম্ব ছাড়া প্রোগ্রেস বারের জন্য নতুন ইভেন্ট লিসেনার
+let mousedown = false;
+progressRange.addEventListener('click', scrub);
+progressRange.addEventListener('mousedown', () => mousedown = true);
+progressRange.addEventListener('mouseup', () => mousedown = false);
+progressRange.addEventListener('mouseleave', () => mousedown = false);
+progressRange.
