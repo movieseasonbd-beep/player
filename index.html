@@ -6,15 +6,14 @@
     <title>Video Player</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-    <!-- HLS (M3U8) প্লেয়ারের জন্য hls.js লাইব্রেরি -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
     <div class="player-container">
+        <div class="loading-spinner"></div>
         <div class="central-play-btn" title="Play"><i class="fas fa-play"></i></div>
         <video class="video" src=""></video>
 
-        <!-- সেটিংস মেনু -->
         <div class="settings-menu">
             <div class="menu-header">
                 <div><i class="fa-solid fa-clock"></i> Speed</div>
