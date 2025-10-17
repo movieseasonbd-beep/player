@@ -97,7 +97,7 @@ volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
 
-progressBar.addEventListener('input', scrub); // তাৎক্ষণিক রেসপন্সের জন্য
+progressBar.addEventListener('input', scrub);
 
 settingsBtn.addEventListener('click', toggleSettingsMenu);
 closeSettingsBtn.addEventListener('click', toggleSettingsMenu);
