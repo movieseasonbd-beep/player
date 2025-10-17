@@ -29,8 +29,17 @@ function loadVideo(videoUrl) {
 function togglePlay() { if (video.src) video.paused ? video.play() : video.pause(); }
 
 function updatePlayState() {
-    const icon = playPauseBtn.querySelector('i');
-    icon.className = video.paused ? 'fas fa-play' : 'fas fa-pause';
+    const playIcon = playPauseBtn.querySelector('.play-icon');
+    const pauseIcon = playPauseBtn.querySelector('.pause-icon');
+    
+    if (video.paused) {
+        playIcon.style.display = 'block';
+        pauseIcon.style.display = 'none';
+    } else {
+        playIcon.style.display = 'none';
+        pauseIcon.style.display = 'block';
+    }
+    
     playerContainer.classList.toggle('playing', !video.paused);
     playerContainer.classList.toggle('paused', video.paused);
 }
@@ -93,7 +102,18 @@ function toggleFullscreen() {
 }
 
 function updateFullscreenState() {
+    const fullscreenOnIcon = fullscreenBtn.querySelector('.fullscreen-on-icon');
+    const fullscreenOffIcon = fullscreenBtn.querySelector('.fullscreen-off-icon');
     const isFullscreen = !!document.fullscreenElement;
+    
+    if (isFullscreen) {
+        fullscreenOnIcon.style.display = 'none';
+        fullscreenOffIcon.style.display = 'block';
+    } else {
+        fullscreenOnIcon.style.display = 'block';
+        fullscreenOffIcon.style.display = 'none';
+    }
+    
     fullscreenBtn.classList.toggle('active', isFullscreen);
     fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
 }
@@ -140,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePlayState();
     updateProgressUI();
     updateVolumeIcon();
+    updateFullscreenState();
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
