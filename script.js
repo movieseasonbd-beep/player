@@ -17,21 +17,12 @@ const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
 const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
-let currentVideoUrl = '';
-
-function resetPlayerUI() {
-    progressBar.value = 0;
-    progressFilled.style.width = '0%';
-    bufferBar.style.width = '0%';
-    timeDisplay.textContent = '00:00 / 00:00';
-}
 
 function loadVideo(videoUrl) {
-    resetPlayerUI(); // নতুন ভিডিও লোড করার আগে UI রিসেট করা
-    currentVideoUrl = videoUrl;
     hls.destroy(); hls = new Hls();
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
-        hls.loadSource(videoUrl); hls.attachMedia(video);
+        hls.loadSource(videoUrl);
+        hls.attachMedia(video);
     } else { video.src = videoUrl; }
 }
 
@@ -45,27 +36,15 @@ function updatePlayState() {
 }
 
 function updateProgressUI() {
-    if (video.duration === Infinity) {
-        progressFilled.style.width = '100%';
-        bufferBar.style.width = '100%';
-        progressBar.style.display = 'none';
-        return;
-    }
-    progressBar.style.display = 'block';
-
     const progressPercent = (video.currentTime / video.duration) * 100;
     progressFilled.style.width = `${progressPercent}%`;
     progressBar.value = progressPercent;
     const totalDuration = isNaN(video.duration) ? 0 : video.duration;
     timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
-
-    if (currentVideoUrl && video.currentTime > 1 && !video.ended) {
-        localStorage.setItem(currentVideoUrl, video.currentTime);
-    }
 }
 
 function updateBufferBar() {
-    if (video.buffered.length > 0 && video.duration !== Infinity) {
+    if (video.buffered.length > 0) {
         const bufferEnd = video.buffered.end(video.buffered.length - 1);
         const bufferPercent = (bufferEnd / video.duration) * 100;
         bufferBar.style.width = `${bufferPercent}%`;
@@ -73,7 +52,6 @@ function updateBufferBar() {
 }
 
 function scrub(e) {
-    if (video.duration === Infinity) return;
     const value = e.target.value;
     const scrubTime = (value / 100) * video.duration;
     if (!isNaN(scrubTime)) { video.currentTime = scrubTime; }
@@ -123,25 +101,20 @@ video.addEventListener('progress', updateBufferBar);
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
-    updatePlayState();
-
-    if (video.duration !== Infinity) {
-        const savedTime = localStorage.getItem(currentVideoUrl);
-        if (savedTime && parseFloat(savedTime) < video.duration - 10) {
-            video.currentTime = parseFloat(savedTime);
-        }
-    }
+    updatePlayState(); // <<<<<<<<<<<< এই লাইনটি যোগ করা হয়েছে
 });
 video.addEventListener('volumechange', updateVolumeIcon);
 
 centralPlayBtn.addEventListener('click', togglePlay);
 playPauseBtn.addEventListener('click', togglePlay);
-rewindBtn.addEventListener('click', () => { if(video.duration !== Infinity) video.currentTime -= 10; });
-forwardBtn.addEventListener('click', () => { if(video.duration !== Infinity) video.currentTime += 10; });
+rewindBtn.addEventListener('click', () => { video.currentTime -= 10; });
+forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
+
 progressBar.addEventListener('input', scrub);
+
 settingsBtn.addEventListener('click', toggleSettingsMenu);
 closeSettingsBtn.addEventListener('click', toggleSettingsMenu);
 speedOptions.forEach(option => {
@@ -153,7 +126,7 @@ speedOptions.forEach(option => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    resetPlayerUI(); // পেইজ লোড হওয়ার সাথে সাথেই UI রিসেট করা
+    updatePlayState(); // পেইজ লোড হওয়ার সাথে সাথে প্রাথমিক অবস্থা সেট করা
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
