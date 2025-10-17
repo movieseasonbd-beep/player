@@ -9,7 +9,21 @@
 </head>
 <body>
     <div class="player-container">
-        <!-- === সঠিক এবং নির্ভরযোগ্য প্লে আইকন === -->
+        <!-- === নতুন লোডিং স্ক্রিন এখানে === -->
+        <div class="loading-overlay">
+            <div class="loading-content">
+                <!-- আপনার নিজের লোগো এখানে ব্যবহার করুন -->
+                <!-- উদাহরণ: <img src="your-logo.png" class="loading-logo"> -->
+                <svg class="loading-logo" viewBox="0 0 100 40">
+                    <text x="50" y="30" font-family="Arial, sans-serif" font-size="28" font-weight="bold" text-anchor="middle">LOGO</text>
+                </svg>
+                <div class="loading-bar-container">
+                    <div class="loading-bar"></div>
+                </div>
+                <div class="loading-text">Loading...</div>
+            </div>
+        </div>
+
         <div class="central-play-btn" title="Play">
             <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.14-5.18c.62-.39.62-1.29 0-1.69L9.54 5.98C8.87 5.55 8 6.03 8 6.82z"></path></svg>
         </div>
@@ -44,7 +58,6 @@
 
             <div class="control-group">
                 <div class="controls-left">
-                    <!-- === সঠিক এবং নির্ভরযোগ্য প্লে আইকন === -->
                     <button class="control-btn" id="play-pause-btn" title="Play/Pause">
                         <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.14-5.18c.62-.39.62-1.29 0-1.69L9.54 5.98C8.87 5.55 8 6.03 8 6.82z"></path></svg>
                         <svg class="pause-icon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
