@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <div class="player-container">
+        <div class="video-title">Loading Video...</div>
+
+        <div class="central-play-btn">
+            <i class="fas fa-play"></i>
+        </div>
+
+        <!-- src="" অংশটি খালি থাকবে, JavaScript এটি পূরণ করবে -->
+        <video class="video" src=""></video>
+
+        <div class="controls-container">
+            <div class="progress-range">
+                <input type="range" class="progress-bar" value="0" min="0" max="100" step="0.1">
+            </div>
+
+            <div class="control-group">
+                <div class="controls-left">
+                    <button class="control-btn" id="play-pause-btn" title="Play/Pause"><i class="fas fa-play"></i></button>
+                    <button class="control-btn" id="rewind-btn" title="Rewind 10s"><i class="fas fa-undo-alt"></i><span>10</span></button>
+                    <button class="control-btn" id="forward-btn" title="Forward 10s"><i class="fas fa-redo-alt"></i><span>10</span></button>
+                    <div class="volume-container">
+                        <button class="control-btn" id="volume-btn" title="Mute/Unmute"><i class="fas fa-volume-up"></i></button>
+                        <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="1">
+                    </div>
+                    <span class="time-display">00:00 / 00:00</span>
+                </div>
+                <div class="controls-right">
+                    <button class="control-btn" id="settings-btn" title="Settings"><i class="fas fa-cog"></i></button>
+                    <button class="control-btn" id="fullscreen-btn" title="Fullscreen"><i class="fas fa-expand"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
