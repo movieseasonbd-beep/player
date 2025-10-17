@@ -23,9 +23,7 @@ function loadVideo(videoUrl) {
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
-    } else {
-        video.src = videoUrl;
-    }
+    } else { video.src = videoUrl; }
 }
 
 function togglePlay() { if (video.src) video.paused ? video.play() : video.pause(); }
@@ -37,13 +35,17 @@ function updatePlayState() {
     playerContainer.classList.toggle('paused', video.paused);
 }
 
+// === ১ নম্বর পরিবর্তন এখানে করা হয়েছে ===
 function updateProgressUI() {
+    // NaN (Not a Number) সমস্যা সমাধানের জন্য এই পরিবর্তন
     let progressPercent = 0;
     if (video.duration) {
         progressPercent = (video.currentTime / video.duration) * 100;
     }
+
     progressFilled.style.width = `${progressPercent}%`;
     progressBar.value = progressPercent;
+
     const totalDuration = isNaN(video.duration) ? 0 : video.duration;
     timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
 }
@@ -73,21 +75,25 @@ function formatTime(seconds) {
 }
 
 function toggleMute() { video.muted = !video.muted; }
+
 function updateVolumeIcon() {
     const icon = volumeBtn.querySelector('i');
     icon.className = video.muted || video.volume === 0 ? 'fas fa-volume-xmark' : 'fas fa-volume-high';
     volumeBtn.classList.toggle('active', video.muted);
 }
+
 function toggleFullscreen() {
     if (!document.fullscreenElement) {
         playerContainer.requestFullscreen().catch(err => alert(`Fullscreen error: ${err.message}`));
     } else { document.exitFullscreen(); }
 }
+
 function updateFullscreenState() {
     const isFullscreen = !!document.fullscreenElement;
     fullscreenBtn.classList.toggle('active', isFullscreen);
     fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
 }
+
 function toggleSettingsMenu() {
     settingsMenu.classList.toggle('active');
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
@@ -126,9 +132,12 @@ speedOptions.forEach(option => {
     });
 });
 
+// === ২ নম্বর পরিবর্তন এখানে করা হয়েছে ===
 document.addEventListener('DOMContentLoaded', () => {
+    // UI-এর প্রাথমিক অবস্থা নিশ্চিতভাবে সেট করা
     updatePlayState();
     updateProgressUI();
+
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
