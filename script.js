@@ -16,6 +16,29 @@ const settingsMenu = document.querySelector('.settings-menu');
 const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
 const speedOptions = settingsMenu.querySelectorAll('li');
 
+let hls = new Hls();
+
+function loadVideo(videoUrl) {
+    // আগের hls ইন্সট্যান্স ধ্বংস করা (যদি থাকে)
+    hls.destroy();
+    hls = new Hls();
+
+    if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
+        console.log("M3U8 stream detected. Using hls.js.");
+        hls.loadSource(videoUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) console.error('HLS Error:', data);
+        });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        console.log("Native HLS support detected.");
+        video.src = videoUrl;
+    } else {
+        console.log("Standard video file detected.");
+        video.src = videoUrl;
+    }
+}
+
 function togglePlay() { if (video.src) video.paused ? video.play() : video.pause(); }
 
 function updatePlayState() {
@@ -44,9 +67,7 @@ function updateBufferBar() {
 function scrub(e) {
     const value = e.target.value;
     const scrubTime = (value / 100) * video.duration;
-    if (!isNaN(scrubTime)) {
-        video.currentTime = scrubTime;
-    }
+    if (!isNaN(scrubTime)) { video.currentTime = scrubTime; }
     progressFilled.style.width = `${value}%`;
     const totalDuration = isNaN(video.duration) ? 0 : video.duration;
     timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(totalDuration)}`;
@@ -112,5 +133,7 @@ speedOptions.forEach(option => {
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
-    if (videoUrl) { video.src = videoUrl; }
+    if (videoUrl) {
+        loadVideo(videoUrl);
+    }
 });
