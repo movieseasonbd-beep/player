@@ -9,10 +9,15 @@
 </head>
 <body>
     <div class="player-container">
-        <div class="central-play-btn" title="Play"><i class="fas fa-play"></i></div>
+        
+        <div class="central-play-btn" title="Play">
+            <div class="play-icon-background">
+                <i class="fas fa-play"></i>
+            </div>
+        </div>
+
         <video class="video" src=""></video>
 
-        <!-- সেটিংস মেনু (ডিফল্টভাবে লুকানো থাকবে) -->
         <div class="settings-menu">
             <div class="menu-header">
                 <div><i class="fa-solid fa-clock"></i> Speed</div>
@@ -29,7 +34,6 @@
 
         <div class="controls-container">
             <div class="progress-range" title="Seek">
-                <!-- 3-Layer প্রোগ্রেস বারের জন্য -->
                 <div class="progress-background"></div>
                 <div class="buffer-bar"></div>
                 <div class="progress-filled"></div>
@@ -39,8 +43,14 @@
             <div class="control-group">
                 <div class="controls-left">
                     <button class="control-btn" id="play-pause-btn" title="Play/Pause"><i class="fas fa-play"></i></button>
-                    <button class="control-btn" id="rewind-btn" title="Rewind 10s"><i class="fa-solid fa-rotate-left"></i></button>
-                    <button class="control-btn" id="forward-btn" title="Forward 10s"><i class="fa-solid fa-rotate-right"></i></button>
+                    <button class="control-btn seek-btn" id="rewind-btn" title="Rewind 10s">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>10</span>
+                    </button>
+                    <button class="control-btn seek-btn" id="forward-btn" title="Forward 10s">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>10</span>
+                    </button>
                     <button class="control-btn" id="volume-btn" title="Mute/Unmute"><i class="fas fa-volume-high"></i></button>
                     <span class="time-display">00:00 / 00:00</span>
                 </div>
