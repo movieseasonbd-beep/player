@@ -3,10 +3,12 @@
     --theme-color-darker: #2980b9;
     --progress-bar-height: 5px;
     --thumb-size: 16px;
+    --central-play-btn-color: #2ecc71;
 
-    /* === পরিবর্তন এখানে === */
-    /* সেন্ট্রাল প্লে বাটনের রঙ পরিবর্তন করার জন্য শুধু এই লাইনটি পরিবর্তন করুন */
-    --central-play-btn-color: #2ecc71; /* <-- আপনার পছন্দের সবুজ রঙ */
+    /* === পরিবর্তন এখানে (গ্রেডিয়েন্ট কালার) === */
+    /* প্রোগ্রেস বারের গ্রেডিয়েন্ট রঙ পরিবর্তন করার জন্য এই দুটি লাইন পরিবর্তন করুন */
+    --gradient-start-color: #e74c3c; /* গ্রেডিয়েন্টের শুরুর রঙ (লাল) */
+    --gradient-end-color: #f1c40f;   /* গ্রেডিয়েন্টের শেষের রঙ (হলুদ) */
 }
 
 body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif; color: white; overflow: hidden; }
@@ -36,8 +38,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .central-play-btn svg { 
     width: 90px; 
     height: 90px;
-    /* === পরিবর্তন এখানে === */
-    /* রঙটি এখন ভ্যারিয়েবল থেকে আসছে */
     fill: var(--central-play-btn-color); 
     filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); 
 }
@@ -49,7 +49,14 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .progress-background, .buffer-bar, .progress-filled { height: var(--progress-bar-height); border-radius: 5px; pointer-events: none; }
 .progress-background { background: rgba(255, 255, 255, 0.2); }
 .buffer-bar { background: rgba(255, 255, 255, 0.4); width: 0; transition: width 0.1s linear; }
-.progress-filled { background: var(--theme-color); width: 0; }
+
+/* === পরিবর্তন এখানে (.progress-filled) === */
+.progress-filled { 
+    /* এখানে background-color এর পরিবর্তে linear-gradient ব্যবহার করা হয়েছে */
+    background: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
+    width: 0; 
+}
+
 .progress-bar { -webkit-appearance: none; appearance: none; width: 100%; background: transparent; outline: none; margin: 0; padding: 0; z-index: 2; }
 .progress-bar::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: var(--thumb-size); height: var(--thumb-size); background: white; border-radius: 50%; cursor: pointer; }
 
@@ -62,10 +69,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-btn svg { width: 24px; height: 24px; fill: white; transition: fill 0.1s ease; }
 .control-btn:hover svg { fill: var(--theme-color); }
 .control-btn.active svg { fill: var(--theme-color); }
-/* SVG path-এর fill কালার currentColor করার জন্য */
-.control-btn svg path {
-    fill: currentColor;
-}
+.control-btn svg path { fill: currentColor; }
 
 
 .time-display { font-size: 16px; user-select: none; }
