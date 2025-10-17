@@ -4,11 +4,9 @@
     --progress-bar-height: 5px;
     --thumb-size: 16px;
     --central-play-btn-color: #2ecc71;
-
-    /* === পরিবর্তন এখানে (গ্রেডিয়েন্ট কালার) === */
-    /* প্রোগ্রেস বারের গ্রেডিয়েন্ট রঙ পরিবর্তন করার জন্য এই দুটি লাইন পরিবর্তন করুন */
-    --gradient-start-color: #e74c3c; /* গ্রেডিয়েন্টের শুরুর রঙ (লাল) */
-    --gradient-end-color: #f1c40f;   /* গ্রেডিয়েন্টের শেষের রঙ (হলুদ) */
+    --gradient-start-color: #e74c3c;
+    --gradient-end-color: #f1c40f;
+    --loading-theme-color: #00b14f;
 }
 
 body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif; color: white; overflow: hidden; }
@@ -17,6 +15,67 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container:hover .controls-container, .player-container.paused .controls-container { opacity: 1; transform: translateY(0); }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
+/* === লোডিং স্ক্রিনের স্টাইল === */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-logo {
+    width: 200px;
+    height: auto;
+    margin-bottom: 20px;
+    fill: var(--loading-theme-color);
+}
+
+.loading-bar-container {
+    width: 250px;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    margin: 0 auto 15px auto;
+    overflow: hidden;
+    position: relative;
+}
+
+.loading-bar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, transparent, var(--loading-theme-color), transparent);
+    border-radius: 2px;
+    position: absolute;
+    animation: loading-animation 1.5s infinite;
+}
+
+.loading-text {
+    color: var(--loading-theme-color);
+    font-size: 16px;
+}
+
+@keyframes loading-animation {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* === সেন্ট্রাল প্লে বাটন === */
 .central-play-btn { 
     position: absolute; 
     top: 50%; 
@@ -42,40 +101,31 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); 
 }
 
+/* === কন্ট্রোলস === */
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
-
 .progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 8px 0; cursor: pointer; position: relative; }
 .progress-background, .buffer-bar, .progress-filled, .progress-bar { grid-column: 1; grid-row: 1; }
 .progress-background, .buffer-bar, .progress-filled { height: var(--progress-bar-height); border-radius: 5px; pointer-events: none; }
 .progress-background { background: rgba(255, 255, 255, 0.2); }
 .buffer-bar { background: rgba(255, 255, 255, 0.4); width: 0; transition: width 0.1s linear; }
-
-/* === পরিবর্তন এখানে (.progress-filled) === */
-.progress-filled { 
-    /* এখানে background-color এর পরিবর্তে linear-gradient ব্যবহার করা হয়েছে */
-    background: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
-    width: 0; 
-}
-
+.progress-filled { background: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color)); width: 0; }
 .progress-bar { -webkit-appearance: none; appearance: none; width: 100%; background: transparent; outline: none; margin: 0; padding: 0; z-index: 2; }
 .progress-bar::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: var(--thumb-size); height: var(--thumb-size); background: white; border-radius: 50%; cursor: pointer; }
-
 .control-group { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px; }
 .controls-left, .controls-right { display: flex; align-items: center; gap: 20px; }
 .control-btn { background: none; border: none; color: white; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; display: flex; align-items: center; justify-content: center; }
 .control-btn:hover { color: var(--theme-color); transform: scale(1.15); }
 .control-btn:active { transform: scale(1.05); }
 .control-btn.active { color: var(--theme-color); }
-.control-btn svg { width: 24px; height: 24px; fill: white; transition: fill 0.1s ease; }
-.control-btn:hover svg { fill: var(--theme-color); }
-.control-btn.active svg { fill: var(--theme-color); }
-.control-btn svg path { fill: currentColor; }
-
-
+.control-btn svg { width: 24px; height: 24px; transition: fill 0.1s ease; }
+.control-btn:hover svg path { fill: var(--theme-color); }
+.control-btn.active svg path { fill: var(--theme-color); }
+.control-btn svg path { fill: white; }
 .time-display { font-size: 16px; user-select: none; }
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
 
+/* === সেটিংস মেনু === */
 .settings-menu { position: absolute; bottom: 80px; right: 20px; background-color: rgba(40, 40, 40, 0.9); border-radius: 8px; z-index: 5; width: 200px; padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, transform 0.2s ease; transform: translateY(10px); }
 .settings-menu.active { opacity: 1; visibility: visible; transform: translateY(0); }
 .menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 16px; font-weight: bold; }
