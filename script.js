@@ -7,7 +7,7 @@ const forwardBtn = document.getElementById('forward-btn');
 const volumeBtn = document.getElementById('volume-btn');
 const progressBar = document.querySelector('.progress-bar');
 const progressFilled = document.querySelector('.progress-filled');
-const bufferBar = document.querySelector('.buffer-bar'); // বাফার বার এখানে আছে
+const bufferBar = document.querySelector('.buffer-bar');
 const timeDisplay = document.querySelector('.time-display');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 const fullscreenTooltip = fullscreenBtn.querySelector('.tooltip');
@@ -46,7 +46,6 @@ function updateProgressUI() {
     timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
 }
 
-// === এই ফাংশনটি বাফারিং নিয়ন্ত্রণ করে ===
 function updateBufferBar() {
     if (video.duration > 0 && video.buffered.length > 0) {
         const bufferEnd = video.buffered.end(video.buffered.length - 1);
@@ -74,8 +73,16 @@ function formatTime(seconds) {
 function toggleMute() { video.muted = !video.muted; }
 
 function updateVolumeIcon() {
-    const icon = volumeBtn.querySelector('i');
-    icon.className = video.muted || video.volume === 0 ? 'fas fa-volume-xmark' : 'fas fa-volume-high';
+    const volumeOnIcon = volumeBtn.querySelector('.volume-on-icon');
+    const volumeOffIcon = volumeBtn.querySelector('.volume-off-icon');
+    
+    if (video.muted || video.volume === 0) {
+        volumeOnIcon.style.display = 'none';
+        volumeOffIcon.style.display = 'block';
+    } else {
+        volumeOnIcon.style.display = 'block';
+        volumeOffIcon.style.display = 'none';
+    }
     volumeBtn.classList.toggle('active', video.muted);
 }
 
@@ -101,7 +108,7 @@ video.addEventListener('click', togglePlay);
 video.addEventListener('play', updatePlayState);
 video.addEventListener('pause', updatePlayState);
 video.addEventListener('timeupdate', updateProgressUI);
-video.addEventListener('progress', updateBufferBar); // বাফার আপডেট করার জন্য ইভেন্ট
+video.addEventListener('progress', updateBufferBar);
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
@@ -132,6 +139,7 @@ speedOptions.forEach(option => {
 document.addEventListener('DOMContentLoaded', () => {
     updatePlayState();
     updateProgressUI();
+    updateVolumeIcon();
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
