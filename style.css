@@ -42,14 +42,11 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .loading-logo {
     font-size: 32px;
     font-weight: 700;
-    color: white;
+    color: var(--loading-theme-color);
     margin-bottom: 8px;
     font-style: italic;
     transform: skewX(-10deg);
-}
-
-.logo-season {
-    color: var(--loading-theme-color);
+    text-shadow: 0 0 10px var(--loading-theme-color), 0 0 5px rgba(255, 100, 100, 0.5);
 }
 
 .loading-bar-container {
@@ -58,22 +55,29 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     margin: 0 auto 10px auto;
     position: relative;
     overflow: hidden;
-    background: transparent;
 }
 
 .loading-bar {
     width: 100%;
     height: 100%;
     border-radius: 1px;
-    position: absolute;
-    background: linear-gradient(to right, 
-        transparent, 
-        var(--loading-theme-color) 40%, 
-        var(--loading-theme-color) 60%, 
-        transparent
-    );
+    background-color: var(--loading-theme-color);
     box-shadow: 0 0 8px var(--loading-theme-color);
-    animation: loading-pulse 2s infinite ease-in-out;
+}
+
+.loading-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.6) 50%, 
+        transparent 100%
+    );
+    animation: shine-animation 2s infinite linear;
 }
 
 .loading-text {
@@ -85,11 +89,11 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     color: var(--loading-theme-color);
 }
 
-@keyframes loading-pulse {
-    0% { transform: scaleX(1); opacity: 0.7; }
-    50% { transform: scaleX(1.1); opacity: 1; }
-    100% { transform: scaleX(1); opacity: 0.7; }
+@keyframes shine-animation {
+    0% { left: -100%; }
+    100% { left: 100%; }
 }
+
 
 /* === সেন্ট্রাল প্লে বাটন === */
 .central-play-btn { 
