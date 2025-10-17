@@ -19,14 +19,11 @@ const speedOptions = settingsMenu.querySelectorAll('li');
 let hls = new Hls();
 
 function loadVideo(videoUrl) {
-    hls.destroy();
-    hls = new Hls();
+    hls.destroy(); hls = new Hls();
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
-    } else {
-        video.src = videoUrl;
-    }
+    } else { video.src = videoUrl; }
 }
 
 function togglePlay() { if (video.src) video.paused ? video.play() : video.pause(); }
@@ -35,6 +32,7 @@ function updatePlayState() {
     const icon = playPauseBtn.querySelector('i');
     icon.className = video.paused ? 'fas fa-play' : 'fas fa-pause';
     playerContainer.classList.toggle('playing', !video.paused);
+    playerContainer.classList.toggle('paused', video.paused);
 }
 
 function updateProgressUI() {
@@ -74,7 +72,6 @@ function toggleMute() { video.muted = !video.muted; }
 function updateVolumeIcon() {
     const icon = volumeBtn.querySelector('i');
     icon.className = video.muted || video.volume === 0 ? 'fas fa-volume-xmark' : 'fas fa-volume-high';
-    // নতুন কোড: active ক্লাস যোগ করা
     volumeBtn.classList.toggle('active', video.muted);
 }
 
@@ -86,13 +83,13 @@ function toggleFullscreen() {
 
 function updateFullscreenState() {
     const isFullscreen = !!document.fullscreenElement;
-    fullscreenBtn.classList.toggle('active', isFullscreen); // নতুন কোড: active ক্লাস যোগ করা
+    fullscreenBtn.classList.toggle('active', isFullscreen);
     fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
 }
 
 function toggleSettingsMenu() {
     settingsMenu.classList.toggle('active');
-    settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active')); // নতুন কোড: active ক্লাস যোগ করা
+    settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
 }
 
 // Event Listeners
@@ -101,7 +98,11 @@ video.addEventListener('play', updatePlayState);
 video.addEventListener('pause', updatePlayState);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
-video.addEventListener('canplay', () => { updateProgressUI(); updateBufferBar(); });
+video.addEventListener('canplay', () => {
+    updateProgressUI();
+    updateBufferBar();
+    updatePlayState(); // <<<<<<<<<<<< এই লাইনটি যোগ করা হয়েছে
+});
 video.addEventListener('volumechange', updateVolumeIcon);
 
 centralPlayBtn.addEventListener('click', togglePlay);
@@ -125,6 +126,7 @@ speedOptions.forEach(option => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+    updatePlayState(); // পেইজ লোড হওয়ার সাথে সাথে প্রাথমিক অবস্থা সেট করা
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
