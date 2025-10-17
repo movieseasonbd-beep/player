@@ -40,20 +40,21 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 
 .loading-logo {
-    font-size: 32px;
+    font-family: 'Verdana', 'Geneva', sans-serif;
+    font-size: 28px;
     font-weight: 700;
     color: var(--loading-theme-color);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     font-style: italic;
-    transform: skewX(-10deg);
-    text-shadow: 0 0 10px var(--loading-theme-color), 0 0 5px rgba(255, 100, 100, 0.5);
+    letter-spacing: 0.5px;
 }
 
 .loading-bar-container {
-    width: 220px;
+    width: 200px;
     height: 2px;
-    margin: 0 auto 10px auto;
+    margin: 0 auto 12px auto;
     position: relative;
+    background: transparent;
     overflow: hidden;
 }
 
@@ -61,37 +62,35 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     width: 100%;
     height: 100%;
     border-radius: 1px;
-    background-color: var(--loading-theme-color);
-    box-shadow: 0 0 8px var(--loading-theme-color);
+    background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 80%);
+    opacity: 0.5;
 }
 
-.loading-bar::after {
+.loading-bar::before {
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
+    left: 0;
     width: 50%;
     height: 100%;
-    background: linear-gradient(to right, 
-        transparent 0%, 
-        rgba(255, 255, 255, 0.6) 50%, 
-        transparent 100%
-    );
-    animation: shine-animation 2s infinite linear;
+    background: linear-gradient(to right, transparent, white, transparent);
+    filter: blur(2px);
+    animation: loading-scan 2s infinite ease-in-out;
 }
 
 .loading-text {
-    color: #999;
-    font-size: 14px;
+    color: #ccc;
+    font-size: 12px;
+    letter-spacing: 0.5px;
 }
 
-.loading-subtext {
-    color: var(--loading-theme-color);
-}
-
-@keyframes shine-animation {
-    0% { left: -100%; }
-    100% { left: 100%; }
+@keyframes loading-scan {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(200%);
+    }
 }
 
 
