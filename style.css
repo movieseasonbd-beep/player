@@ -1,78 +1,43 @@
 :root {
-    --theme-color: #00b894; /* সবুজ রঙ */
-    --progress-bar-height: 4px;
+    --theme-color: #00b894;
+    --progress-bar-height: 5px;
 }
-body {
-    margin: 0; background-color: #000; display: flex;
-    justify-content: center; align-items: center;
-    height: 100vh; font-family: Arial, sans-serif;
-    color: white; overflow: hidden;
-}
-.player-container {
-    width: 100vw; height: 100vh; position: relative;
-    background-color: #000; display: flex;
-    justify-content: center; align-items: center;
-}
+body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif; color: white; overflow: hidden; }
+.player-container { width: 100vw; height: 100vh; position: relative; background-color: #000; display: flex; justify-content: center; align-items: center; }
 .player-container.playing .central-play-btn { display: none; }
-.player-container:hover .controls-container,
-.player-container.paused .controls-container {
-    opacity: 1; transform: translateY(0);
-}
+.player-container:hover .controls-container, .player-container.paused .controls-container { opacity: 1; transform: translateY(0); }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
-/* সেন্ট্রাল প্লে বাটনের নতুন স্টাইল */
-.central-play-btn {
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%); z-index: 2;
-    cursor: pointer; font-size: 50px;
-    color: rgba(255, 255, 255, 0.8);
-    transition: transform 0.2s ease, color 0.2s ease;
-}
-.central-play-btn:hover {
-    color: white; transform: translate(-50%, -50%) scale(1.1);
-}
+.central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; font-size: 50px; color: rgba(255, 255, 255, 0.8); transition: transform 0.2s ease, color 0.2s ease; }
+.central-play-btn:hover { color: white; transform: translate(-50%, -50%) scale(1.1); }
 
-.controls-container {
-    position: absolute; bottom: 0; left: 0;
-    width: 100%; box-sizing: border-box; /* এটি প্যাডিং ঠিক রাখতে সাহায্য করে */
-    padding: 10px 25px;
-    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-    z-index: 3; opacity: 0;
-    transform: translateY(100%);
-    transition: opacity 0.25s ease, transform 0.25s ease;
-}
-.progress-range { width: 100%; padding: 8px 0; cursor: pointer; }
-.progress-bar {
-    -webkit-appearance: none; appearance: none;
-    width: 100%; height: var(--progress-bar-height);
-    background: rgba(255, 255, 255, 0.3);
-    outline: none; border-radius: 5px;
-    transition: height 0.2s ease;
-}
-.progress-range:hover .progress-bar { height: 6px; }
-.progress-bar::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    width: 15px; height: 15px;
-    background: white; border-radius: 50%;
-    cursor: pointer;
-}
+.controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
+
+/* নতুন প্রোগ্রেস বারের স্টাইল */
+.progress-range { width: 100%; padding: 8px 0; cursor: pointer; position: relative; }
+.progress-background, .buffer-bar, .progress-filled { position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: var(--progress-bar-height); border-radius: 5px; pointer-events: none; }
+.progress-background { width: 100%; background: rgba(255, 255, 255, 0.2); }
+.buffer-bar { background: rgba(255, 255, 255, 0.4); width: 0; transition: width 0.1s linear; }
+.progress-filled { background: var(--theme-color); width: 0; }
+.progress-bar { -webkit-appearance: none; appearance: none; width: 100%; background: transparent; outline: none; position: relative; z-index: 2; height: 20px; margin: -8px 0; }
+.progress-bar::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: white; border-radius: 50%; cursor: pointer; }
+
 .control-group { display: flex; justify-content: space-between; align-items: center; }
 .controls-left, .controls-right { display: flex; align-items: center; gap: 20px; }
-
-.control-btn {
-    background: none; border: none;
-    color: white; font-size: 20px;
-    cursor: pointer; padding: 0;
-    transition: transform 0.1s ease;
-}
+.control-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0; transition: transform 0.1s ease; position: relative; }
 .control-btn:hover { transform: scale(1.15); }
-
-/* CC বাটনের বিশেষ স্টাইল */
-#caption-btn {
-    font-size: 16px; font-weight: bold;
-    border: 2px solid white; border-radius: 4px;
-    padding: 1px 5px; line-height: 1;
-}
-
 .time-display { font-size: 16px; user-select: none; }
 #fullscreen-btn.active i::before { content: '\f066'; }
+#fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
+#fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
+
+/* সেটিংস মেনুর স্টাইল */
+.settings-menu { position: absolute; bottom: 80px; right: 20px; background-color: rgba(40, 40, 40, 0.9); border-radius: 8px; z-index: 5; width: 200px; padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, transform 0.2s ease; transform: translateY(10px); }
+.settings-menu.active { opacity: 1; visibility: visible; transform: translateY(0); }
+.menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 16px; font-weight: bold; }
+.menu-header i { margin-right: 8px; }
+.close-btn { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
+.settings-menu ul { list-style: none; margin: 0; padding: 0; }
+.settings-menu li { padding: 8px 12px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s ease; }
+.settings-menu li:hover { background-color: rgba(255, 255, 255, 0.1); }
+.settings-menu li.active { color: var(--theme-color); font-weight: bold; }
