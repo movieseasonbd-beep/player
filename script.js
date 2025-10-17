@@ -19,8 +19,14 @@ const loadingSpinner = document.querySelector('.loading-spinner');
 
 let hls = new Hls();
 
-const showSpinner = () => { loadingSpinner.style.display = 'block'; };
-const hideSpinner = () => { loadingSpinner.style.display = 'none'; };
+const showSpinner = () => {
+    loadingSpinner.style.display = 'block';
+    playerContainer.classList.add('loading'); // নতুন কোড
+};
+const hideSpinner = () => {
+    loadingSpinner.style.display = 'none';
+    playerContainer.classList.remove('loading'); // নতুন কোড
+};
 
 function loadVideo(videoUrl) {
     showSpinner();
