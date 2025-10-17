@@ -1,4 +1,6 @@
+// DOM Elements
 const playerContainer = document.querySelector('.player-container');
+const loadingOverlay = document.querySelector('.loading-overlay');
 const video = document.querySelector('.video');
 const centralPlayBtn = document.querySelector('.central-play-btn');
 const playPauseBtn = document.getElementById('play-pause-btn');
@@ -18,15 +20,25 @@ const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
 
+// Functions
+function hideLoadingScreen() {
+    loadingOverlay.classList.add('hidden');
+}
+
 function loadVideo(videoUrl) {
-    hls.destroy(); hls = new Hls();
+    hls.destroy(); 
+    hls = new Hls();
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
-    } else { video.src = videoUrl; }
+    } else { 
+        video.src = videoUrl; 
+    }
 }
 
-function togglePlay() { if (video.src) video.paused ? video.play() : video.pause(); }
+function togglePlay() { 
+    if (video.src) video.paused ? video.play() : video.pause(); 
+}
 
 function updatePlayState() {
     const playIcon = playPauseBtn.querySelector('.play-icon');
@@ -129,12 +141,13 @@ video.addEventListener('play', updatePlayState);
 video.addEventListener('pause', updatePlayState);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
+
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
+    hideLoadingScreen();
 });
-video.addEventListener('volumechange', updateVolumeIcon);
 
 centralPlayBtn.addEventListener('click', togglePlay);
 playPauseBtn.addEventListener('click', togglePlay);
@@ -143,9 +156,7 @@ forwardBtn.addEventListener('click', () => { if(video.duration) video.currentTim
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
-
 progressBar.addEventListener('input', scrub);
-
 settingsBtn.addEventListener('click', toggleSettingsMenu);
 closeSettingsBtn.addEventListener('click', toggleSettingsMenu);
 speedOptions.forEach(option => {
@@ -161,9 +172,15 @@ document.addEventListener('DOMContentLoaded', () => {
     updateProgressUI();
     updateVolumeIcon();
     updateFullscreenState();
+
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
+    
     if (videoUrl) {
         loadVideo(videoUrl);
+        setTimeout(hideLoadingScreen, 3000);
+    } else {
+        hideLoadingScreen();
+        loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
 });
