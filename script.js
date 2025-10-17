@@ -7,7 +7,7 @@ const forwardBtn = document.getElementById('forward-btn');
 const volumeBtn = document.getElementById('volume-btn');
 const progressBar = document.querySelector('.progress-bar');
 const progressFilled = document.querySelector('.progress-filled');
-const bufferBar = document.querySelector('.buffer-bar');
+const bufferBar = document.querySelector('.buffer-bar'); // বাফার বার এখানে আছে
 const timeDisplay = document.querySelector('.time-display');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 const fullscreenTooltip = fullscreenBtn.querySelector('.tooltip');
@@ -35,21 +35,18 @@ function updatePlayState() {
     playerContainer.classList.toggle('paused', video.paused);
 }
 
-// === ১ নম্বর পরিবর্তন এখানে করা হয়েছে ===
 function updateProgressUI() {
-    // NaN (Not a Number) সমস্যা সমাধানের জন্য এই পরিবর্তন
     let progressPercent = 0;
     if (video.duration) {
         progressPercent = (video.currentTime / video.duration) * 100;
     }
-
     progressFilled.style.width = `${progressPercent}%`;
     progressBar.value = progressPercent;
-
     const totalDuration = isNaN(video.duration) ? 0 : video.duration;
     timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
 }
 
+// === এই ফাংশনটি বাফারিং নিয়ন্ত্রণ করে ===
 function updateBufferBar() {
     if (video.duration > 0 && video.buffered.length > 0) {
         const bufferEnd = video.buffered.end(video.buffered.length - 1);
@@ -104,7 +101,7 @@ video.addEventListener('click', togglePlay);
 video.addEventListener('play', updatePlayState);
 video.addEventListener('pause', updatePlayState);
 video.addEventListener('timeupdate', updateProgressUI);
-video.addEventListener('progress', updateBufferBar);
+video.addEventListener('progress', updateBufferBar); // বাফার আপডেট করার জন্য ইভেন্ট
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
@@ -132,12 +129,9 @@ speedOptions.forEach(option => {
     });
 });
 
-// === ২ নম্বর পরিবর্তন এখানে করা হয়েছে ===
 document.addEventListener('DOMContentLoaded', () => {
-    // UI-এর প্রাথমিক অবস্থা নিশ্চিতভাবে সেট করা
     updatePlayState();
     updateProgressUI();
-
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
