@@ -1,6 +1,5 @@
 const playerContainer = document.querySelector('.player-container');
 const video = document.querySelector('.video');
-const videoTitle = document.querySelector('.video-title');
 const centralPlayBtn = document.querySelector('.central-play-btn');
 const playPauseBtn = document.getElementById('play-pause-btn');
 const rewindBtn = document.getElementById('rewind-btn');
@@ -33,7 +32,7 @@ function updatePlayState() {
 function updateProgress() {
     const progressPercent = (video.currentTime / video.duration) * 100;
     progressBar.value = progressPercent;
-    progressBar.style.background = `linear-gradient(to right, var(--theme-color) ${progressPercent}%, rgba(255, 255, 255, 0.3) ${progressPercent}%)`;
+    progressBar.style.background = `linear-gradient(to right, var(--theme-color) ${progressPercent}%, rgba(255, 255, 255, 0.4) ${progressPercent}%)`;
     const totalDuration = isNaN(video.duration) ? 0 : video.duration;
     timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
 }
@@ -58,9 +57,9 @@ function changeVolume(e) {
 
 function updateVolumeIcon() {
     const icon = volumeBtn.querySelector('i');
-    if (video.volume === 0 || video.muted) { icon.className = 'fas fa-volume-mute'; } 
-    else if (video.volume < 0.5) { icon.className = 'fas fa-volume-down'; } 
-    else { icon.className = 'fas fa-volume-up'; }
+    if (video.volume === 0 || video.muted) { icon.className = 'fas fa-volume-xmark'; } 
+    else if (video.volume < 0.5) { icon.className = 'fas fa-volume-low'; } 
+    else { icon.className = 'fas fa-volume-high'; }
 }
 
 function toggleMute() {
@@ -80,17 +79,12 @@ document.addEventListener('fullscreenchange', () => {
     document.fullscreenElement ? fullscreenBtn.classList.add('active') : fullscreenBtn.classList.remove('active');
 });
 
+// পেইজ লোড হলে URL থেকে ভিডিও লিঙ্ক নেয়
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
         video.src = videoUrl;
-        try {
-            const url = new URL(videoUrl);
-            videoTitle.textContent = decodeURIComponent(url.pathname.split('/').pop());
-        } catch (e) { videoTitle.textContent = "Loading video..."; }
-    } else {
-        videoTitle.textContent = "No video URL provided. Use '?id=VIDEO_LINK' in the URL.";
     }
 });
 
