@@ -18,7 +18,6 @@ const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
 let currentVideoUrl = '';
-let saveProgressThrottled = false; // === পরিবর্তন ১: থ্রটলিং এর জন্য একটি ফ্ল্যাগ ===
 
 function loadVideo(videoUrl) {
     currentVideoUrl = videoUrl;
@@ -26,11 +25,14 @@ function loadVideo(videoUrl) {
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
-    } else { video.src = videoUrl; }
+    } else {
+        video.src = videoUrl;
+    }
 }
 
 function saveProgress() {
-    if (video.currentTime > 0 && currentVideoUrl) {
+    // ভিডিওর সময় ১ সেকেন্ডের বেশি হলেই কেবল সেভ হবে
+    if (video.currentTime > 1 && currentVideoUrl) {
         localStorage.setItem(`video-progress-${currentVideoUrl}`, video.currentTime);
     }
 }
@@ -38,9 +40,16 @@ function saveProgress() {
 function loadProgress() {
     if (currentVideoUrl) {
         const savedTime = localStorage.getItem(`video-progress-${currentVideoUrl}`);
-        if (savedTime) {
+        // ভিডিওর মোট সময়ের চেয়ে সেভ করা সময় কম হলেই কেবল লোড হবে
+        if (savedTime && video.duration && parseFloat(savedTime) < video.duration - 1) {
             video.currentTime = parseFloat(savedTime);
         }
+    }
+}
+
+function clearProgress() {
+    if (currentVideoUrl) {
+        localStorage.removeItem(`video-progress-${currentVideoUrl}`);
     }
 }
 
@@ -89,55 +98,41 @@ function formatTime(seconds) {
 }
 
 function toggleMute() { video.muted = !video.muted; }
-
 function updateVolumeIcon() {
     const icon = volumeBtn.querySelector('i');
     icon.className = video.muted || video.volume === 0 ? 'fas fa-volume-xmark' : 'fas fa-volume-high';
     volumeBtn.classList.toggle('active', video.muted);
 }
-
 function toggleFullscreen() {
     if (!document.fullscreenElement) {
         playerContainer.requestFullscreen().catch(err => alert(`Fullscreen error: ${err.message}`));
     } else { document.exitFullscreen(); }
 }
-
 function updateFullscreenState() {
     const isFullscreen = !!document.fullscreenElement;
     fullscreenBtn.classList.toggle('active', isFullscreen);
     fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
 }
-
 function toggleSettingsMenu() {
     settingsMenu.classList.toggle('active');
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
 }
 
-// Event Listeners
+// === Event Listeners (পরিবর্তন এখানে করা হয়েছে) ===
 video.addEventListener('click', togglePlay);
 video.addEventListener('play', updatePlayState);
-video.addEventListener('pause', updatePlayState);
-
-// === পরিবর্তন ২: থ্রটলিং কৌশল প্রয়োগ করা হয়েছে ===
-video.addEventListener('timeupdate', () => {
-    updateProgressUI(); // UI আপডেট সবসময় হবে, কারণ এটি একটি হালকা কাজ
-
-    // কিন্তু সময় সেভ হবে প্রতি ২ সেকেন্ডে একবার
-    if (!saveProgressThrottled) {
-        saveProgress();
-        saveProgressThrottled = true;
-        setTimeout(() => {
-            saveProgressThrottled = false;
-        }, 2000); // ২ সেকেন্ডের জন্য সময় সেভ করা বন্ধ থাকবে
-    }
+video.addEventListener('pause', () => {
+    updatePlayState();
+    saveProgress(); // শুধুমাত্র পজ করলেই সময় সেভ হবে
 });
-
+video.addEventListener('ended', clearProgress); // ভিডিও শেষ হলে সেভ করা সময় মুছে যাবে
+video.addEventListener('timeupdate', updateProgressUI); // শুধু UI আপডেটের জন্য ব্যবহার হবে
 video.addEventListener('progress', updateBufferBar);
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
-    loadProgress();
+    loadProgress(); // ভিডিও প্রস্তুত হলে সেভ করা সময় লোড হবে
 });
 video.addEventListener('volumechange', updateVolumeIcon);
 
@@ -164,7 +159,6 @@ speedOptions.forEach(option => {
 document.addEventListener('DOMContentLoaded', () => {
     updatePlayState();
     updateProgressUI();
-
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
@@ -172,4 +166,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// পেজ বন্ধ করার আগে সময় সেভ করা হবে
 window.addEventListener('beforeunload', saveProgress);
