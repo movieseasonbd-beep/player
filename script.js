@@ -5,7 +5,6 @@ const playPauseBtn = document.getElementById('play-pause-btn');
 const rewindBtn = document.getElementById('rewind-btn');
 const forwardBtn = document.getElementById('forward-btn');
 const volumeBtn = document.getElementById('volume-btn');
-const volumeSlider = document.querySelector('.volume-slider');
 const progressBar = document.querySelector('.progress-bar');
 const timeDisplay = document.querySelector('.time-display');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
@@ -32,7 +31,7 @@ function updatePlayState() {
 function updateProgress() {
     const progressPercent = (video.currentTime / video.duration) * 100;
     progressBar.value = progressPercent;
-    progressBar.style.background = `linear-gradient(to right, var(--theme-color) ${progressPercent}%, rgba(255, 255, 255, 0.4) ${progressPercent}%)`;
+    progressBar.style.background = `linear-gradient(to right, var(--theme-color) ${progressPercent}%, rgba(255, 255, 255, 0.3) ${progressPercent}%)`;
     const totalDuration = isNaN(video.duration) ? 0 : video.duration;
     timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
 }
@@ -50,23 +49,16 @@ function formatTime(seconds) {
     return hh ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
-function changeVolume(e) {
-    video.volume = e.target.value;
-    updateVolumeIcon();
-}
-
-function updateVolumeIcon() {
+function updateVolumeIcon(volumeLevel) {
     const icon = volumeBtn.querySelector('i');
-    if (video.volume === 0 || video.muted) { icon.className = 'fas fa-volume-xmark'; } 
-    else if (video.volume < 0.5) { icon.className = 'fas fa-volume-low'; } 
+    if (volumeLevel === 0) { icon.className = 'fas fa-volume-xmark'; } 
+    else if (volumeLevel < 0.5) { icon.className = 'fas fa-volume-low'; } 
     else { icon.className = 'fas fa-volume-high'; }
 }
 
-function toggleMute() {
-    video.muted = !video.muted;
-    volumeSlider.value = video.muted ? 0 : video.volume;
-    updateVolumeIcon();
-}
+video.addEventListener('volumechange', () => {
+    updateVolumeIcon(video.volume);
+});
 
 function toggleFullscreen() {
     if (!document.fullscreenElement) {
@@ -79,12 +71,15 @@ document.addEventListener('fullscreenchange', () => {
     document.fullscreenElement ? fullscreenBtn.classList.add('active') : fullscreenBtn.classList.remove('active');
 });
 
-// পেইজ লোড হলে URL থেকে ভিডিও লিঙ্ক নেয়
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
         video.src = videoUrl;
+    } else {
+        // কোনো ভিডিও লিঙ্ক না থাকলে একটি মেসেজ দেখাবে (ঐচ্ছিক)
+        const controls = document.querySelector('.controls-container');
+        controls.innerHTML = '<p style="width: 100%; text-align: center;">No video source found. Please provide a video link using ?id=</p>';
     }
 });
 
@@ -98,6 +93,4 @@ playPauseBtn.addEventListener('click', togglePlay);
 rewindBtn.addEventListener('click', () => { video.currentTime -= 10; });
 forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 progressBar.addEventListener('input', setProgress);
-volumeSlider.addEventListener('input', changeVolume);
-volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
