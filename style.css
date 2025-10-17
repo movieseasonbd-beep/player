@@ -7,6 +7,8 @@
     --gradient-start-color: #e74c3c;
     --gradient-end-color: #f1c40f;
     --loading-theme-color: #ff0000;
+    --loading-gradient-start: #ff3333;
+    --loading-gradient-end: #cc0000;
 }
 
 body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; overflow: hidden; }
@@ -40,59 +42,55 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 
 .loading-logo {
-    font-family: 'Verdana', 'Geneva', sans-serif;
+    font-family: 'Arial', sans-serif;
     font-size: 28px;
     font-weight: 700;
-    color: var(--loading-theme-color);
     margin-bottom: 10px;
-    font-style: italic;
     letter-spacing: 0.5px;
+    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
 }
 
 .loading-bar-container {
     width: 200px;
-    height: 2px;
+    height: 3px;
     margin: 0 auto 12px auto;
     position: relative;
     background: transparent;
-    overflow: hidden;
 }
 
 .loading-bar {
     width: 100%;
     height: 100%;
-    border-radius: 1px;
-    background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 80%);
-    opacity: 0.5;
-}
-
-.loading-bar::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(to right, transparent, white, transparent);
-    filter: blur(2px);
-    animation: loading-scan 2s infinite ease-in-out;
+    border-radius: 1.5px;
+    background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
+    box-shadow: 0 0 12px var(--loading-theme-color);
+    animation: loading-pulse 2s infinite ease-in-out;
 }
 
 .loading-text {
-    color: #ccc;
     font-size: 12px;
     letter-spacing: 0.5px;
 }
 
-@keyframes loading-scan {
-    0% {
-        transform: translateX(-100%);
-    }
-    100% {
-        transform: translateX(200%);
-    }
+.loading-maintext {
+    color: white;
 }
 
+.loading-subtext {
+    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+@keyframes loading-pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
 
 /* === সেন্ট্রাল প্লে বাটন === */
 .central-play-btn { 
