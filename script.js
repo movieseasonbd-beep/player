@@ -19,22 +19,12 @@ const speedOptions = settingsMenu.querySelectorAll('li');
 let hls = new Hls();
 
 function loadVideo(videoUrl) {
-    // আগের hls ইন্সট্যান্স ধ্বংস করা (যদি থাকে)
     hls.destroy();
     hls = new Hls();
-
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
-        console.log("M3U8 stream detected. Using hls.js.");
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
-        hls.on(Hls.Events.ERROR, (event, data) => {
-            if (data.fatal) console.error('HLS Error:', data);
-        });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        console.log("Native HLS support detected.");
-        video.src = videoUrl;
     } else {
-        console.log("Standard video file detected.");
         video.src = videoUrl;
     }
 }
@@ -51,7 +41,6 @@ function updateProgressUI() {
     const progressPercent = (video.currentTime / video.duration) * 100;
     progressFilled.style.width = `${progressPercent}%`;
     progressBar.value = progressPercent;
-    
     const totalDuration = isNaN(video.duration) ? 0 : video.duration;
     timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
 }
@@ -85,6 +74,8 @@ function toggleMute() { video.muted = !video.muted; }
 function updateVolumeIcon() {
     const icon = volumeBtn.querySelector('i');
     icon.className = video.muted || video.volume === 0 ? 'fas fa-volume-xmark' : 'fas fa-volume-high';
+    // নতুন কোড: active ক্লাস যোগ করা
+    volumeBtn.classList.toggle('active', video.muted);
 }
 
 function toggleFullscreen() {
@@ -95,11 +86,14 @@ function toggleFullscreen() {
 
 function updateFullscreenState() {
     const isFullscreen = !!document.fullscreenElement;
-    fullscreenBtn.classList.toggle('active', isFullscreen);
+    fullscreenBtn.classList.toggle('active', isFullscreen); // নতুন কোড: active ক্লাস যোগ করা
     fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
 }
 
-function toggleSettingsMenu() { settingsMenu.classList.toggle('active'); }
+function toggleSettingsMenu() {
+    settingsMenu.classList.toggle('active');
+    settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active')); // নতুন কোড: active ক্লাস যোগ করা
+}
 
 // Event Listeners
 video.addEventListener('click', togglePlay);
