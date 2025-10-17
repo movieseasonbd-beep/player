@@ -15,22 +15,19 @@ const settingsBtn = document.getElementById('settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
 const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
 const speedOptions = settingsMenu.querySelectorAll('li');
-const loadingSpinner = document.querySelector('.loading-spinner');
 
 let hls = new Hls();
 let currentVideoUrl = '';
 
-const showSpinner = () => {
-    loadingSpinner.style.display = 'block';
-    playerContainer.classList.add('loading');
-};
-const hideSpinner = () => {
-    loadingSpinner.style.display = 'none';
-    playerContainer.classList.remove('loading');
-};
+function resetPlayerUI() {
+    progressBar.value = 0;
+    progressFilled.style.width = '0%';
+    bufferBar.style.width = '0%';
+    timeDisplay.textContent = '00:00 / 00:00';
+}
 
 function loadVideo(videoUrl) {
-    showSpinner();
+    resetPlayerUI(); // নতুন ভিডিও লোড করার আগে UI রিসেট করা
     currentVideoUrl = videoUrl;
     hls.destroy(); hls = new Hls();
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
@@ -48,8 +45,9 @@ function updatePlayState() {
 }
 
 function updateProgressUI() {
-    // লাইভ স্ট্রিমের জন্য প্রোগ্রেস বার غیر فعال থাকবে
     if (video.duration === Infinity) {
+        progressFilled.style.width = '100%';
+        bufferBar.style.width = '100%';
         progressBar.style.display = 'none';
         return;
     }
@@ -61,8 +59,7 @@ function updateProgressUI() {
     const totalDuration = isNaN(video.duration) ? 0 : video.duration;
     timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
 
-    // ভিডিওর সময় সেভ করা (লাইভ স্ট্রিমের জন্য নয়)
-    if (currentVideoUrl && video.currentTime > 1 && !video.ended && video.duration !== Infinity) {
+    if (currentVideoUrl && video.currentTime > 1 && !video.ended) {
         localStorage.setItem(currentVideoUrl, video.currentTime);
     }
 }
@@ -123,15 +120,11 @@ video.addEventListener('play', updatePlayState);
 video.addEventListener('pause', updatePlayState);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
-video.addEventListener('waiting', showSpinner);
-video.addEventListener('playing', hideSpinner);
 video.addEventListener('canplay', () => {
-    hideSpinner();
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
 
-    // সেভ করা সময় লোড করা (লাইভ স্ট্রিমের জন্য নয়)
     if (video.duration !== Infinity) {
         const savedTime = localStorage.getItem(currentVideoUrl);
         if (savedTime && parseFloat(savedTime) < video.duration - 10) {
@@ -160,6 +153,7 @@ speedOptions.forEach(option => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+    resetPlayerUI(); // পেইজ লোড হওয়ার সাথে সাথেই UI রিসেট করা
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
