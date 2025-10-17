@@ -18,7 +18,7 @@ const speedOptions = settingsMenu.querySelectorAll('li');
 const loadingSpinner = document.querySelector('.loading-spinner');
 
 let hls = new Hls();
-let currentVideoUrl = ''; // বর্তমান ভিডিওর লিঙ্ক মনে রাখার জন্য
+let currentVideoUrl = '';
 
 const showSpinner = () => {
     loadingSpinner.style.display = 'block';
@@ -33,7 +33,7 @@ function loadVideo(videoUrl) {
     showSpinner();
     currentVideoUrl = videoUrl;
     hls.destroy(); hls = new Hls();
-    if (Hls.isSupported() && videoUrl.includes('.m_u_8')) { // Break up to avoid detection
+    if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         hls.loadSource(videoUrl); hls.attachMedia(video);
     } else { video.src = videoUrl; }
 }
@@ -48,20 +48,27 @@ function updatePlayState() {
 }
 
 function updateProgressUI() {
+    // লাইভ স্ট্রিমের জন্য প্রোগ্রেস বার غیر فعال থাকবে
+    if (video.duration === Infinity) {
+        progressBar.style.display = 'none';
+        return;
+    }
+    progressBar.style.display = 'block';
+
     const progressPercent = (video.currentTime / video.duration) * 100;
     progressFilled.style.width = `${progressPercent}%`;
     progressBar.value = progressPercent;
     const totalDuration = isNaN(video.duration) ? 0 : video.duration;
     timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
 
-    // নতুন কোড: ভিডিওর সময় সেভ করা
-    if (currentVideoUrl && video.currentTime > 0 && !video.ended) {
+    // ভিডিওর সময় সেভ করা (লাইভ স্ট্রিমের জন্য নয়)
+    if (currentVideoUrl && video.currentTime > 1 && !video.ended && video.duration !== Infinity) {
         localStorage.setItem(currentVideoUrl, video.currentTime);
     }
 }
 
 function updateBufferBar() {
-    if (video.buffered.length > 0) {
+    if (video.buffered.length > 0 && video.duration !== Infinity) {
         const bufferEnd = video.buffered.end(video.buffered.length - 1);
         const bufferPercent = (bufferEnd / video.duration) * 100;
         bufferBar.style.width = `${bufferPercent}%`;
@@ -69,6 +76,7 @@ function updateBufferBar() {
 }
 
 function scrub(e) {
+    if (video.duration === Infinity) return;
     const value = e.target.value;
     const scrubTime = (value / 100) * video.duration;
     if (!isNaN(scrubTime)) { video.currentTime = scrubTime; }
@@ -123,18 +131,20 @@ video.addEventListener('canplay', () => {
     updateBufferBar();
     updatePlayState();
 
-    // নতুন কোড: সেভ করা সময় লোড করা
-    const savedTime = localStorage.getItem(currentVideoUrl);
-    if (savedTime && parseFloat(savedTime) < video.duration - 5) { // প্রায় শেষ হয়ে গেলে শুরু থেকে দেখাবে
-        video.currentTime = parseFloat(savedTime);
+    // সেভ করা সময় লোড করা (লাইভ স্ট্রিমের জন্য নয়)
+    if (video.duration !== Infinity) {
+        const savedTime = localStorage.getItem(currentVideoUrl);
+        if (savedTime && parseFloat(savedTime) < video.duration - 10) {
+            video.currentTime = parseFloat(savedTime);
+        }
     }
 });
 video.addEventListener('volumechange', updateVolumeIcon);
 
 centralPlayBtn.addEventListener('click', togglePlay);
 playPauseBtn.addEventListener('click', togglePlay);
-rewindBtn.addEventListener('click', () => { video.currentTime -= 10; });
-forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
+rewindBtn.addEventListener('click', () => { if(video.duration !== Infinity) video.currentTime -= 10; });
+forwardBtn.addEventListener('click', () => { if(video.duration !== Infinity) video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
