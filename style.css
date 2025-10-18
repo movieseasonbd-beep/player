@@ -73,9 +73,14 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 #play-pause-btn svg { width: 30px; height: 30px; }
 #play-pause-btn { transform: translateX(-9px); }
 #rewind-btn svg, #forward-btn svg, #volume-btn svg, #settings-btn svg { width: 24px; height: 24px; }
+
+/* === পরিবর্তন এখানে: forward এবং rewind বাটনকে বামে সরানো হয়েছে === */
+#forward-btn { transform: translateX(-8px); }
+#rewind-btn { transform: translateX(-8px); }
+
+#settings-btn { transform: translateX(+8px); }
 #fullscreen-btn svg { width: 30px; height: 30px; }
 #fullscreen-btn { transform: translateX(+4px); }
-
 /* === বাকি স্টাইল === */
 .time-display {
     font-size: 11px;
