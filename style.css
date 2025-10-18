@@ -17,8 +17,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container:hover .controls-container, .player-container.paused .controls-container { opacity: 1; transform: translateY(0); }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
-/* === লোডিং স্ক্রিনের স্টাইল === */
-/* ... (এই অংশটি অপরিবর্তিত) ... */
+/* ... লোডিং স্ক্রিনের স্টাইল অপরিবর্তিত ... */
 .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s ease; }
 .loading-overlay.hidden { opacity: 0; visibility: hidden; }
 .loading-content { text-align: center; }
@@ -30,15 +29,12 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .loading-maintext { color: white; }
 .loading-subtext { background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 @keyframes loading-scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(166%); } }
-
-/* === সেন্ট্রাল প্লে বাটন === */
-/* ... (এই অংশটি অপরিবর্তিত) ... */
 .central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; transition: all 0.2s ease; background: none; width: auto; height: auto; }
 .central-play-btn:hover { transform: translate(-50%, -50%) scale(1.1); }
 .central-play-btn:active { transform: translate(-50%, -50%) scale(1.0); }
 .central-play-btn svg { width: 90px; height: 90px; fill: var(--central-play-btn-color); filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); }
 
-/* === কন্ট্রোলস === */
+/* ... কন্ট্রোলস এর সাধারণ স্টাইল অপরিবর্তিত ... */
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
 .progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 8px 0; cursor: pointer; position: relative; }
 .progress-background, .buffer-bar, .progress-filled, .progress-bar { grid-column: 1; grid-row: 1; }
@@ -54,6 +50,9 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-btn:hover { color: var(--theme-color); transform: scale(1.15); }
 .control-btn:active { transform: scale(1.05); }
 .control-btn.active { color: var(--theme-color); }
+.control-btn svg path { fill: white; }
+.control-btn:hover svg path { fill: var(--theme-color); }
+.control-btn.active svg path { fill: var(--theme-color); }
 
 /*
 ====================================================================
@@ -61,99 +60,69 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 ====================================================================
 */
 
-/* --- ১. সব কন্ট্রোল আইকনের জন্য সাধারণ স্টাইল --- */
+/* --- ১. সব কন্ট্রোল আইকনের জন্য সাধারণ সাইজ (এই অংশটি এখন আর সাইজ নিয়ন্ত্রণ করে না) --- */
 .control-btn svg {
-    /* সব আইকনের সাধারণ সাইজ। আপনি চাইলে এটিও পরিবর্তন করতে পারেন। */
-    width: 24px;
-    height: 24px;
     transition: fill 0.1s ease;
 }
 
-.control-btn svg path {
-    fill: white;
-}
-.control-btn:hover svg path {
-    fill: var(--theme-color);
-}
-.control-btn.active svg path {
-    fill: var(--theme-color);
-}
-
 /* --- ২. প্রতিটি আইকনকে আলাদাভাবে স্টাইল করার জন্য --- */
+/* (এখানে প্রতিটি আইকনের জন্য আলাদা আলাদা সাইজ দেওয়া হয়েছে) */
 
 /* প্লে/পজ বাটন (#play-pause-btn) */
 #play-pause-btn svg {
     /* এই দুটি মান পরিবর্তন করে আইকনটি বড় বা ছোট করুন */
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
 }
 #play-pause-btn {
     /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
-    /* margin-right: 5px;  ডানে সরাতে পজিটিভ মান দিন */
-    /* margin-right: -5px; বামে সরাতে নেগেটিভ মান দিন */
-    margin-right: -10px; 
+    margin-right: -5px; 
 }
-
 
 /* রিওয়াইন্ড বাটন (#rewind-btn) */
 #rewind-btn svg {
-    /* এই দুটি মান পরিবর্তন করে আইকনটি বড় বা ছোট করুন */
     width: 24px;
     height: 24px;
 }
 #rewind-btn {
-    /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
     margin-right: 0px; 
 }
 
-
 /* ফরওয়ার্ড বাটন (#forward-btn) */
 #forward-btn svg {
-    /* এই দুটি মান পরিবর্তন করে আইকনটি বড় বা ছোট করুন */
     width: 24px;
     height: 24px;
 }
 #forward-btn {
-    /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
     margin-right: 0px;
 }
 
-
 /* ভলিউম বাটন (#volume-btn) */
 #volume-btn svg {
-    /* এই দুটি মান পরিবর্তন করে আইকনটি বড় বা ছোট করুন */
     width: 24px;
     height: 24px;
 }
 #volume-btn {
-    /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
     margin-right: 0px;
 }
 
-
 /* সেটিংস বাটন (#settings-btn) */
 #settings-btn svg {
-    /* এই দুটি মান পরিবর্তন করে আইকনটি বড় বা ছোট করুন */
     width: 24px;
     height: 24px;
 }
 #settings-btn {
-    /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
     margin-right: 0px;
 }
 
-
 /* ফুলস্ক্রিন বাটন (#fullscreen-btn) */
 #fullscreen-btn svg {
-    /* এই দুটি মান পরিবর্তন করে আইকনটি বড় বা ছোট করুন */
     width: 24px;
     height: 24px;
 }
 #fullscreen-btn {
-    /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
     margin-right: 0px;
 }
-
 
 /* ... (বাকি কোড অপরিবর্তিত) ... */
 .time-display { font-size: 16px; user-select: none; }
