@@ -3,8 +3,8 @@
     --theme-color-darker: #e33939;
     --progress-bar-height: 5px;
     --thumb-size: 16px;
-    --central-play-btn-color: #2ecc71;
-    --gradient-start-color: #ed1600;
+    --central-play-btn-color: #fa0505;
+    --gradient-start-color: #cf0000;
     --gradient-end-color: #f16d0f;
     --loading-theme-color: #ff0000;
     --loading-gradient-start: #ff3333;
@@ -55,7 +55,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .loading-bar-container {
     width: 200px;
-    height: 3px;
+    height: 6px;
     margin: 0 auto 12px auto;
     position: relative;
     overflow: hidden;
