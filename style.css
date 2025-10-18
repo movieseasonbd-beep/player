@@ -212,11 +212,11 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 /* ফুলস্ক্রিন বাটন (#fullscreen-btn) */
 #fullscreen-btn svg {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
 }
 #fullscreen-btn {
-    transform: translateX(0px);
+    transform: translateX(+5px);
 }
 
 
