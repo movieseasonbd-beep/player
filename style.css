@@ -73,7 +73,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     height: 4px;
     margin: 0 auto 12px auto;
     position: relative;
-    /* overflow: hidden; - এই লাইনটি এখন আর এখানে প্রয়োজন নেই */
 }
 
 /* === চূড়ান্ত এবং নিখুঁত সমাধান: এটি হলো আপনার মূল স্থির লাল বার === */
@@ -81,7 +80,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     width: 100%;
     height: 100%;
     
-    /* আপনার মূল কোডের الخلفية, যা সূঁচালো ইফেক্ট তৈরি করে */
+    /* আপনার মূল কোডের الخلفية, যা মাঝখানে মোটা এবং দুই পাশে শূন্যে মিলিয়ে যাওয়া ইফেক্ট তৈরি করে */
     background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
     opacity: 1; /* ঝাপসা ভাব দূর করা হয়েছে */
     
@@ -90,7 +89,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     overflow: hidden;   /* এর ভেতরের সবকিছুকে এর আকৃতিতে কেটে ফেলার জন্য */
 }
 
-/* === চূড়ান্ত এবং নিখুঁত সমাধান: Shine ইফেক্টটি এখন নিখুঁতভাবে মিশে যাবে === */
+/* === চূড়ান্ত এবং নিখুঁত সমাধান: Shine ইফেক্টটি এখন নিখুঁতভাবে বারের আকৃতি অনুসরণ করবে === */
 .loading-bar::before {
     content: '';
     position: absolute;
@@ -132,7 +131,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
         transform: translateX(166%);
     }
 }
-
 
 
 
