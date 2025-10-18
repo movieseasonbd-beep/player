@@ -63,40 +63,38 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .loading-bar-container {
     width: 200px;
-    height: 6px; /* আপনি চাইলে বারের উচ্চতা বাড়াতে বা কমাতে পারেন */
+    height: 6px;
     margin: 0 auto 18px auto;
     position: relative;
     overflow: hidden;
     border-radius: 3px;
 }
 
-/* === পরিবর্তন এখানে: এটি হলো الخلفية বা "ট্র্যাক" === */
+/* === চূড়ান্ত পরিবর্তন: দুই পাশ শূন্যে মিলিয়ে যাওয়া ইফেক্ট === */
 .loading-bar {
     width: 100%;
     height: 100%;
     border-radius: 3px;
-    /* আপনার থিম কালারের একটি গাঢ় এবং হালকা সংস্করণ দিয়ে الخلفية বানানো হয়েছে */
-    background: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
-    opacity: 0.5; /* الخلفية কে কিছুটা অনুজ্জ্বল রাখা হয়েছে */
+    /* এই গ্রেডিয়েন্টটিই আপনার কাঙ্ক্ষিত ইফেক্টটি তৈরি করবে */
+    background: linear-gradient(to right, 
+        transparent 0%, 
+        var(--gradient-start-color) 15%, 
+        var(--gradient-end-color) 85%, 
+        transparent 100%
+    );
 }
 
-/* === পরিবর্তন এখানে: এটি হলো উজ্জ্বল "Shine" ইফেক্ট === */
+/* === চলমান "Shine" ইফেক্ট (অপরিবর্তিত) === */
 .loading-bar::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
+    width: 70%; 
     height: 100%;
-    width: 50%; /* Shine ইফেক্টের প্রস্থ */
-    
-    /* একটি উজ্জ্বল সাদা কেন্দ্রবিন্দু যা দুই দিকে মিলিয়ে যায় */
-    background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.7) 50%, transparent 100%);
-    
-    /* Shine ইফেক্টটিকে আরও মসৃণ করার জন্য */
-    filter: blur(1px);
-    
-    /* অ্যানিমেশনের গতি এবং পুনরাবৃত্তি */
-    animation: loading-scan 2s infinite ease-in-out;
+    background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.9) 50%, transparent 100%);
+    border-radius: 3px;
+    animation: loading-shine-effect 2s infinite linear;
 }
 
 .loading-text {
@@ -115,13 +113,12 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     color: transparent;
 }
 
-/* === পরিবর্তন এখানে: অ্যানিমেশনটি এখন আরও মসৃণ হবে === */
-@keyframes loading-scan {
+@keyframes loading-shine-effect {
     0% {
         transform: translateX(-100%);
     }
     100% {
-        transform: translateX(200%); /* বারটি যেন সম্পূর্ণ পার হয়ে যায় */
+        transform: translateX(145%); 
     }
 }
 
