@@ -57,7 +57,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .loading-bar-container {
     width: 200px;
-    height: 3px;
+    height: 6px;
     margin: 0 auto 18px auto;
     position: relative;
     overflow: hidden;
