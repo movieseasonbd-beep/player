@@ -77,11 +77,11 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 #fullscreen-btn { transform: translateX(+4px); }
 
 /* === বাকি স্টাইল === */
-/* === বাকি স্টাইল === */
 .time-display {
     font-size: 12px;
     user-select: none;
-    margin-left: -10px; /* এই লাইনটি যোগ করুন */
+    margin-left: -10px;
+    white-space: nowrap; /* এই লাইনটি যোগ করুন */
 }
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
