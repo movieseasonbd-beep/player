@@ -73,38 +73,35 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     height: 4px;
     margin: 0 auto 12px auto;
     position: relative;
-    /* overflow: hidden; - এই লাইনটি এখন আর এখানে প্রয়োজন নেই */
 }
 
-/* === চূড়ান্ত এবং নিখুঁত সমাধান: Overflow:hidden কৌশল === */
+/* === চূড়ান্ত এবং নিখুঁত সমাধান: Multiple Backgrounds এবং Single Mask === */
 .loading-bar {
     width: 100%;
     height: 100%;
     
-    /* আপনার মূল কোডের الخلفية, যা সূঁচালো ইফেক্ট তৈরি করে */
-    background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
-    opacity: 1; /* ঝাপসা ভাব দূর করা হয়েছে */
+    /* === মূল কৌশল: দুটি الخلفية একসাথে ব্যবহার করা হচ্ছে === */
+    /* উপরের স্তর: উজ্জ্বল সাদা আলো (Shine) */
+    /* নিচের স্তর: আপনার মূল লাল বার */
+    background-image: 
+        linear-gradient(to right, transparent 0%, white 50%, transparent 100%),
+        radial-gradient(ellipse at center, var(--loading-theme-color) 0%, transparent 70%);
+
+    /* প্রতিটি الخلفية-এর জন্য আলাদা সাইজ নির্ধারণ */
+    background-size: 60% 100%, 100% 100%;
     
-    /* === মূল কৌশল: এই দুটি লাইনই সব সমস্যার সমাধান করবে === */
-    position: relative; /* ::before কে এর ভেতরে রাখার জন্য */
-    overflow: hidden;   /* এর ভেতরের সবকিছুকে এর আকৃতিতে কেটে ফেলার জন্য */
+    /* দুটি الخلفية-এর জন্যই no-repeat */
+    background-repeat: no-repeat;
+
+    /* অ্যানিমেশনটি শুধুমাত্র প্রথম الخلفية (সাদা আলো)-এর অবস্থান পরিবর্তন করবে */
+    animation: loading-scan-final 2.5s infinite linear;
+    
+    /* === একক মাস্ক: এই মাস্কটি দুটি الخلفية-কেই একসাথে নিখুঁতভাবে কেটে দেবে === */
+    -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+    mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
 }
 
-/* === চূড়ান্ত এবং নিখুঁত সমাধান: Shine ইফেক্টটি এখন নিখুঁতভাবে মিশে যাবে === */
-.loading-bar::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 60%;
-    height: 100%;
-    
-    /* আলোটি এখন উজ্জ্বল এবং বিশুদ্ধ সাদা */
-    background: linear-gradient(to right, transparent 0%, white 50%, transparent 100%);
-
-    /* অ্যানিমেশনটি অপরিবর্তিত থাকবে */
-    animation: loading-scan 2.5s infinite linear;
-}
+/* ::before এখন আর প্রয়োজন নেই, তাই এটি সম্পূর্ণ মুছে ফেলা হয়েছে */
 
 .loading-text {
     font-size: 12px; 
@@ -122,16 +119,17 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     color: transparent;
 }
 
-/* আপনার মূল অ্যানিমেশনটিই ব্যবহার করা হচ্ছে */
-@keyframes loading-scan {
+/* === নতুন অ্যানিমেশন Keyframes যা background-position পরিবর্তন করে === */
+@keyframes loading-scan-final {
     0% {
-        transform: translateX(-100%);
+        /* প্রথম الخلفية-এর অবস্থান (সাদা আলো), দ্বিতীয় الخلفية-এর অবস্থান (লাল বার) */
+        background-position: -150% 0, 0 0;
     }
     100% {
-        transform: translateX(166%);
+        /* প্রথম الخلفية-এর অবস্থান (সাদা আলো), দ্বিতীয় الخلفية-এর অবস্থান (লাল বার) */
+        background-position: 250% 0, 0 0;
     }
 }
-
 
 
 
