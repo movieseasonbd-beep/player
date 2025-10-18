@@ -2,7 +2,7 @@
 const playerContainer = document.querySelector('.player-container');
 const loadingOverlay = document.querySelector('.loading-overlay');
 const video = document.querySelector('.video');
-const controlsContainer = document.querySelector('.controls-container'); // === নতুন: কন্ট্রোল কন্টেইনার যোগ করা হয়েছে
+const controlsContainer = document.querySelector('.controls-container');
 const centralPlayBtn = document.querySelector('.central-play-btn');
 const playPauseBtn = document.getElementById('play-pause-btn');
 const rewindBtn = document.getElementById('rewind-btn');
@@ -35,14 +35,13 @@ function loadVideo(videoUrl) {
     }
 }
 
-// এই ফাংশনটি শুধুমাত্র প্লে/পজ বাটনের জন্য (সরাসরি কাজ করবে)
+// এই ফাংশনটি শুধুমাত্র প্লে/পজ বাটনের জন্য
 function directTogglePlay() {
     video.paused ? video.play() : video.pause();
 }
 
-// === চূড়ান্ত সমাধান: এই ফাংশনটি স্ক্রিন ট্যাপের জন্য বানানো হয়েছে ===
+// এই ফাংশনটি স্ক্রিন ট্যাপের জন্য
 function handleScreenTap() {
-    // কন্ট্রোল বারটি আসলেই দেখা যাচ্ছে কিনা, তা CSS-এর opacity দেখে নির্ণয় করা হচ্ছে
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
 
     if (video.paused) {
@@ -75,7 +74,7 @@ function hideControls() {
 
 function resetControlsTimer() {
     clearTimeout(controlsTimeout);
-    controlsTimeout = setTimeout(hideControls, 3000);
+    controlsTimeout = setTimeout(hideControls, 3000); // 3 সেকেন্ড পর কন্ট্রোল বার লুকানো হবে
 }
 
 function updateProgressUI() {
@@ -115,11 +114,26 @@ function updateVolumeIcon() {
     volumeBtn.querySelector('.volume-off-icon').style.display = isMuted ? 'block' : 'none';
 }
 
+// স্বয়ংক্রিয় স্ক্রিন রোটেশনসহ ফুলস্ক্রিন ফাংশন
 async function toggleFullscreen() {
     if (!document.fullscreenElement) {
         await playerContainer.requestFullscreen();
+        try {
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock('landscape');
+            }
+        } catch (err) {
+            console.warn("Screen orientation lock failed:", err);
+        }
     } else {
         await document.exitFullscreen();
+        try {
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
+        } catch (err) {
+            console.warn("Screen orientation unlock failed:", err);
+        }
     }
 }
 
@@ -127,6 +141,7 @@ function updateFullscreenState() {
     const isFullscreen = !!document.fullscreenElement;
     fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block';
     fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
+    fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
 }
 
 function toggleSettingsMenu() {
@@ -142,8 +157,16 @@ video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 
-video.addEventListener('play', updatePlayState);
-video.addEventListener('pause', updatePlayState);
+video.addEventListener('play', () => {
+    updatePlayState();
+    resetControlsTimer();
+});
+video.addEventListener('pause', () => {
+    updatePlayState();
+    clearTimeout(controlsTimeout);
+    playerContainer.classList.add('show-controls');
+});
+
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 video.addEventListener('volumechange', updateVolumeIcon);
@@ -167,16 +190,10 @@ speedOptions.forEach(option => {
     });
 });
 
+// ডেস্কটপের জন্য মাউস নাড়ালে কন্ট্রোল বার দেখাবে
 playerContainer.addEventListener('mousemove', () => {
-    if (!video.paused) {
-        playerContainer.classList.add('show-controls');
-        resetControlsTimer();
-    }
-});
-playerContainer.addEventListener('mouseleave', () => {
-    if (!video.paused) {
-        playerContainer.classList.remove('show-controls');
-    }
+    playerContainer.classList.add('show-controls');
+    resetControlsTimer();
 });
 
 
