@@ -21,8 +21,6 @@ const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
 let controlsTimeout;
-
-// === নতুন পরিবর্তন: স্ক্রাবিং এর অবস্থা ট্র্যাক করার জন্য ভ্যারিয়েবল ===
 let isScrubbing = false;
 let wasPlaying = false;
 
@@ -66,7 +64,7 @@ function updatePlayState() {
 }
 
 function hideControls() {
-    if (!video.paused && !settingsMenu.classList.contains('active')) {
+    if (!video.paused && !settingsMenu.classList.contains('active') && !isScrubbing) {
         playerContainer.classList.remove('show-controls');
     }
 }
@@ -76,9 +74,8 @@ function resetControlsTimer() {
     controlsTimeout = setTimeout(hideControls, 3000);
 }
 
-// === নতুন পরিবর্তন: স্ক্রাবিং এর সময় যেন এই ফাংশনটি UI আপডেট না করে ===
 function updateProgressUI() {
-    if (isScrubbing) return; // যদি টানা হয়, তাহলে কিছু করবে না
+    if (isScrubbing) return;
     if (video.duration) {
         const progressPercent = (video.currentTime / video.duration) * 100;
         progressFilled.style.width = `${progressPercent}%`;
@@ -94,14 +91,10 @@ function updateBufferBar() {
     }
 }
 
-// === নতুন পরিবর্তন: এই ফাংশনটি এখন UI ও আপডেট করবে ===
 function scrub(e) {
     const scrubTime = (e.target.value / 100) * video.duration;
     if (isNaN(scrubTime)) return;
-    
     video.currentTime = scrubTime;
-    
-    // ম্যানুয়ালি UI আপডেট করা হচ্ছে দ্রুত রেসপন্সের জন্য
     progressFilled.style.width = `${e.target.value}%`;
     timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`;
 }
@@ -121,6 +114,8 @@ function updateVolumeIcon() {
     const isMuted = video.muted || video.volume === 0;
     volumeBtn.querySelector('.volume-on-icon').style.display = isMuted ? 'none' : 'block';
     volumeBtn.querySelector('.volume-off-icon').style.display = isMuted ? 'block' : 'none';
+    // === পরিবর্তন এখানে: Mute থাকা অবস্থায় বাটনে .active ক্লাস যোগ করা হচ্ছে ===
+    volumeBtn.classList.toggle('active', isMuted);
 }
 
 async function toggleFullscreen() {
@@ -142,10 +137,14 @@ function updateFullscreenState() {
     fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block';
     fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
     fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
+    // === পরিবর্তন এখানে: Fullscreen থাকা অবস্থায় বাটনে .active ক্লাস যোগ করা হচ্ছে ===
+    fullscreenBtn.classList.toggle('active', isFullscreen);
 }
 
 function toggleSettingsMenu() {
     settingsMenu.classList.toggle('active');
+    // === পরিবর্তন এখানে: Settings মেনু খোলা থাকলে বাটনে .active ক্লাস যোগ করা হচ্ছে ===
+    settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
 }
 
 // ==========================================================
@@ -169,21 +168,21 @@ volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
 
-// === নতুন পরিবর্তন: স্ক্রাবিং এর জন্য নতুন ইভেন্ট লিসেনার ===
 progressBar.addEventListener('input', scrub);
-progressBar.addEventListener('mousedown', () => {
+progressBar.addEventListener('mousedown', (e) => {
     isScrubbing = true;
     wasPlaying = !video.paused;
-    if (wasPlaying) {
-        video.pause();
+    if (wasPlaying) video.pause();
+    // Touch support for mobile
+    if (e.type === 'touchstart') {
+        document.addEventListener('touchmove', scrub);
+        document.addEventListener('touchend', endScrub);
     }
 });
-document.addEventListener('mouseup', () => {
+document.addEventListener('mouseup', (e) => {
     if (isScrubbing) {
         isScrubbing = false;
-        if (wasPlaying) {
-            video.play();
-        }
+        if (wasPlaying) video.play();
     }
 });
 
