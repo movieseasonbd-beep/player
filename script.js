@@ -19,14 +19,10 @@ const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
 const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
-
-// === পরিবর্তন এখানে (ভ্যারিয়েবল সরানো হয়েছে) ===
-// let isVideoReady = false;
-// let isMinTimeElapsed = false;
+let controlsTimeout; // === পরিবর্তন: কন্ট্রোল বার লুকানোর টাইমারের জন্য ভ্যারিয়েবল ===
 
 // Functions
 function hideLoadingScreen() {
-    // এখন আর কোনো শর্ত চেক করার প্রয়োজন নেই
     loadingOverlay.classList.add('hidden');
 }
 
@@ -159,18 +155,16 @@ function toggleSettingsMenu() {
 }
 
 // Event Listeners
-video.addEventListener('click', togglePlay);
+// video.addEventListener('click', togglePlay); // === পরিবর্তন: এই লাইনটি মুছে দেওয়া হয়েছে ===
 video.addEventListener('play', updatePlayState);
 video.addEventListener('pause', updatePlayState);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 
-// === canplay ইভেন্টটি এখন আর লোডিং স্ক্রিন নিয়ন্ত্রণ করে না ===
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
-    // hideLoadingScreen() ফাংশনটি এখান থেকে সরিয়ে দেওয়া হয়েছে
 });
 
 video.addEventListener('volumechange', updateVolumeIcon);
@@ -193,7 +187,6 @@ speedOptions.forEach(option => {
     });
 });
 
-// === পরিবর্তন এখানে (DOMContentLoaded ইভেন্ট) ===
 document.addEventListener('DOMContentLoaded', () => {
     updatePlayState();
     updateProgressUI();
@@ -204,15 +197,62 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoUrl = urlParams.get('id');
     
     if (videoUrl) {
-        // পেছনে ভিডিও লোড শুরু
         loadVideo(videoUrl);
-        
-        // ঠিক ৩ সেকেন্ড পর লোডিং স্ক্রিন লুকিয়ে ফেলা হবে
-        setTimeout(hideLoadingScreen, 3000); // 3000 মিলিসেকেন্ড = 3 সেকেন্ড
-
+        setTimeout(hideLoadingScreen, 3000);
     } else {
-        // কোনো ভিডিও লিঙ্ক না থাকলে লোডিং স্ক্রিন সাথে সাথেই লুকিয়ে ফেলা হবে
         hideLoadingScreen();
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
+});
+
+
+// ==========================================================
+// === ব্যবহারকারীর চাহিদা অনুযায়ী নতুন পরিবর্তন এখানে ===
+// ==========================================================
+
+// ফাংশন: কন্ট্রোল বার লুকিয়ে ফেলার জন্য
+function hideControls() {
+    if (!video.paused && !settingsMenu.classList.contains('active')) {
+        playerContainer.classList.remove('show-controls');
+    }
+}
+
+// ফাংশন: কন্ট্রোল বার লুকানোর টাইমার রিসেট করার জন্য
+function resetControlsTimer() {
+    clearTimeout(controlsTimeout);
+    controlsTimeout = setTimeout(hideControls, 3000); // ৩ সেকেন্ড পর কন্ট্রোল বার লুকানো হবে
+}
+
+// ভিডিওতে ক্লিক করলে কী হবে তার নতুন লজিক
+function handleVideoClick() {
+    if (video.paused) {
+        video.play();
+    } else {
+        const areControlsVisible = playerContainer.classList.contains('show-controls') || getComputedStyle(document.querySelector('.controls-container')).opacity === '1';
+
+        if (areControlsVisible) {
+            video.pause();
+        } else {
+            playerContainer.classList.add('show-controls');
+            resetControlsTimer();
+        }
+    }
+}
+
+// নতুন 'click' ইভেন্ট যুক্ত করা হলো
+video.addEventListener('click', handleVideoClick);
+
+// যখন মাউস প্লেয়ারের উপর নড়াচড়া করবে, তখন কন্ট্রোল বার দেখাবে এবং টাইমার রিসেট হবে
+playerContainer.addEventListener('mousemove', () => {
+    playerContainer.classList.add('show-controls');
+    resetControlsTimer();
+});
+
+// ভিডিও প্লে হলে টাইমার চালু হবে
+video.addEventListener('play', resetControlsTimer);
+
+// ভিডিও পজ হলে টাইমার বন্ধ হবে এবং কন্ট্রোল বার দেখা যাবে
+video.addEventListener('pause', () => {
+    clearTimeout(controlsTimeout);
+    playerContainer.classList.add('show-controls');
 });
