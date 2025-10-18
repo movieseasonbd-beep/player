@@ -45,7 +45,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .loading-logo {
     font-family: 'Arial', sans-serif;
-    font-size: 28px;
+    font-size: 25px;
     font-weight: 700;
     margin-bottom: 10px;
     letter-spacing: 0.5px;
@@ -58,7 +58,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .loading-bar-container {
     width: 200px;
     height: 3px;
-    margin: 0 auto 12px auto;
+    margin: 0 auto 18px auto;
     position: relative;
     overflow: hidden;
 }
@@ -84,7 +84,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 
 .loading-text {
-    font-size: 12px;
+    font-size: 10px;
     letter-spacing: 0.5px;
 }
 
@@ -137,7 +137,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 /* === কন্ট্রোলস === */
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
-.progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 8px 0; cursor: pointer; position: relative; }
+.progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 2px 0; cursor: pointer; position: relative; }
 .progress-background, .buffer-bar, .progress-filled, .progress-bar { grid-column: 1; grid-row: 1; }
 .progress-background, .buffer-bar, .progress-filled { height: var(--progress-bar-height); border-radius: 5px; pointer-events: none; }
 .progress-background { background: rgba(255, 255, 255, 0.2); }
