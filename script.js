@@ -20,8 +20,27 @@ const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
 let controlsTimeout;
+let wakeLock = null;
 
 // Functions
+async function requestWakeLock() {
+  if ('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch (err) {
+      console.error(`${err.name}, ${err.message}`);
+    }
+  }
+};
+
+async function releaseWakeLock() {
+  if (wakeLock !== null) {
+    await wakeLock.release();
+    wakeLock = null;
+  }
+};
+
 function hideLoadingScreen() {
     loadingOverlay.classList.add('hidden');
 }
@@ -48,12 +67,10 @@ function updatePlayState() {
     if (video.paused) {
         playIcon.style.display = 'block';
         pauseIcon.style.display = 'none';
-        // ভিডিও পজ হলে কন্ট্রোল বার সবসময় দেখা যাবে
         playerContainer.classList.add('show-controls');
     } else {
         playIcon.style.display = 'none';
         pauseIcon.style.display = 'block';
-        // ভিডিও প্লে হলে কন্ট্রোল বার লুকিয়ে যাবে
         playerContainer.classList.remove('show-controls');
     }
     
@@ -115,7 +132,7 @@ function updateVolumeIcon() {
 async function toggleFullscreen() {
     if (!document.fullscreenElement) {
         await playerContainer.requestFullscreen().catch(err => {
-            alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            alert(`Fullscreen error: ${err.message}`);
         });
         try {
             if (screen.orientation && screen.orientation.lock) {
@@ -158,39 +175,44 @@ function toggleSettingsMenu() {
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
 }
 
-// === পরিবর্তন এখানে (কন্ট্রোল বার দেখানোর নতুন নিয়ম) ===
 function showTemporaryControls() {
     playerContainer.classList.add('show-controls');
     clearTimeout(controlsTimeout);
     
-    // যদি ভিডিও চলতে থাকে, তাহলেই শুধু কন্ট্রোল বার লুকানো হবে
     if (!video.paused) {
         controlsTimeout = setTimeout(() => {
             playerContainer.classList.remove('show-controls');
-        }, 3000); // ৩ সেকেন্ড পর লুকিয়ে যাবে
+        }, 3000);
     }
 }
 
 // Event Listeners
 video.addEventListener('click', togglePlay);
-video.addEventListener('mousemove', showTemporaryControls); // মাউস নাড়ালে কন্ট্রোল বার দেখা যাবে
-playerContainer.addEventListener('mouseleave', () => { // মাউস প্লেয়ারের বাইরে গেলে কন্ট্রোল বার লুকিয়ে যাবে
+video.addEventListener('mousemove', showTemporaryControls);
+playerContainer.addEventListener('mouseleave', () => {
     if (!video.paused) {
         playerContainer.classList.remove('show-controls');
     }
 });
 
-video.addEventListener('play', updatePlayState);
-video.addEventListener('pause', updatePlayState);
+video.addEventListener('play', () => {
+    updatePlayState();
+    requestWakeLock();
+});
+
+video.addEventListener('pause', () => {
+    updatePlayState();
+    releaseWakeLock();
+});
+
+video.addEventListener('ended', releaseWakeLock);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
-
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
 });
-
 video.addEventListener('volumechange', updateVolumeIcon);
 
 centralPlayBtn.addEventListener('click', togglePlay);
@@ -227,4 +249,12 @@ document.addEventListener('DOMContentLoaded', () => {
         hideLoadingScreen();
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
+});
+
+document.addEventListener('visibilitychange', async () => {
+  if (wakeLock !== null && document.visibilityState === 'hidden') {
+    await releaseWakeLock();
+  } else if (document.visibilityState === 'visible' && !video.paused) {
+    await requestWakeLock();
+  }
 });
