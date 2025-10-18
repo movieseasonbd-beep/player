@@ -1,25 +1,21 @@
 :root {
-    --theme-color: #f21111;
-    --theme-color-darker: #e33939;
+    --theme-color: #3498db;
+    --theme-color-darker: #2980b9;
     --progress-bar-height: 5px;
     --thumb-size: 16px;
-    --central-play-btn-color: #fa0505;
-    --gradient-start-color: #cf0000;
-    --gradient-end-color: #f16d0f;
+    --central-play-btn-color: #2ecc71;
+    --gradient-start-color: #e74c3c;
+    --gradient-end-color: #f1c40f;
     --loading-theme-color: #ff0000;
-    --loading-gradient-start: #ff0000;
-    --loading-gradient-end: #fa5050;
+    --loading-gradient-start: #ff3333;
+    --loading-gradient-end: #cc0000;
 }
 
 body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; overflow: hidden; }
 .player-container { width: 100vw; height: 100vh; position: relative; background-color: #000; display: flex; justify-content: center; align-items: center; }
 .player-container.playing .central-play-btn { opacity: 0; visibility: hidden; }
+.player-container:hover .controls-container, .player-container.paused .controls-container { opacity: 1; transform: translateY(0); }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
-
-.player-container.show-controls .controls-container {
-    opacity: 1;
-    transform: translateY(0);
-}
 
 /* === লোডিং স্ক্রিনের স্টাইল === */
 .loading-overlay {
@@ -47,7 +43,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .loading-logo {
     font-family: 'Arial', sans-serif;
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 700;
     margin-bottom: 10px;
     letter-spacing: 0.5px;
@@ -59,8 +55,8 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .loading-bar-container {
     width: 200px;
-    height: 6px;
-    margin: 0 auto 16px auto;
+    height: 3px;
+    margin: 0 auto 12px auto;
     position: relative;
     overflow: hidden;
 }
@@ -86,7 +82,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 
 .loading-text {
-    font-size: 9px;
+    font-size: 12px;
     letter-spacing: 0.5px;
 }
 
@@ -131,15 +127,15 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     transform: translate(-50%, -50%) scale(1.0); 
 }
 .central-play-btn svg { 
-    width: 80px; 
-    height: 80px;
+    width: 90px; 
+    height: 90px;
     fill: var(--central-play-btn-color); 
     filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); 
 }
 
 /* === কন্ট্রোলস === */
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
-.progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 2px 0; cursor: pointer; position: relative; }
+.progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 8px 0; cursor: pointer; position: relative; }
 .progress-background, .buffer-bar, .progress-filled, .progress-bar { grid-column: 1; grid-row: 1; }
 .progress-background, .buffer-bar, .progress-filled { height: var(--progress-bar-height); border-radius: 5px; pointer-events: none; }
 .progress-background { background: rgba(255, 255, 255, 0.2); }
@@ -161,8 +157,8 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-btn svg {
     transition: fill 0.1s ease;
 }
-#play-pause-btn svg { width: 30px; height: 30px; }
-#play-pause-btn { transform: translateX(-8px); }
+#play-pause-btn svg { width: 28px; height: 28px; }
+#play-pause-btn { transform: translateX(0px); }
 #rewind-btn svg { width: 24px; height: 24px; }
 #rewind-btn { transform: translateX(0px); }
 #forward-btn svg { width: 24px; height: 24px; }
@@ -171,11 +167,11 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 #volume-btn { transform: translateX(0px); }
 #settings-btn svg { width: 24px; height: 24px; }
 #settings-btn { transform: translateX(0px); }
-#fullscreen-btn svg { width: 30px; height: 30px; }
-#fullscreen-btn { transform: translateX(4px); }
+#fullscreen-btn svg { width: 24px; height: 24px; }
+#fullscreen-btn { transform: translateX(0px); }
 
 /* === বাকি স্টাইল === */
-.time-display { font-size: 12px; user-select: none; }
+.time-display { font-size: 16px; user-select: none; }
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
 .settings-menu { position: absolute; bottom: 80px; right: 20px; background-color: rgba(40, 40, 40, 0.9); border-radius: 8px; z-index: 5; width: 200px; padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, transform 0.2s ease; transform: translateY(10px); }
