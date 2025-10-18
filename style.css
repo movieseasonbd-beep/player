@@ -26,20 +26,103 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
 /* === লোডিং স্ক্রিনের স্টাইল === */
-.loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s ease; }
-.loading-overlay.hidden { opacity: 0; visibility: hidden; }
-.loading-content { text-align: center; }
-.loading-logo { font-family: 'Arial', sans-serif; font-size: 25px; font-weight: 700; margin-bottom: 10px; letter-spacing: 0.5px; background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.loading-bar-container { width: 200px; height: 6px; margin: 0 auto 18px auto; position: relative; overflow: hidden; }
-.loading-bar { width: 100%; height: 100%; border-radius: 1.5px; background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%); opacity: 0.6; }
-.loading-bar::before { content: ''; position: absolute; top: 0; left: 0; width: 60%; height: 100%; background: linear-gradient(to right, transparent 0%, white 50%, transparent 100%); filter: blur(4px); animation: loading-scan 3s infinite linear; }
-.loading-text { font-size: 10px; letter-spacing: 0.5px; }
-.loading-maintext { color: white; }
-.loading-subtext { background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
 
+.loading-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-logo {
+    font-family: 'Arial', sans-serif;
+    font-size: 25px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.loading-bar-container {
+    width: 200px;
+    height: 6px; /* আপনি চাইলে বারের উচ্চতা বাড়াতে বা কমাতে পারেন */
+    margin: 0 auto 18px auto;
+    position: relative;
+    overflow: hidden;
+    border-radius: 3px;
+}
+
+/* === পরিবর্তন এখানে: এটি হলো الخلفية বা "ট্র্যাক" === */
+.loading-bar {
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+    /* আপনার থিম কালারের একটি গাঢ় এবং হালকা সংস্করণ দিয়ে الخلفية বানানো হয়েছে */
+    background: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
+    opacity: 0.5; /* الخلفية কে কিছুটা অনুজ্জ্বল রাখা হয়েছে */
+}
+
+/* === পরিবর্তন এখানে: এটি হলো উজ্জ্বল "Shine" ইফেক্ট === */
+.loading-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 50%; /* Shine ইফেক্টের প্রস্থ */
+    
+    /* একটি উজ্জ্বল সাদা কেন্দ্রবিন্দু যা দুই দিকে মিলিয়ে যায় */
+    background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.7) 50%, transparent 100%);
+    
+    /* Shine ইফেক্টটিকে আরও মসৃণ করার জন্য */
+    filter: blur(1px);
+    
+    /* অ্যানিমেশনের গতি এবং পুনরাবৃত্তি */
+    animation: loading-scan 2s infinite ease-in-out;
+}
+
+.loading-text {
+    font-size: 10px;
+    letter-spacing: 0.5px;
+}
+
+.loading-maintext {
+    color: white;
+}
+
+.loading-subtext {
+    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* === পরিবর্তন এখানে: অ্যানিমেশনটি এখন আরও মসৃণ হবে === */
 @keyframes loading-scan {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(166%); }
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(200%); /* বারটি যেন সম্পূর্ণ পার হয়ে যায় */
+    }
 }
 
 /* === সেন্ট্রাল প্লে বাটন === */
