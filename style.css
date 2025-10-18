@@ -171,7 +171,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 #play-pause-btn {
     /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
-    transform: translateX(-10px); 
+    transform: translateX(-5px); 
 }
 
 /* রিওয়াইন্ড বাটন (#rewind-btn) */
