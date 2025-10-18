@@ -20,9 +20,18 @@ const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
 
+// === পরিবর্তন এখানে (নতুন ভ্যারিয়েবল) ===
+let isVideoReady = false;
+let isMinTimeElapsed = false;
+// =====================================
+
 // Functions
 function hideLoadingScreen() {
-    loadingOverlay.classList.add('hidden');
+    // === পরিবর্তন এখানে (নতুন শর্ত) ===
+    // দুটি শর্ত পূরণ হলেই শুধু লোডিং স্ক্রিন লুকানো হবে
+    if (isVideoReady && isMinTimeElapsed) {
+        loadingOverlay.classList.add('hidden');
+    }
 }
 
 function loadVideo(videoUrl) {
@@ -142,14 +151,19 @@ video.addEventListener('pause', updatePlayState);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 
+// === পরিবর্তন এখানে (canplay ইভেন্ট) ===
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
+    
+    // প্রথম শর্ত পূরণ: ভিডিও এখন প্রস্তুত
+    isVideoReady = true;
+    // hideLoadingScreen() ফাংশনকে কল করা হচ্ছে, এটি নিজে থেকেই চেক করবে দ্বিতীয় শর্ত পূরণ হয়েছে কি না
     hideLoadingScreen();
 });
 
-video.addEventListener('volumechange', updateVolumeIcon); // এই লাইনটি নিশ্চিত করে যে ভলিউম পরিবর্তন হলে আইকন আপডেট হবে
+video.addEventListener('volumechange', updateVolumeIcon);
 
 centralPlayBtn.addEventListener('click', togglePlay);
 playPauseBtn.addEventListener('click', togglePlay);
@@ -169,6 +183,7 @@ speedOptions.forEach(option => {
     });
 });
 
+// === পরিবর্তন এখানে (DOMContentLoaded ইভেন্ট) ===
 document.addEventListener('DOMContentLoaded', () => {
     updatePlayState();
     updateProgressUI();
@@ -180,9 +195,18 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (videoUrl) {
         loadVideo(videoUrl);
-        setTimeout(hideLoadingScreen, 3000);
+        
+        // ন্যূনতম ২ সেকেন্ড অপেক্ষা করার টাইমার
+        setTimeout(() => {
+            // দ্বিতীয় শর্ত পূরণ: ২ সেকেন্ড পার হয়ে গেছে
+            isMinTimeElapsed = true;
+            // hideLoadingScreen() ফাংশনকে কল করা হচ্ছে, এটি নিজে থেকেই চেক করবে প্রথম শর্ত পূরণ হয়েছে কি না
+            hideLoadingScreen();
+        }, 2000); // 2000 মিলিসেকেন্ড = 2 সেকেন্ড
+
     } else {
-        hideLoadingScreen();
+        // কোনো ভিডিও লিঙ্ক না থাকলে লোডিং স্ক্রিন সাথে সাথেই লুকিয়ে ফেলা হবে
+        loadingOverlay.classList.add('hidden'); // এখানে সরাসরি ক্লাস যোগ করা হচ্ছে
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
 });
