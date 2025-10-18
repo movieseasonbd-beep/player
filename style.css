@@ -84,9 +84,9 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     /* الخلفية গ্রেডিয়েন্ট */
     background: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
     
-    /* === মূল কৌশল: মাস্কের মান পরিবর্তন করে প্রান্তগুলো আরও তীক্ষ্ণ করা হয়েছে === */
-    -webkit-mask-image: radial-gradient(ellipse 100% 50% at center, black 90%, transparent 100%);
-    mask-image: radial-gradient(ellipse 100% 50% at center, black 90%, transparent 100%);
+    /* === মূল কৌশল: মাস্কের মান চূড়ান্তভাবে পরিবর্তন করে প্রান্তগুলো তীক্ষ্ণ করা হয়েছে === */
+    -webkit-mask-image: radial-gradient(ellipse 150% 50% at center, black 95%, transparent 100%);
+    mask-image: radial-gradient(ellipse 150% 50% at center, black 95%, transparent 100%);
 }
 
 /* === চলমান "Shine" ইফেক্ট (এটিও মাস্কের কারণে সূঁচালো দেখাবে) === */
@@ -126,7 +126,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
         transform: translateX(145%); 
     }
 }
-
 
 
 
