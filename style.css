@@ -56,7 +56,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .loading-bar-container {
     width: 200px;
     height: 6px;
-    margin: 0 auto 12px auto;
+    margin: 0 auto 16px auto;
     position: relative;
     overflow: hidden;
 }
@@ -171,7 +171,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 #play-pause-btn {
     /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
-    transform: translateX(-5px); 
+    transform: translateX(-8px); 
 }
 
 /* রিওয়াইন্ড বাটন (#rewind-btn) */
@@ -216,7 +216,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     height: 30px;
 }
 #fullscreen-btn {
-    transform: translateX(+5px);
+    transform: translateX(+4px);
 }
 
 
