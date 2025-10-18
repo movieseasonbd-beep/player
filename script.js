@@ -19,26 +19,42 @@ const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
 const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
-let controlsTimeout; // === পরিবর্তন: কন্ট্রোল বার লুকানোর টাইমারের জন্য ভ্যারিয়েবল ===
+let controlsTimeout;
 
-// Functions
-function hideLoadingScreen() {
-    loadingOverlay.classList.add('hidden');
-}
+// ==========================================================
+// === শুরু থেকে শেষ পর্যন্ত সকল ফাংশন এখানে গোছানো আছে ===
+// ==========================================================
 
 function loadVideo(videoUrl) {
-    hls.destroy(); 
+    hls.destroy();
     hls = new Hls();
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
-    } else { 
-        video.src = videoUrl; 
+    } else {
+        video.src = videoUrl;
     }
 }
 
-function togglePlay() { 
-    if (video.src) video.paused ? video.play() : video.pause(); 
+// === পরিবর্তন: togglePlay এবং handleVideoClick ফাংশনকে একত্রিত করে একটি নতুন ফাংশন বানানো হয়েছে ===
+function masterTogglePlay() {
+    // কন্ট্রোল বার দেখা যাচ্ছে কিনা তা পরীক্ষা করা হচ্ছে
+    const areControlsVisible = playerContainer.classList.contains('show-controls') || getComputedStyle(document.querySelector('.controls-container')).opacity === '1';
+
+    if (video.paused) {
+        // যদি ভিডিও পজ থাকে, তাহলে প্লে করো
+        video.play();
+    } else {
+        // যদি ভিডিও চলতে থাকে...
+        if (areControlsVisible) {
+            // এবং কন্ট্রোল বার দেখা যায়, তাহলে ভিডিও পজ করো (দ্বিতীয় ট্যাপ)
+            video.pause();
+        } else {
+            // এবং কন্ট্রোল বার দেখা না গেলে, শুধু কন্ট্রোল বার দেখাও (প্রথম ট্যাপ)
+            playerContainer.classList.add('show-controls');
+            resetControlsTimer(); // টাইমার চালু করো যাতে কন্ট্রোল বার আবার লুকিয়ে যায়
+        }
+    }
 }
 
 function updatePlayState() {
@@ -48,24 +64,35 @@ function updatePlayState() {
     if (video.paused) {
         playIcon.style.display = 'block';
         pauseIcon.style.display = 'none';
+        playerContainer.classList.add('paused');
+        playerContainer.classList.remove('playing');
     } else {
         playIcon.style.display = 'none';
         pauseIcon.style.display = 'block';
+        playerContainer.classList.remove('paused');
+        playerContainer.classList.add('playing');
     }
-    
-    playerContainer.classList.toggle('playing', !video.paused);
-    playerContainer.classList.toggle('paused', video.paused);
+}
+
+function hideControls() {
+    if (!video.paused && !settingsMenu.classList.contains('active')) {
+        playerContainer.classList.remove('show-controls');
+    }
+}
+
+function resetControlsTimer() {
+    clearTimeout(controlsTimeout);
+    controlsTimeout = setTimeout(hideControls, 3000);
 }
 
 function updateProgressUI() {
-    let progressPercent = 0;
     if (video.duration) {
-        progressPercent = (video.currentTime / video.duration) * 100;
+        const progressPercent = (video.currentTime / video.duration) * 100;
+        progressFilled.style.width = `${progressPercent}%`;
+        progressBar.value = progressPercent;
+        const totalDuration = isNaN(video.duration) ? 0 : video.duration;
+        timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
     }
-    progressFilled.style.width = `${progressPercent}%`;
-    progressBar.value = progressPercent;
-    const totalDuration = isNaN(video.duration) ? 0 : video.duration;
-    timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(totalDuration)}`;
 }
 
 function updateBufferBar() {
@@ -77,12 +104,10 @@ function updateBufferBar() {
 }
 
 function scrub(e) {
-    const value = e.target.value;
-    const scrubTime = (value / 100) * video.duration;
-    if (!isNaN(scrubTime)) { video.currentTime = scrubTime; }
-    progressFilled.style.width = `${value}%`;
-    const totalDuration = isNaN(video.duration) ? 0 : video.duration;
-    timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(totalDuration)}`;
+    const scrubTime = (e.target.value / 100) * video.duration;
+    if (!isNaN(scrubTime)) {
+        video.currentTime = scrubTime;
+    }
 }
 
 function formatTime(seconds) {
@@ -92,7 +117,9 @@ function formatTime(seconds) {
     return hh > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
-function toggleMute() { video.muted = !video.muted; }
+function toggleMute() {
+    video.muted = !video.muted;
+}
 
 function updateVolumeIcon() {
     const volumeOnIcon = volumeBtn.querySelector('.volume-on-icon');
@@ -110,42 +137,16 @@ function updateVolumeIcon() {
 
 async function toggleFullscreen() {
     if (!document.fullscreenElement) {
-        await playerContainer.requestFullscreen().catch(err => {
-            alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-        });
-        try {
-            if (screen.orientation && screen.orientation.lock) {
-                await screen.orientation.lock('landscape');
-            }
-        } catch (err) {
-            console.warn("Screen orientation lock failed:", err);
-        }
+        await playerContainer.requestFullscreen().catch(err => alert(`Fullscreen error: ${err.message}`));
     } else {
         await document.exitFullscreen();
-        try {
-            if (screen.orientation && screen.orientation.unlock) {
-                screen.orientation.unlock();
-            }
-        } catch (err) {
-            console.warn("Screen orientation unlock failed:", err);
-        }
     }
 }
 
 function updateFullscreenState() {
-    const fullscreenOnIcon = fullscreenBtn.querySelector('.fullscreen-on-icon');
-    const fullscreenOffIcon = fullscreenBtn.querySelector('.fullscreen-off-icon');
     const isFullscreen = !!document.fullscreenElement;
-    
-    if (isFullscreen) {
-        fullscreenOnIcon.style.display = 'none';
-        fullscreenOffIcon.style.display = 'block';
-    } else {
-        fullscreenOnIcon.style.display = 'block';
-        fullscreenOffIcon.style.display = 'none';
-    }
-    
-    fullscreenBtn.classList.toggle('active', isFullscreen);
+    fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block';
+    fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
     fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
 }
 
@@ -154,29 +155,42 @@ function toggleSettingsMenu() {
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
 }
 
-// Event Listeners
-// video.addEventListener('click', togglePlay); // === পরিবর্তন: এই লাইনটি মুছে দেওয়া হয়েছে ===
-video.addEventListener('play', updatePlayState);
-video.addEventListener('pause', updatePlayState);
+// ==========================================================
+// === সমস্ত Event Listener এখানে একসাথে রাখা হয়েছে ===
+// ==========================================================
+
+// প্লে/পজ সংক্রান্ত ক্লিক ইভেন্ট
+video.addEventListener('click', masterTogglePlay);
+centralPlayBtn.addEventListener('click', masterTogglePlay);
+playPauseBtn.addEventListener('click', masterTogglePlay);
+
+// ভিডিওর নিজস্ব ইভেন্ট
+video.addEventListener('play', () => {
+    updatePlayState();
+    resetControlsTimer();
+});
+video.addEventListener('pause', () => {
+    updatePlayState();
+    clearTimeout(controlsTimeout);
+    playerContainer.classList.add('show-controls');
+});
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
-
+video.addEventListener('volumechange', updateVolumeIcon);
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
-    updatePlayState();
 });
 
-video.addEventListener('volumechange', updateVolumeIcon);
-
-centralPlayBtn.addEventListener('click', togglePlay);
-playPauseBtn.addEventListener('click', togglePlay);
+// অন্যান্য কন্ট্রোল বাটনের ইভেন্ট
 rewindBtn.addEventListener('click', () => { if(video.duration) video.currentTime -= 10; });
 forwardBtn.addEventListener('click', () => { if(video.duration) video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
 progressBar.addEventListener('input', scrub);
+
+// সেটিংস মেনু
 settingsBtn.addEventListener('click', toggleSettingsMenu);
 closeSettingsBtn.addEventListener('click', toggleSettingsMenu);
 speedOptions.forEach(option => {
@@ -187,6 +201,13 @@ speedOptions.forEach(option => {
     });
 });
 
+// কন্ট্রোল বার দেখানো এবং লুকানোর জন্য
+playerContainer.addEventListener('mousemove', () => {
+    playerContainer.classList.add('show-controls');
+    resetControlsTimer();
+});
+
+// পেজ লোড হলে যা ঘটবে
 document.addEventListener('DOMContentLoaded', () => {
     updatePlayState();
     updateProgressUI();
@@ -198,61 +219,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (videoUrl) {
         loadVideo(videoUrl);
-        setTimeout(hideLoadingScreen, 3000);
+        setTimeout(() => loadingOverlay.classList.add('hidden'), 3000);
     } else {
-        hideLoadingScreen();
+        loadingOverlay.classList.add('hidden');
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
-});
-
-
-// ==========================================================
-// === ব্যবহারকারীর চাহিদা অনুযায়ী নতুন পরিবর্তন এখানে ===
-// ==========================================================
-
-// ফাংশন: কন্ট্রোল বার লুকিয়ে ফেলার জন্য
-function hideControls() {
-    if (!video.paused && !settingsMenu.classList.contains('active')) {
-        playerContainer.classList.remove('show-controls');
-    }
-}
-
-// ফাংশন: কন্ট্রোল বার লুকানোর টাইমার রিসেট করার জন্য
-function resetControlsTimer() {
-    clearTimeout(controlsTimeout);
-    controlsTimeout = setTimeout(hideControls, 3000); // ৩ সেকেন্ড পর কন্ট্রোল বার লুকানো হবে
-}
-
-// ভিডিওতে ক্লিক করলে কী হবে তার নতুন লজিক
-function handleVideoClick() {
-    if (video.paused) {
-        video.play();
-    } else {
-        const areControlsVisible = playerContainer.classList.contains('show-controls') || getComputedStyle(document.querySelector('.controls-container')).opacity === '1';
-
-        if (areControlsVisible) {
-            video.pause();
-        } else {
-            playerContainer.classList.add('show-controls');
-            resetControlsTimer();
-        }
-    }
-}
-
-// নতুন 'click' ইভেন্ট যুক্ত করা হলো
-video.addEventListener('click', handleVideoClick);
-
-// যখন মাউস প্লেয়ারের উপর নড়াচড়া করবে, তখন কন্ট্রোল বার দেখাবে এবং টাইমার রিসেট হবে
-playerContainer.addEventListener('mousemove', () => {
-    playerContainer.classList.add('show-controls');
-    resetControlsTimer();
-});
-
-// ভিডিও প্লে হলে টাইমার চালু হবে
-video.addEventListener('play', resetControlsTimer);
-
-// ভিডিও পজ হলে টাইমার বন্ধ হবে এবং কন্ট্রোল বার দেখা যাবে
-video.addEventListener('pause', () => {
-    clearTimeout(controlsTimeout);
-    playerContainer.classList.add('show-controls');
 });
