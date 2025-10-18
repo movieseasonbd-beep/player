@@ -76,7 +76,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 #play-pause-btn {
     /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
-    margin-right: -10px; 
+    margin-right: -30px; 
 }
 
 /* রিওয়াইন্ড বাটন (#rewind-btn) */
@@ -117,11 +117,11 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 /* ফুলস্ক্রিন বাটন (#fullscreen-btn) */
 #fullscreen-btn svg {
-    width: 24px;
-    height: 24px;
+    width: 35px;
+    height: 35px;
 }
 #fullscreen-btn {
-    margin-right: 0px;
+    margin-right: +20px;
 }
 
 /* ... (বাকি কোড অপরিবর্তিত) ... */
