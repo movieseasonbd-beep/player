@@ -73,6 +73,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     height: 4px;
     margin: 0 auto 12px auto;
     position: relative;
+    /* overflow: hidden; - এই লাইনটি এখন আর এখানে প্রয়োজন নেই */
 }
 
 /* === চূড়ান্ত এবং নিখুঁত সমাধান: এটি হলো আপনার মূল স্থির লাল বার === */
@@ -131,7 +132,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
         transform: translateX(166%);
     }
 }
-
 
 
 
