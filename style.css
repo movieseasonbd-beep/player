@@ -16,7 +16,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container.playing .central-play-btn { opacity: 0; visibility: hidden; }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
-/* === পরিবর্তন এখানে (.controls-container দেখানোর নিয়ম) === */
+/* === পরিবর্তন এখানে === */
 .player-container.show-controls .controls-container {
     opacity: 1;
     transform: translateY(0);
