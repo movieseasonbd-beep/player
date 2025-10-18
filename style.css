@@ -1,14 +1,14 @@
 :root {
-    --theme-color: #3498db;
-    --theme-color-darker: #2980b9;
-    --progress-bar-height: 5px;
-    --thumb-size: 16px;
-    --central-play-btn-color: #2ecc71;
-    --gradient-start-color: #e74c3c;
-    --gradient-end-color: #f1c40f;
-    --loading-theme-color: #ff0000;
-    --loading-gradient-start: #ff3333;
-    --loading-gradient-end: #cc0000;
+--theme-color: #f21111;
+--theme-color-darker: #e33939;
+--progress-bar-height: 5px;
+--thumb-size: 16px;
+--central-play-btn-color: #fa0505;
+--gradient-start-color: #cf0000;
+--gradient-end-color: #f16d0f;
+--loading-theme-color: #ff0000;
+--loading-gradient-start: #ff3333;
+--loading-gradient-end: #cc0000;
 }
 
 body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; overflow: hidden; }
@@ -19,123 +19,122 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 /* === লোডিং স্ক্রিনের স্টাইল === */
 .loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-    transition: opacity 0.5s ease, visibility 0.5s ease;
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: #000;
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 10;
+transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
 .loading-overlay.hidden {
-    opacity: 0;
-    visibility: hidden;
+opacity: 0;
+visibility: hidden;
 }
 
 .loading-content {
-    text-align: center;
+text-align: center;
 }
 
 .loading-logo {
-    font-family: 'Arial', sans-serif;
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 10px;
-    letter-spacing: 0.5px;
-    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+font-family: 'Arial', sans-serif;
+font-size: 24px;
+font-weight: 700;
+margin-bottom: 10px;
+letter-spacing: 0.5px;
+background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
+-webkit-background-clip: text;
+background-clip: text;
+color: transparent;
 }
 
 .loading-bar-container {
-    width: 200px;
-    height: 3px;
-    margin: 0 auto 12px auto;
-    position: relative;
-    overflow: hidden;
+width: 200px;
+height: 6px;
+margin: 0 auto 16px auto;
+position: relative;
+overflow: hidden;
 }
 
 .loading-bar {
-    width: 100%;
-    height: 100%;
-    border-radius: 1.5px;
-    background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
-    opacity: 0.6;
+width: 100%;
+height: 100%;
+border-radius: 1.5px;
+background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
+opacity: 0.6;
 }
 
 .loading-bar::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(to right, transparent 0%, white 50%, transparent 100%);
-    filter: blur(4px);
-    animation: loading-scan 3s infinite linear;
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+width: 60%;
+height: 100%;
+background: linear-gradient(to right, transparent 0%, white 50%, transparent 100%);
+filter: blur(4px);
+animation: loading-scan 3s infinite linear;
 }
 
 .loading-text {
-    font-size: 12px;
-    letter-spacing: 0.5px;
+font-size: 9px;
+letter-spacing: 0.5px;
 }
 
 .loading-maintext {
-    color: white;
+color: white;
 }
 
 .loading-subtext {
-    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
+-webkit-background-clip: text;
+background-clip: text;
+color: transparent;
 }
 
 @keyframes loading-scan {
-    0% {
-        transform: translateX(-100%);
-    }
-    100% {
-        transform: translateX(166%);
-    }
+0% {
+transform: translateX(-100%);
 }
-
+100% {
+transform: translateX(166%);
+}
+}
 
 /* === সেন্ট্রাল প্লে বাটন === */
-.central-play-btn { 
-    position: absolute; 
-    top: 50%; 
-    left: 50%; 
-    transform: translate(-50%, -50%); 
-    z-index: 2; 
-    cursor: pointer; 
-    transition: all 0.2s ease;
-    background: none;
-    width: auto;
-    height: auto;
+.central-play-btn {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+z-index: 2;
+cursor: pointer;
+transition: all 0.2s ease;
+background: none;
+width: auto;
+height: auto;
 }
-.central-play-btn:hover { 
-    transform: translate(-50%, -50%) scale(1.1); 
+.central-play-btn:hover {
+transform: translate(-50%, -50%) scale(1.1);
 }
-.central-play-btn:active { 
-    transform: translate(-50%, -50%) scale(1.0); 
+.central-play-btn:active {
+transform: translate(-50%, -50%) scale(1.0);
 }
-.central-play-btn svg { 
-    width: 90px; 
-    height: 90px;
-    fill: var(--central-play-btn-color); 
-    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); 
+.central-play-btn svg {
+width: 80px;
+height: 80px;
+fill: var(--central-play-btn-color);
+filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7));
 }
 
 /* === কন্ট্রোলস === */
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
-.progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 8px 0; cursor: pointer; position: relative; }
+.progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 2px 0; cursor: pointer; position: relative; }
 .progress-background, .buffer-bar, .progress-filled, .progress-bar { grid-column: 1; grid-row: 1; }
 .progress-background, .buffer-bar, .progress-filled { height: var(--progress-bar-height); border-radius: 5px; pointer-events: none; }
 .progress-background { background: rgba(255, 255, 255, 0.2); }
@@ -154,74 +153,78 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-btn.active svg path { fill: var(--theme-color); }
 
 /*
-====================================================================
-    === সব আইকনের আকার এবং অবস্থান পরিবর্তন করার জন্য এই অংশ ===
+code
+Code
+download
+content_copy
+expand_less
+=== সব আইকনের আকার এবং অবস্থান পরিবর্তন করার জন্য এই অংশ ===
+
 ====================================================================
 */
 
 .control-btn svg {
-    transition: fill 0.1s ease;
+transition: fill 0.1s ease;
 }
 
-/* প্লে/পজ বাটন (#play-pause-btn) */
+/* প্লে/পজ বাটন (#play-pause-btn) /
 #play-pause-btn svg {
-    /* এই দুটি মান পরিবর্তন করে আইকনটি বড় বা ছোট করুন */
-    width: 28px;
-    height: 28px;
+/ এই দুটি মান পরিবর্তন করে আইকনটি বড় বা ছোট করুন /
+width: 30px;
+height: 30px;
 }
 #play-pause-btn {
-    /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
-    transform: translateX(0px); 
+/ এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
+transform: translateX(-8px);
 }
 
 /* রিওয়াইন্ড বাটন (#rewind-btn) */
 #rewind-btn svg {
-    width: 24px;
-    height: 24px;
+width: 24px;
+height: 24px;
 }
 #rewind-btn {
-    transform: translateX(0px); 
+transform: translateX(0px);
 }
 
 /* ফরওয়ার্ড বাটন (#forward-btn) */
 #forward-btn svg {
-    width: 24px;
-    height: 24px;
+width: 24px;
+height: 24px;
 }
 #forward-btn {
-    transform: translateX(0px);
+transform: translateX(0px);
 }
 
 /* ভলিউম বাটন (#volume-btn) */
 #volume-btn svg {
-    width: 24px;
-    height: 24px;
+width: 24px;
+height: 24px;
 }
 #volume-btn {
-    transform: translateX(0px);
+transform: translateX(0px);
 }
 
 /* সেটিংস বাটন (#settings-btn) */
 #settings-btn svg {
-    width: 24px;
-    height: 24px;
+width: 24px;
+height: 24px;
 }
 #settings-btn {
-    transform: translateX(0px);
+transform: translateX(0px);
 }
 
 /* ফুলস্ক্রিন বাটন (#fullscreen-btn) */
 #fullscreen-btn svg {
-    width: 24px;
-    height: 24px;
+width: 30px;
+height: 30px;
 }
 #fullscreen-btn {
-    transform: translateX(0px);
+transform: translateX(+4px);
 }
 
-
 /* === বাকি স্টাইল === */
-.time-display { font-size: 16px; user-select: none; }
+.time-display { font-size: 12px; user-select: none; }
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
 .settings-menu { position: absolute; bottom: 80px; right: 20px; background-color: rgba(40, 40, 40, 0.9); border-radius: 8px; z-index: 5; width: 200px; padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, transform 0.2s ease; transform: translateY(10px); }
