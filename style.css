@@ -1,14 +1,16 @@
 :root {
-    --theme-color: #3498db;
-    --theme-color-darker: #2980b9;
+    --theme-color: #f21111;
+    --theme-color-darker: #e33939;
     --progress-bar-height: 5px;
     --thumb-size: 16px;
-    --central-play-btn-color: #2ecc71;
-    --gradient-start-color: #e74c3c;
-    --gradient-end-color: #f1c40f;
+    --central-play-btn-color: #fa0505;
+    --gradient-start-color: #cf0000;
+    --gradient-end-color: #f16d0f;
     --loading-theme-color: #ff0000;
-    --loading-gradient-start: #ff3333;
-    --loading-gradient-end: #cc0000;
+    
+    /* === পরিবর্তন এখানে (আপনার ছবির মতো গ্রেডিয়েন্ট) === */
+    --loading-gradient-start: #ff0000; /* গ্রেডিয়েন্টের শুরুর রঙ (গাঢ় লাল) */
+    --loading-gradient-end: #ff7e7e;   /* গ্রেডিয়েন্টের শেষের রঙ (হালকা লাল) */
 }
 
 body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; overflow: hidden; }
@@ -166,12 +168,12 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 /* প্লে/পজ বাটন (#play-pause-btn) */
 #play-pause-btn svg {
     /* এই দুটি মান পরিবর্তন করে আইকনটি বড় বা ছোট করুন */
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
 }
 #play-pause-btn {
     /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
-    transform: translateX(0px); 
+    transform: translateX(-9px); 
 }
 
 /* রিওয়াইন্ড বাটন (#rewind-btn) */
@@ -212,16 +214,16 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 /* ফুলস্ক্রিন বাটন (#fullscreen-btn) */
 #fullscreen-btn svg {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
 }
 #fullscreen-btn {
-    transform: translateX(0px);
+    transform: translateX(+5px);
 }
 
 
 /* === বাকি স্টাইল === */
-.time-display { font-size: 16px; user-select: none; }
+.time-display { font-size: 12px; user-select: none; }
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
 .settings-menu { position: absolute; bottom: 80px; right: 20px; background-color: rgba(40, 40, 40, 0.9); border-radius: 8px; z-index: 5; width: 200px; padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, transform 0.2s ease; transform: translateY(10px); }
