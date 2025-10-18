@@ -42,7 +42,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     background-color: #000;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items-center;
     z-index: 10;
     transition: opacity 0.5s ease, visibility 0.5s ease;
 }
@@ -76,16 +76,18 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     overflow: hidden;
 }
 
-/* === পরিবর্তন এখানে: বারটিকে আরও স্পষ্ট এবং উজ্জ্বল করার জন্য === */
+/* === চূড়ান্ত সমাধান: এটি হলো মূল লাল বার === */
 .loading-bar {
     width: 100%;
     height: 100%;
-    border-radius: 1.5px;
+    /* আপনার মূল কোডের الخلفية, যা সূঁচালো ইফেক্ট তৈরি করে */
     background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
-    opacity: 1; /* ঝাপসা ভাব দূর করার জন্য Opacity 1 করা হয়েছে */
+    /* === মূল কৌশল: এই বারটিকে একটি মাস্ক হিসেবে ব্যবহার করা হবে === */
+    position: relative;
+    overflow: hidden; /* এটি নিশ্চিত করবে যে Shine ইফেক্ট বাইরে যাবে না */
 }
 
-/* === পরিবর্তন এখানে: Glow ইফেক্টটিকে আরও শক্তিশালী এবং আকর্ষণীয় করার জন্য === */
+/* === চূড়ান্ত সমাধান: এটি হলো উজ্জ্বল সাদা আলোর Shine ইফেক্ট === */
 .loading-bar::before {
     content: '';
     position: absolute;
@@ -93,12 +95,10 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     left: 0;
     width: 60%;
     height: 100%;
+    /* আলোটি এখন সম্পূর্ণ সাদা এবং উজ্জ্বল */
     background: linear-gradient(to right, transparent 0%, white 50%, transparent 100%);
-    /* আলোটিকে আরও স্পষ্ট করার জন্য ব্লার কমানো হয়েছে */
-    filter: blur(2px); 
-    /* উজ্জ্বল আভা বা Glow যোগ করার জন্য box-shadow ব্যবহার করা হয়েছে */
-    box-shadow: 0 0 5px 2px rgba(255, 100, 100, 0.6);
-    /* অ্যানিমেশনের গতি সামান্য বাড়ানো হয়েছে */
+    
+    /* অ্যানিমেশনের গতি এবং পুনরাবৃত্তি */
     animation: loading-scan 2.5s infinite linear;
 }
 
@@ -126,7 +126,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
         transform: translateX(166%);
     }
 }
-
 
 
 
