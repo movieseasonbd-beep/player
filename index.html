@@ -5,13 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Player</title>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- FFmpeg.wasm এবং HLS.js লোড করার জন্য স্ক্রিপ্ট -->
-    <script>
-      // FFmpeg.wasm এর জন্য একটি প্রয়োজনীয় কনফিগারেশন
-      var process = { env: { FFPROBE_PATH: 'https://unpkg.com/ffprobe-static@3.0.0/bin/linux/x64/ffprobe' } };
-    </script>
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.0/dist/ffmpeg.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
@@ -33,7 +26,7 @@
         <div class="central-play-btn" title="Play">
             <svg class="play-icon" viewBox="0 0 24 24"><path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.14-5.18c.62-.39.62-1.29 0-1.69L9.54 5.98C8.87 5.55 8 6.03 8 6.82z"></path></svg>
         </div>
-        <video class="video" src="" playsinline></video>
+        <video class="video" src=""></video>
 
         <div class="settings-menu">
             <div class="menu-header">
@@ -81,8 +74,9 @@
                     <span class="time-display">00:00 / 00:00</span>
                 </div>
                 <div class="controls-right">
+                    <!-- === পরিবর্তন এখানে (সঠিক সেটিংস আইকন) === -->
                     <button class="control-btn" id="settings-btn" title="Settings">
-                        <svg viewBox="0 0 24 24"><path d="M19.43,12.98c0.04-0.32,0.07-0.64,0.07-0.98s-0.03-0.66-0.07-0.98l2.11-1.65c0.19-0.15,0.24-0.42,0.12-0.64 l-2-3.46c-0.12-0.22-0.39-0.3-0.61-0.22l-2.49,1c-0.52-0.4-1.08-0.73-1.69-0.98l-0.38-2.65C14.46,2.18,14.25,2,14,2h-4 C9.75,2,9.54,2.18,9.51,2.42l-0.38,2.65c-0.61,0.25-1.17,0.59-1.69,0.98l-2.49-1c-0.23-0.09-0.49,0-0.61,0.22l-2,3.46 c-0.13,0.22-0.07,0.49,0.12,0.64l2.11,1.65c-0.04,0.32-0.07,0.65-0.07,0.98s0.03,0.66,0.07,0.98l-2.11,1.65 c-0.19,0.15-0.24,0.42-0.12,0.64l2,3.46c0.12,0.22,0.39,0.3,0.61,0.22l2.49-1c0.52,0.4,1.08,0.73,1.69,0.98l0.38,2.65 C9.54,21.82,9.75,22,10,22h4c0.25,0,0.46-0.18,0.49-0.42l0.38-2.65c0.61-0.25,1.17-0.59,1.69,0.98l2.49,1 c0.23,0.09,0.49,0,0.61-0.22l2-3.46c0.12-0.22,0.07-0.49-0.12-0.64L19.43,12.98z M12,15.5c-1.93,0-3.5-1.57-3.5-3.5 s1.57-3.5,3.5-3.5s3.5,1.57,3.5,3.5S13.93,15.5,12,15.5z"></path></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4s4-1.79 4-4s-1.79-4-4-4zm-6 4c0-3.31 2.69-6 6-6s6 2.69 6 6s-2.69 6-6 6s-6-2.69-6-6z"></path></svg>
                     </button>
                     <button class="control-btn" id="fullscreen-btn">
                         <svg class="fullscreen-on-icon" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"></path></svg>
