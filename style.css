@@ -68,36 +68,40 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     color: transparent;
 }
 
-/* === পরিবর্তন: শুধুমাত্র বারটিকে আরও লম্বা এবং মোটা করা হয়েছে === */
 .loading-bar-container {
-    width: 220px; /* প্রস্থ বাড়ানো হয়েছে */
-    height: 4px;  /* উচ্চতা বাড়ানো হয়েছে */
+    width: 220px;
+    height: 4px;
     margin: 0 auto 12px auto;
     position: relative;
     overflow: hidden;
 }
 
-/* === চূড়ান্ত এবং নিখুঁত সমাধান: Multiple Backgrounds এবং উন্নত Mask === */
+/* === চূড়ান্ত এবং নিখুঁত সমাধান: "ধূমকেতুর লেজ" ইফেক্ট === */
 .loading-bar {
     width: 100%;
     height: 100%;
     
-    /* উপরের স্তর: উজ্জ্বল সাদা আলো (Shine) */
-    /* নিচের স্তর: আপনার মূল লাল বার */
-    background-image: 
-        linear-gradient(to right, transparent 0%, white 50%, transparent 100%),
-        radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
-
-    background-size: 60% 100%, 100% 100%;
-    background-repeat: no-repeat;
-    animation: loading-scan-final 2.5s infinite linear;
+    /* === মূল কৌশল: الخلفية টি এখন নিজেই একটি অ্যানিমেটেড ধূমকেতু === */
+    /* গ্রেডিয়েন্টটি উজ্জ্বল মাথা (সাদা) থেকে শুরু হয়ে লেজে (লাল) গিয়ে শূন্যে মিলিয়ে যায় */
+    background: linear-gradient(to right, 
+        white 0%, 
+        var(--loading-theme-color) 50%, 
+        transparent 100%
+    );
     
-    /* === মূল পরিবর্তন: মাস্কের মান পরিবর্তন করে প্রান্তগুলো আরও মসৃণ করা হয়েছে === */
+    background-size: 100% 100%; /* গ্রেডিয়েন্টের আকার বারের সমান */
+    background-repeat: no-repeat;
+
+    /* অ্যানিমেশনটি الخلفية-এর অবস্থান পরিবর্তন করবে */
+    animation: comet-effect 2s infinite linear;
+    
+    /* === একক মাস্ক: এই মাস্কটি পুরো অ্যানিমেশনটিকে সূঁচালো আকৃতি দেবে === */
     -webkit-mask-image: radial-gradient(ellipse 100% 70% at center, black 0%, transparent 80%);
     mask-image: radial-gradient(ellipse 100% 70% at center, black 0%, transparent 80%);
 }
 
-/* === লেখার আকার অপরিবর্তিত রাখা হয়েছে === */
+/* ::before এখন আর প্রয়োজন নেই */
+
 .loading-text {
     font-size: 12px; 
     letter-spacing: 0.5px;
@@ -114,22 +118,17 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     color: transparent;
 }
 
-/* নতুন অ্যানিমেশন Keyframes যা background-position পরিবর্তন করে */
-@keyframes loading-scan-final {
+/* === অ্যানিমেশনের জন্য নতুন Keyframes === */
+@keyframes comet-effect {
     0% {
-        background-position: -100% 0, 0 0;
+        /* ধূমকেতুটি বাম দিকের বাইরে থেকে অ্যানিমেশন শুরু করবে */
+        background-position: -220px 0; /* কন্টেইনারের প্রস্থের সমান */
     }
     100% {
-        background-position: 200% 0, 0 0;
+        /* ধূমকেতুটি ডান দিকে গিয়ে অ্যানিমেশন শেষ করবে */
+        background-position: 220px 0; /* কন্টেইনারের প্রস্থের সমান */
     }
 }
-
-/* পুরোনো @keyframes loading-scan এখন আর প্রয়োজন নেই */
-@keyframes loading-scan {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(166%); }
-}
-
 
 
 
