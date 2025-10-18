@@ -76,32 +76,33 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     overflow: hidden;
 }
 
-/* === এটি আপনার মূল লাল বার (এখন আরও উজ্জ্বল) === */
+/* === চূড়ান্ত এবং নিখুঁত সমাধান: Multiple Backgrounds এবং Single Mask === */
 .loading-bar {
     width: 100%;
     height: 100%;
-    border-radius: 1.5px;
-    background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
-    opacity: 1; /* ঝাপসা ভাব দূর করা হয়েছে */
-}
-
-/* === চূড়ান্ত সমাধান: Shine ইফেক্টটিকে মাস্ক দিয়ে সঠিক আকৃতি দেওয়া হয়েছে === */
-.loading-bar::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 60%;
-    height: 100%;
-    /* আলোটি এখন উজ্জ্বল এবং বিশুদ্ধ সাদা */
-    background: linear-gradient(to right, transparent 0%, white 50%, transparent 100%);
     
-    /* === মূল কৌশল: এই মাস্কটি সাদা আলোটিকে লাল বারের মতো একই আকৃতি দেয় === */
+    /* === মূল কৌশল: দুটি الخلفية একসাথে ব্যবহার করা হচ্ছে === */
+    /* উপরের স্তর: উজ্জ্বল সাদা আলো (Shine) */
+    /* নিচের স্তর: আপনার মূল লাল বার */
+    background-image: 
+        linear-gradient(to right, transparent 0%, white 50%, transparent 100%),
+        radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
+
+    /* প্রতিটি الخلفية-এর জন্য আলাদা সাইজ নির্ধারণ */
+    background-size: 60% 100%, 100% 100%;
+    
+    /* দুটি الخلفية-এর জন্যই no-repeat */
+    background-repeat: no-repeat;
+
+    /* অ্যানিমেশনটি শুধুমাত্র প্রথম الخلفية (সাদা আলো)-এর অবস্থান পরিবর্তন করবে */
+    animation: loading-scan-final 2.5s infinite linear;
+    
+    /* === একক মাস্ক: এই মাস্কটি দুটি الخلفية-কেই একসাথে নিখুঁতভাবে কেটে দেবে === */
     -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
     mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
-
-    animation: loading-scan 2.5s infinite linear;
 }
+
+/* === ::before এখন আর প্রয়োজন নেই, তাই এটি সম্পূর্ণ মুছে ফেলা হয়েছে === */
 
 .loading-text {
     font-size: 12px;
@@ -119,15 +120,23 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     color: transparent;
 }
 
-@keyframes loading-scan {
+/* === নতুন অ্যানিমেশন Keyframes যা background-position পরিবর্তন করে === */
+@keyframes loading-scan-final {
     0% {
-        transform: translateX(-100%);
+        /* প্রথম الخلفية-এর অবস্থান (সাদা আলো) */
+        background-position: -100% 0, 0 0;
     }
     100% {
-        transform: translateX(166%);
+        /* প্রথম الخلفية-এর অবস্থান (সাদা আলো) */
+        background-position: 200% 0, 0 0;
     }
 }
 
+/* পুরোনো @keyframes loading-scan এখন আর প্রয়োজন নেই, চাইলে মুছে ফেলতে পারেন */
+@keyframes loading-scan {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(166%); }
+}
 
 
 
