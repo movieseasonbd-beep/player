@@ -42,7 +42,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     background-color: #000;
     display: flex;
     justify-content: center;
-    align-items-center;
+    align-items: center;
     z-index: 10;
     transition: opacity 0.5s ease, visibility 0.5s ease;
 }
@@ -76,18 +76,16 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     overflow: hidden;
 }
 
-/* === চূড়ান্ত সমাধান: এটি হলো মূল লাল বার === */
+/* === এটি আপনার মূল লাল বার (এখন আরও উজ্জ্বল) === */
 .loading-bar {
     width: 100%;
     height: 100%;
-    /* আপনার মূল কোডের الخلفية, যা সূঁচালো ইফেক্ট তৈরি করে */
+    border-radius: 1.5px;
     background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
-    /* === মূল কৌশল: এই বারটিকে একটি মাস্ক হিসেবে ব্যবহার করা হবে === */
-    position: relative;
-    overflow: hidden; /* এটি নিশ্চিত করবে যে Shine ইফেক্ট বাইরে যাবে না */
+    opacity: 1; /* ঝাপসা ভাব দূর করা হয়েছে */
 }
 
-/* === চূড়ান্ত সমাধান: এটি হলো উজ্জ্বল সাদা আলোর Shine ইফেক্ট === */
+/* === চূড়ান্ত সমাধান: Shine ইফেক্টটিকে মাস্ক দিয়ে সঠিক আকৃতি দেওয়া হয়েছে === */
 .loading-bar::before {
     content: '';
     position: absolute;
@@ -95,10 +93,13 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     left: 0;
     width: 60%;
     height: 100%;
-    /* আলোটি এখন সম্পূর্ণ সাদা এবং উজ্জ্বল */
+    /* আলোটি এখন উজ্জ্বল এবং বিশুদ্ধ সাদা */
     background: linear-gradient(to right, transparent 0%, white 50%, transparent 100%);
     
-    /* অ্যানিমেশনের গতি এবং পুনরাবৃত্তি */
+    /* === মূল কৌশল: এই মাস্কটি সাদা আলোটিকে লাল বারের মতো একই আকৃতি দেয় === */
+    -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+    mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+
     animation: loading-scan 2.5s infinite linear;
 }
 
