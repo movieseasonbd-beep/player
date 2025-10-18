@@ -74,11 +74,10 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     margin: 0 auto 18px auto;
     position: relative;
     overflow: hidden;
-    /* === চূড়ান্ত পরিবর্তন: ভাসমান Glow ইফেক্টের জন্য filter ব্যবহার করা হচ্ছে === */
-    filter: drop-shadow(0 0 4px var(--gradient-start-color));
+    /* === পরিবর্তন: Glow ইফেক্ট (filter) এখান থেকে সরিয়ে দেওয়া হয়েছে === */
 }
 
-/* === চূড়ান্ত এবং নিখুঁত সমাধান: Radial Gradient মাস্ক ব্যবহার করে === */
+/* === চূড়ান্ত এবং নিখুঁত সমাধান: আরও সূঁচালো প্রান্তের জন্য Radial Gradient মাস্ক === */
 .loading-bar {
     width: 100%;
     height: 100%;
@@ -86,13 +85,12 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     /* الخلفية গ্রেডিয়েন্ট */
     background: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
     
-    /* === মূল কৌশল: Radial মাস্ক দিয়ে প্রান্তগুলো সূঁচালো এবং ঝাপসা করা === */
-    /* মাস্কটি একটি চ্যাপ্টা ডিম্বাকৃতি যা মাঝখানে অস্বচ্ছ এবং প্রান্তে স্বচ্ছ */
-    -webkit-mask-image: radial-gradient(ellipse 80% 50% at center, black 60%, transparent 100%);
-    mask-image: radial-gradient(ellipse 80% 50% at center, black 60%, transparent 100%);
+    /* === মূল কৌশল: মাস্কটিকে আরও চ্যাপ্টা করে প্রান্তগুলো সূঁচালো করা হয়েছে === */
+    -webkit-mask-image: radial-gradient(ellipse 90% 50% at center, black 70%, transparent 100%);
+    mask-image: radial-gradient(ellipse 90% 50% at center, black 70%, transparent 100%);
 }
 
-/* === চলমান "Shine" ইফেক্ট (অপরিবর্তিত, কিন্তু মাস্কের কারণে এটিও সূঁচালো দেখাবে) === */
+/* === চলমান "Shine" ইফেক্ট === */
 .loading-bar::before {
     content: '';
     position: absolute;
@@ -129,7 +127,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
         transform: translateX(145%); 
     }
 }
-
 
 
 
