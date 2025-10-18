@@ -8,133 +8,45 @@
     --gradient-end-color: #f16d0f;
     --loading-theme-color: #ff0000;
     
-    /* === পরিবর্তন এখানে (আপনার ছবির মতো গ্রেডিয়েন্ট) === */
-    --loading-gradient-start: #ff0000; /* গ্রেডিয়েন্টের শুরুর রঙ (গাঢ় লাল) */
-    --loading-gradient-end: #ff7e7e;   /* গ্রেডিয়েন্টের শেষের রঙ (হালকা লাল) */
+    --loading-gradient-start: #ff0000;
+    --loading-gradient-end: #ff7e7e;
 }
 
 body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; overflow: hidden; }
 .player-container { width: 100vw; height: 100vh; position: relative; background-color: #000; display: flex; justify-content: center; align-items: center; }
 .player-container.playing .central-play-btn { opacity: 0; visibility: hidden; }
-/* === পরিবর্তন এখানে === */
-.player-container:hover .controls-container, .player-container.paused .controls-container, .player-container.show-controls .controls-container { opacity: 1; transform: translateY(0); }
+
+/* === চূড়ান্ত এবং সঠিক সংস্করণ: :hover এখান থেকে বাদ দেওয়া হয়েছে === */
+.player-container.paused .controls-container, 
+.player-container.show-controls .controls-container { 
+    opacity: 1; 
+    transform: translateY(0); 
+}
+
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
 /* === লোডিং স্ক্রিনের স্টাইল === */
-.loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-    transition: opacity 0.5s ease, visibility 0.5s ease;
-}
-
-.loading-overlay.hidden {
-    opacity: 0;
-    visibility: hidden;
-}
-
-.loading-content {
-    text-align: center;
-}
-
-.loading-logo {
-    font-family: 'Arial', sans-serif;
-    font-size: 25px;
-    font-weight: 700;
-    margin-bottom: 10px;
-    letter-spacing: 0.5px;
-    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-.loading-bar-container {
-    width: 200px;
-    height: 6px;
-    margin: 0 auto 18px auto;
-    position: relative;
-    overflow: hidden;
-}
-
-.loading-bar {
-    width: 100%;
-    height: 100%;
-    border-radius: 1.5px;
-    background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
-    opacity: 0.6;
-}
-
-.loading-bar::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(to right, transparent 0%, white 50%, transparent 100%);
-    filter: blur(4px);
-    animation: loading-scan 3s infinite linear;
-}
-
-.loading-text {
-    font-size: 10px;
-    letter-spacing: 0.5px;
-}
-
-.loading-maintext {
-    color: white;
-}
-
-.loading-subtext {
-    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
+.loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s ease; }
+.loading-overlay.hidden { opacity: 0; visibility: hidden; }
+.loading-content { text-align: center; }
+.loading-logo { font-family: 'Arial', sans-serif; font-size: 25px; font-weight: 700; margin-bottom: 10px; letter-spacing: 0.5px; background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.loading-bar-container { width: 200px; height: 6px; margin: 0 auto 18px auto; position: relative; overflow: hidden; }
+.loading-bar { width: 100%; height: 100%; border-radius: 1.5px; background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%); opacity: 0.6; }
+.loading-bar::before { content: ''; position: absolute; top: 0; left: 0; width: 60%; height: 100%; background: linear-gradient(to right, transparent 0%, white 50%, transparent 100%); filter: blur(4px); animation: loading-scan 3s infinite linear; }
+.loading-text { font-size: 10px; letter-spacing: 0.5px; }
+.loading-maintext { color: white; }
+.loading-subtext { background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
 @keyframes loading-scan {
-    0% {
-        transform: translateX(-100%);
-    }
-    100% {
-        transform: translateX(166%);
-    }
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(166%); }
 }
-
 
 /* === সেন্ট্রাল প্লে বাটন === */
-.central-play-btn { 
-    position: absolute; 
-    top: 50%; 
-    left: 50%; 
-    transform: translate(-50%, -50%); 
-    z-index: 2; 
-    cursor: pointer; 
-    transition: all 0.2s ease;
-    background: none;
-    width: auto;
-    height: auto;
-}
-.central-play-btn:hover { 
-    transform: translate(-50%, -50%) scale(1.1); 
-}
-.central-play-btn:active { 
-    transform: translate(-50%, -50%) scale(1.0); 
-}
-.central-play-btn svg { 
-    width: 80px; 
-    height: 80px;
-    fill: var(--central-play-btn-color); 
-    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); 
-}
+.central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; transition: all 0.2s ease; background: none; width: auto; height: auto; }
+.central-play-btn:hover { transform: translate(-50%, -50%) scale(1.1); }
+.central-play-btn:active { transform: translate(-50%, -50%) scale(1.0); }
+.central-play-btn svg { width: 80px; height: 80px; fill: var(--central-play-btn-color); filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); }
 
 /* === কন্ট্রোলস === */
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
@@ -155,73 +67,14 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-btn svg path { fill: white; }
 .control-btn:hover svg path { fill: var(--theme-color); }
 .control-btn.active svg path { fill: var(--theme-color); }
+.control-btn svg { transition: fill 0.1s ease; }
 
-/*
-====================================================================
-    === সব আইকনের আকার এবং অবস্থান পরিবর্তন করার জন্য এই অংশ ===
-====================================================================
-*/
-
-.control-btn svg {
-    transition: fill 0.1s ease;
-}
-
-/* প্লে/পজ বাটন (#play-pause-btn) */
-#play-pause-btn svg {
-    /* এই দুটি মান পরিবর্তন করে আইকনটি বড় বা ছোট করুন */
-    width: 30px;
-    height: 30px;
-}
-#play-pause-btn {
-    /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
-    transform: translateX(-9px); 
-}
-
-/* রিওয়াইন্ড বাটন (#rewind-btn) */
-#rewind-btn svg {
-    width: 24px;
-    height: 24px;
-}
-#rewind-btn {
-    transform: translateX(0px); 
-}
-
-/* ফরওয়ার্ড বাটন (#forward-btn) */
-#forward-btn svg {
-    width: 24px;
-    height: 24px;
-}
-#forward-btn {
-    transform: translateX(0px);
-}
-
-/* ভলিউম বাটন (#volume-btn) */
-#volume-btn svg {
-    width: 24px;
-    height: 24px;
-}
-#volume-btn {
-    transform: translateX(0px);
-}
-
-/* সেটিংস বাটন (#settings-btn) */
-#settings-btn svg {
-    width: 24px;
-    height: 24px;
-}
-#settings-btn {
-    transform: translateX(0px);
-}
-
-/* ফুলস্ক্রিন বাটন (#fullscreen-btn) */
-#fullscreen-btn svg {
-    width: 30px;
-    height: 30px;
-}
-#fullscreen-btn {
-    transform: translateX(+4px);
-}
-
+/* আইকন সাইজ */
+#play-pause-btn svg { width: 30px; height: 30px; }
+#play-pause-btn { transform: translateX(-9px); }
+#rewind-btn svg, #forward-btn svg, #volume-btn svg, #settings-btn svg { width: 24px; height: 24px; }
+#fullscreen-btn svg { width: 30px; height: 30px; }
+#fullscreen-btn { transform: translateX(+4px); }
 
 /* === বাকি স্টাইল === */
 .time-display { font-size: 12px; user-select: none; }
