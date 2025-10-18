@@ -19,16 +19,11 @@ const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
 const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
-
-// === পরিবর্তন এখানে (নতুন ভ্যারিয়েবল) ===
 let isVideoReady = false;
 let isMinTimeElapsed = false;
-// =====================================
 
 // Functions
 function hideLoadingScreen() {
-    // === পরিবর্তন এখানে (নতুন শর্ত) ===
-    // দুটি শর্ত পূরণ হলেই শুধু লোডিং স্ক্রিন লুকানো হবে
     if (isVideoReady && isMinTimeElapsed) {
         loadingOverlay.classList.add('hidden');
     }
@@ -116,10 +111,28 @@ function updateVolumeIcon() {
     volumeBtn.classList.toggle('active', video.muted);
 }
 
-function toggleFullscreen() {
+async function toggleFullscreen() {
     if (!document.fullscreenElement) {
-        playerContainer.requestFullscreen().catch(err => alert(`Fullscreen error: ${err.message}`));
-    } else { document.exitFullscreen(); }
+        await playerContainer.requestFullscreen().catch(err => {
+            alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+        });
+        try {
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock('landscape');
+            }
+        } catch (err) {
+            console.warn("Screen orientation lock failed:", err);
+        }
+    } else {
+        await document.exitFullscreen();
+        try {
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
+        } catch (err) {
+            console.warn("Screen orientation unlock failed:", err);
+        }
+    }
 }
 
 function updateFullscreenState() {
@@ -151,15 +164,11 @@ video.addEventListener('pause', updatePlayState);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 
-// === পরিবর্তন এখানে (canplay ইভেন্ট) ===
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
-    
-    // প্রথম শর্ত পূরণ: ভিডিও এখন প্রস্তুত
     isVideoReady = true;
-    // hideLoadingScreen() ফাংশনকে কল করা হচ্ছে, এটি নিজে থেকেই চেক করবে দ্বিতীয় শর্ত পূরণ হয়েছে কি না
     hideLoadingScreen();
 });
 
@@ -183,7 +192,6 @@ speedOptions.forEach(option => {
     });
 });
 
-// === পরিবর্তন এখানে (DOMContentLoaded ইভেন্ট) ===
 document.addEventListener('DOMContentLoaded', () => {
     updatePlayState();
     updateProgressUI();
@@ -195,18 +203,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (videoUrl) {
         loadVideo(videoUrl);
-        
-        // ন্যূনতম ২ সেকেন্ড অপেক্ষা করার টাইমার
         setTimeout(() => {
-            // দ্বিতীয় শর্ত পূরণ: ২ সেকেন্ড পার হয়ে গেছে
             isMinTimeElapsed = true;
-            // hideLoadingScreen() ফাংশনকে কল করা হচ্ছে, এটি নিজে থেকেই চেক করবে প্রথম শর্ত পূরণ হয়েছে কি না
             hideLoadingScreen();
-        }, 2000); // 2000 মিলিসেকেন্ড = 2 সেকেন্ড
-
+        }, 2000);
     } else {
-        // কোনো ভিডিও লিঙ্ক না থাকলে লোডিং স্ক্রিন সাথে সাথেই লুকিয়ে ফেলা হবে
-        loadingOverlay.classList.add('hidden'); // এখানে সরাসরি ক্লাস যোগ করা হচ্ছে
+        loadingOverlay.classList.add('hidden');
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
 });
