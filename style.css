@@ -73,34 +73,38 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     height: 4px;
     margin: 0 auto 12px auto;
     position: relative;
-    overflow: hidden;
+    /* overflow: hidden; - এই লাইনটি এখন আর এখানে প্রয়োজন নেই */
 }
 
-/* === চূড়ান্ত এবং নিখুঁত সমাধান: "ধূমকেতুর লেজ" ইফেক্ট === */
+/* === চূড়ান্ত এবং নিখুঁত সমাধান: Overflow:hidden কৌশল === */
 .loading-bar {
     width: 100%;
     height: 100%;
     
-    /* === মূল কৌশল: الخلفية টি এখন নিজেই একটি অ্যানিমেটেড ধূমকেতু === */
-    /* গ্রেডিয়েন্টটি উজ্জ্বল মাথা (সাদা) থেকে শুরু হয়ে লেজে (লাল) গিয়ে শূন্যে মিলিয়ে যায় */
-    background: linear-gradient(to right, 
-        white 0%, 
-        var(--loading-theme-color) 50%, 
-        transparent 100%
-    );
+    /* আপনার মূল কোডের الخلفية, যা সূঁচালো ইফেক্ট তৈরি করে */
+    background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
+    opacity: 1; /* ঝাপসা ভাব দূর করা হয়েছে */
     
-    background-size: 100% 100%; /* গ্রেডিয়েন্টের আকার বারের সমান */
-    background-repeat: no-repeat;
-
-    /* অ্যানিমেশনটি الخلفية-এর অবস্থান পরিবর্তন করবে */
-    animation: comet-effect 2s infinite linear;
-    
-    /* === একক মাস্ক: এই মাস্কটি পুরো অ্যানিমেশনটিকে সূঁচালো আকৃতি দেবে === */
-    -webkit-mask-image: radial-gradient(ellipse 100% 70% at center, black 0%, transparent 80%);
-    mask-image: radial-gradient(ellipse 100% 70% at center, black 0%, transparent 80%);
+    /* === মূল কৌশল: এই দুটি লাইনই সব সমস্যার সমাধান করবে === */
+    position: relative; /* ::before কে এর ভেতরে রাখার জন্য */
+    overflow: hidden;   /* এর ভেতরের সবকিছুকে এর আকৃতিতে কেটে ফেলার জন্য */
 }
 
-/* ::before এখন আর প্রয়োজন নেই */
+/* === চূড়ান্ত এবং নিখুঁত সমাধান: Shine ইফেক্টটি এখন নিখুঁতভাবে মিশে যাবে === */
+.loading-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    
+    /* আলোটি এখন উজ্জ্বল এবং বিশুদ্ধ সাদা */
+    background: linear-gradient(to right, transparent 0%, white 50%, transparent 100%);
+
+    /* অ্যানিমেশনটি অপরিবর্তিত থাকবে */
+    animation: loading-scan 2.5s infinite linear;
+}
 
 .loading-text {
     font-size: 12px; 
@@ -118,15 +122,13 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     color: transparent;
 }
 
-/* === অ্যানিমেশনের জন্য নতুন Keyframes === */
-@keyframes comet-effect {
+/* আপনার মূল অ্যানিমেশনটিই ব্যবহার করা হচ্ছে */
+@keyframes loading-scan {
     0% {
-        /* ধূমকেতুটি বাম দিকের বাইরে থেকে অ্যানিমেশন শুরু করবে */
-        background-position: -220px 0; /* কন্টেইনারের প্রস্থের সমান */
+        transform: translateX(-100%);
     }
     100% {
-        /* ধূমকেতুটি ডান দিকে গিয়ে অ্যানিমেশন শেষ করবে */
-        background-position: 220px 0; /* কন্টেইনারের প্রস্থের সমান */
+        transform: translateX(166%);
     }
 }
 
