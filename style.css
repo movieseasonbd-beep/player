@@ -74,10 +74,9 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     margin: 0 auto 18px auto;
     position: relative;
     overflow: hidden;
-    /* === পরিবর্তন: Glow ইফেক্ট (filter) এখান থেকে সরিয়ে দেওয়া হয়েছে === */
 }
 
-/* === চূড়ান্ত এবং নিখুঁত সমাধান: আরও সূঁচালো প্রান্তের জন্য Radial Gradient মাস্ক === */
+/* === চূড়ান্ত এবং নিখুঁত সমাধান: অত্যন্ত সূঁচালো প্রান্তের জন্য Radial Gradient মাস্ক === */
 .loading-bar {
     width: 100%;
     height: 100%;
@@ -85,12 +84,12 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     /* الخلفية গ্রেডিয়েন্ট */
     background: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
     
-    /* === মূল কৌশল: মাস্কটিকে আরও চ্যাপ্টা করে প্রান্তগুলো সূঁচালো করা হয়েছে === */
-    -webkit-mask-image: radial-gradient(ellipse 90% 50% at center, black 70%, transparent 100%);
-    mask-image: radial-gradient(ellipse 90% 50% at center, black 70%, transparent 100%);
+    /* === মূল কৌশল: মাস্কের মান পরিবর্তন করে প্রান্তগুলো আরও তীক্ষ্ণ করা হয়েছে === */
+    -webkit-mask-image: radial-gradient(ellipse 100% 50% at center, black 90%, transparent 100%);
+    mask-image: radial-gradient(ellipse 100% 50% at center, black 90%, transparent 100%);
 }
 
-/* === চলমান "Shine" ইফেক্ট === */
+/* === চলমান "Shine" ইফেক্ট (এটিও মাস্কের কারণে সূঁচালো দেখাবে) === */
 .loading-bar::before {
     content: '';
     position: absolute;
