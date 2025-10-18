@@ -117,14 +117,18 @@ async function toggleFullscreen() {
             alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
         });
         try {
-            await screen.orientation.lock('landscape');
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock('landscape');
+            }
         } catch (err) {
             console.warn("Screen orientation lock failed:", err);
         }
     } else {
         await document.exitFullscreen();
         try {
-            screen.orientation.unlock();
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
         } catch (err) {
             console.warn("Screen orientation unlock failed:", err);
         }
