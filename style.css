@@ -75,33 +75,27 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     position: relative;
 }
 
-/* === চূড়ান্ত এবং নিখুঁত সমাধান: Multiple Backgrounds এবং Single Mask === */
+/* === চূড়ান্ত এবং নিখুঁত সমাধান: clip-path ব্যবহার করে === */
 .loading-bar {
     width: 100%;
     height: 100%;
     
-    /* === মূল কৌশল: দুটি الخلفية একসাথে ব্যবহার করা হচ্ছে === */
     /* উপরের স্তর: উজ্জ্বল সাদা আলো (Shine) */
     /* নিচের স্তর: আপনার মূল লাল বার */
     background-image: 
         linear-gradient(to right, transparent 0%, white 50%, transparent 100%),
-        radial-gradient(ellipse at center, var(--loading-theme-color) 0%, transparent 70%);
+        linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
 
-    /* প্রতিটি الخلفية-এর জন্য আলাদা সাইজ নির্ধারণ */
     background-size: 60% 100%, 100% 100%;
-    
-    /* দুটি الخلفية-এর জন্যই no-repeat */
     background-repeat: no-repeat;
-
-    /* অ্যানিমেশনটি শুধুমাত্র প্রথম الخلفية (সাদা আলো)-এর অবস্থান পরিবর্তন করবে */
     animation: loading-scan-final 2.5s infinite linear;
     
-    /* === একক মাস্ক: এই মাস্কটি দুটি الخلفية-কেই একসাথে নিখুঁতভাবে কেটে দেবে === */
-    -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
-    mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+    /* === মূল কৌশল: এই clip-path বারটিকে দুই পাশে সূঁচালো আকৃতি দেবে === */
+    /* এটি একটি ছয়-বিন্দু বিশিষ্ট বহুভুজ যা সুইয়ের মতো দেখতে */
+    clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%);
 }
 
-/* ::before এখন আর প্রয়োজন নেই, তাই এটি সম্পূর্ণ মুছে ফেলা হয়েছে */
+/* ::before এখন আর প্রয়োজন নেই */
 
 .loading-text {
     font-size: 12px; 
@@ -119,17 +113,21 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     color: transparent;
 }
 
-/* === নতুন অ্যানিমেশন Keyframes যা background-position পরিবর্তন করে === */
+/* নতুন অ্যানিমেশন Keyframes যা background-position পরিবর্তন করে */
 @keyframes loading-scan-final {
     0% {
-        /* প্রথম الخلفية-এর অবস্থান (সাদা আলো), দ্বিতীয় الخلفية-এর অবস্থান (লাল বার) */
         background-position: -150% 0, 0 0;
     }
     100% {
-        /* প্রথম الخلفية-এর অবস্থান (সাদা আলো), দ্বিতীয় الخلفية-এর অবস্থান (লাল বার) */
         background-position: 250% 0, 0 0;
     }
 }
+
+
+
+
+
+
 
 
 
