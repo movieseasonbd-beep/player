@@ -20,13 +20,8 @@ const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
 
-// === পরিবর্তন এখানে (ভ্যারিয়েবল সরানো হয়েছে) ===
-// let isVideoReady = false;
-// let isMinTimeElapsed = false;
-
 // Functions
 function hideLoadingScreen() {
-    // এখন আর কোনো শর্ত চেক করার প্রয়োজন নেই
     loadingOverlay.classList.add('hidden');
 }
 
@@ -112,28 +107,10 @@ function updateVolumeIcon() {
     volumeBtn.classList.toggle('active', video.muted);
 }
 
-async function toggleFullscreen() {
+function toggleFullscreen() {
     if (!document.fullscreenElement) {
-        await playerContainer.requestFullscreen().catch(err => {
-            alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-        });
-        try {
-            if (screen.orientation && screen.orientation.lock) {
-                await screen.orientation.lock('landscape');
-            }
-        } catch (err) {
-            console.warn("Screen orientation lock failed:", err);
-        }
-    } else {
-        await document.exitFullscreen();
-        try {
-            if (screen.orientation && screen.orientation.unlock) {
-                screen.orientation.unlock();
-            }
-        } catch (err) {
-            console.warn("Screen orientation unlock failed:", err);
-        }
-    }
+        playerContainer.requestFullscreen().catch(err => alert(`Fullscreen error: ${err.message}`));
+    } else { document.exitFullscreen(); }
 }
 
 function updateFullscreenState() {
@@ -165,15 +142,14 @@ video.addEventListener('pause', updatePlayState);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 
-// === canplay ইভেন্টটি এখন আর লোডিং স্ক্রিন নিয়ন্ত্রণ করে না ===
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
-    // hideLoadingScreen() ফাংশনটি এখান থেকে সরিয়ে দেওয়া হয়েছে
+    hideLoadingScreen();
 });
 
-video.addEventListener('volumechange', updateVolumeIcon);
+video.addEventListener('volumechange', updateVolumeIcon); // এই লাইনটি নিশ্চিত করে যে ভলিউম পরিবর্তন হলে আইকন আপডেট হবে
 
 centralPlayBtn.addEventListener('click', togglePlay);
 playPauseBtn.addEventListener('click', togglePlay);
@@ -193,7 +169,6 @@ speedOptions.forEach(option => {
     });
 });
 
-// === পরিবর্তন এখানে (DOMContentLoaded ইভেন্ট) ===
 document.addEventListener('DOMContentLoaded', () => {
     updatePlayState();
     updateProgressUI();
@@ -204,14 +179,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoUrl = urlParams.get('id');
     
     if (videoUrl) {
-        // পেছনে ভিডিও লোড শুরু
         loadVideo(videoUrl);
-        
-        // ঠিক ৩ সেকেন্ড পর লোডিং স্ক্রিন লুকিয়ে ফেলা হবে
-        setTimeout(hideLoadingScreen, 3000); // 3000 মিলিসেকেন্ড = 3 সেকেন্ড
-
+        setTimeout(hideLoadingScreen, 3000);
     } else {
-        // কোনো ভিডিও লিঙ্ক না থাকলে লোডিং স্ক্রিন সাথে সাথেই লুকিয়ে ফেলা হবে
         hideLoadingScreen();
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
