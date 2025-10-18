@@ -22,6 +22,10 @@ const speedOptions = settingsMenu.querySelectorAll('li');
 let hls = new Hls();
 let controlsTimeout;
 
+// === নতুন পরিবর্তন: স্ক্রাবিং এর অবস্থা ট্র্যাক করার জন্য ভ্যারিয়েবল ===
+let isScrubbing = false;
+let wasPlaying = false;
+
 // ==========================================================
 // === ফাংশনসমূহ ===
 // ==========================================================
@@ -35,23 +39,18 @@ function loadVideo(videoUrl) {
     }
 }
 
-// এই ফাংশনটি শুধুমাত্র প্লে/পজ বাটনের জন্য
 function directTogglePlay() {
     video.paused ? video.play() : video.pause();
 }
 
-// এই ফাংশনটি স্ক্রিন ট্যাপের জন্য
 function handleScreenTap() {
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
-
     if (video.paused) {
         video.play();
-    } else { // যদি ভিডিও চলতে থাকে
+    } else {
         if (isControlsVisible) {
-            // কন্ট্রোল বার দেখা গেলে, ভিডিও পজ করো (দ্বিতীয় ট্যাপ)
             video.pause();
         } else {
-            // কন্ট্রোল বার দেখা না গেলে, শুধু কন্ট্রোল বার দেখাও (প্রথম ট্যাপ)
             playerContainer.classList.add('show-controls');
             resetControlsTimer();
         }
@@ -74,10 +73,12 @@ function hideControls() {
 
 function resetControlsTimer() {
     clearTimeout(controlsTimeout);
-    controlsTimeout = setTimeout(hideControls, 3000); // 3 সেকেন্ড পর কন্ট্রোল বার লুকানো হবে
+    controlsTimeout = setTimeout(hideControls, 3000);
 }
 
+// === নতুন পরিবর্তন: স্ক্রাবিং এর সময় যেন এই ফাংশনটি UI আপডেট না করে ===
 function updateProgressUI() {
+    if (isScrubbing) return; // যদি টানা হয়, তাহলে কিছু করবে না
     if (video.duration) {
         const progressPercent = (video.currentTime / video.duration) * 100;
         progressFilled.style.width = `${progressPercent}%`;
@@ -93,8 +94,16 @@ function updateBufferBar() {
     }
 }
 
+// === নতুন পরিবর্তন: এই ফাংশনটি এখন UI ও আপডেট করবে ===
 function scrub(e) {
-    video.currentTime = (e.target.value / 100) * video.duration;
+    const scrubTime = (e.target.value / 100) * video.duration;
+    if (isNaN(scrubTime)) return;
+    
+    video.currentTime = scrubTime;
+    
+    // ম্যানুয়ালি UI আপডেট করা হচ্ছে দ্রুত রেসপন্সের জন্য
+    progressFilled.style.width = `${e.target.value}%`;
+    timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`;
 }
 
 function formatTime(seconds) {
@@ -114,26 +123,17 @@ function updateVolumeIcon() {
     volumeBtn.querySelector('.volume-off-icon').style.display = isMuted ? 'block' : 'none';
 }
 
-// স্বয়ংক্রিয় স্ক্রিন রোটেশনসহ ফুলস্ক্রিন ফাংশন
 async function toggleFullscreen() {
     if (!document.fullscreenElement) {
         await playerContainer.requestFullscreen();
         try {
-            if (screen.orientation && screen.orientation.lock) {
-                await screen.orientation.lock('landscape');
-            }
-        } catch (err) {
-            console.warn("Screen orientation lock failed:", err);
-        }
+            if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
+        } catch (err) { console.warn("Screen orientation lock failed:", err); }
     } else {
         await document.exitFullscreen();
         try {
-            if (screen.orientation && screen.orientation.unlock) {
-                screen.orientation.unlock();
-            }
-        } catch (err) {
-            console.warn("Screen orientation unlock failed:", err);
-        }
+            if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+        } catch (err) { console.warn("Screen orientation unlock failed:", err); }
     }
 }
 
@@ -148,7 +148,6 @@ function toggleSettingsMenu() {
     settingsMenu.classList.toggle('active');
 }
 
-
 // ==========================================================
 // === Event Listeners (ইভেন্ট লিসেনার) ===
 // ==========================================================
@@ -157,16 +156,8 @@ video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 
-video.addEventListener('play', () => {
-    updatePlayState();
-    resetControlsTimer();
-});
-video.addEventListener('pause', () => {
-    updatePlayState();
-    clearTimeout(controlsTimeout);
-    playerContainer.classList.add('show-controls');
-});
-
+video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); });
+video.addEventListener('pause', () => { updatePlayState(); clearTimeout(controlsTimeout); playerContainer.classList.add('show-controls'); });
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 video.addEventListener('volumechange', updateVolumeIcon);
@@ -177,7 +168,24 @@ forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
+
+// === নতুন পরিবর্তন: স্ক্রাবিং এর জন্য নতুন ইভেন্ট লিসেনার ===
 progressBar.addEventListener('input', scrub);
+progressBar.addEventListener('mousedown', () => {
+    isScrubbing = true;
+    wasPlaying = !video.paused;
+    if (wasPlaying) {
+        video.pause();
+    }
+});
+document.addEventListener('mouseup', () => {
+    if (isScrubbing) {
+        isScrubbing = false;
+        if (wasPlaying) {
+            video.play();
+        }
+    }
+});
 
 settingsBtn.addEventListener('click', toggleSettingsMenu);
 closeSettingsBtn.addEventListener('click', toggleSettingsMenu);
@@ -190,12 +198,10 @@ speedOptions.forEach(option => {
     });
 });
 
-// ডেস্কটপের জন্য মাউস নাড়ালে কন্ট্রোল বার দেখাবে
 playerContainer.addEventListener('mousemove', () => {
     playerContainer.classList.add('show-controls');
     resetControlsTimer();
 });
-
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
