@@ -20,13 +20,8 @@ const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
 
-// === পরিবর্তন এখানে (ভ্যারিয়েবল সরানো হয়েছে) ===
-// let isVideoReady = false;
-// let isMinTimeElapsed = false;
-
 // Functions
 function hideLoadingScreen() {
-    // এখন আর কোনো শর্ত চেক করার প্রয়োজন নেই
     loadingOverlay.classList.add('hidden');
 }
 
@@ -158,19 +153,46 @@ function toggleSettingsMenu() {
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
 }
 
+// === পরিবর্তন এখানে (Single Tap Logic) ===
+let controlsTimeout;
+
+function showControls() {
+    playerContainer.classList.add('controls-visible');
+    // নির্দিষ্ট সময় পর কন্ট্রোল বার আবার লুকিয়ে ফেলার টাইমার
+    clearTimeout(controlsTimeout);
+    controlsTimeout = setTimeout(() => {
+        playerContainer.classList.remove('controls-visible');
+    }, 4000); // ৪ সেকেন্ড পর লুকিয়ে যাবে
+}
+
+function handleVideoClick() {
+    // যদি কন্ট্রোল বার দেখা যায়, তাহলে ভিডিও প্লে/পজ হবে
+    if (playerContainer.classList.contains('controls-visible')) {
+        togglePlay();
+    } else {
+        // যদি কন্ট্রোল বার দেখা না যায়, তাহলে শুধু কন্ট্রোল বার দেখানো হবে
+        showControls();
+    }
+}
+// ===========================================
+
 // Event Listeners
-video.addEventListener('click', togglePlay);
-video.addEventListener('play', updatePlayState);
+// video.addEventListener('click', togglePlay); // আগের লাইনটি মুছে ফেলা হয়েছে
+video.addEventListener('click', handleVideoClick); // নতুন ফাংশন যোগ করা হয়েছে
+
+video.addEventListener('play', () => {
+    updatePlayState();
+    // ভিডিও প্লে হলে কন্ট্রোল বার কিছুক্ষণের জন্য দেখিয়ে আবার লুকিয়ে ফেলা হবে
+    showControls();
+});
 video.addEventListener('pause', updatePlayState);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 
-// === canplay ইভেন্টটি এখন আর লোডিং স্ক্রিন নিয়ন্ত্রণ করে না ===
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
-    // hideLoadingScreen() ফাংশনটি এখান থেকে সরিয়ে দেওয়া হয়েছে
 });
 
 video.addEventListener('volumechange', updateVolumeIcon);
@@ -193,7 +215,6 @@ speedOptions.forEach(option => {
     });
 });
 
-// === পরিবর্তন এখানে (DOMContentLoaded ইভেন্ট) ===
 document.addEventListener('DOMContentLoaded', () => {
     updatePlayState();
     updateProgressUI();
@@ -204,14 +225,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoUrl = urlParams.get('id');
     
     if (videoUrl) {
-        // পেছনে ভিডিও লোড শুরু
         loadVideo(videoUrl);
-        
-        // ঠিক ৩ সেকেন্ড পর লোডিং স্ক্রিন লুকিয়ে ফেলা হবে
-        setTimeout(hideLoadingScreen, 3000); // 3000 মিলিসেকেন্ড = 3 সেকেন্ড
-
+        setTimeout(hideLoadingScreen, 3000);
     } else {
-        // কোনো ভিডিও লিঙ্ক না থাকলে লোডিং স্ক্রিন সাথে সাথেই লুকিয়ে ফেলা হবে
         hideLoadingScreen();
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
