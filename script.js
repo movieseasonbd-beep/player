@@ -19,29 +19,14 @@ const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
 const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
-let controlsTimeout;
-let wakeLock = null;
+
+// === পরিবর্তন এখানে (ভ্যারিয়েবল সরানো হয়েছে) ===
+// let isVideoReady = false;
+// let isMinTimeElapsed = false;
 
 // Functions
-async function requestWakeLock() {
-  if ('wakeLock' in navigator) {
-    try {
-      wakeLock = await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release', () => { wakeLock = null; });
-    } catch (err) {
-      console.error(`${err.name}, ${err.message}`);
-    }
-  }
-};
-
-async function releaseWakeLock() {
-  if (wakeLock !== null) {
-    await wakeLock.release();
-    wakeLock = null;
-  }
-};
-
 function hideLoadingScreen() {
+    // এখন আর কোনো শর্ত চেক করার প্রয়োজন নেই
     loadingOverlay.classList.add('hidden');
 }
 
@@ -67,11 +52,9 @@ function updatePlayState() {
     if (video.paused) {
         playIcon.style.display = 'block';
         pauseIcon.style.display = 'none';
-        playerContainer.classList.add('show-controls');
     } else {
         playIcon.style.display = 'none';
         pauseIcon.style.display = 'block';
-        playerContainer.classList.remove('show-controls');
     }
     
     playerContainer.classList.toggle('playing', !video.paused);
@@ -132,7 +115,7 @@ function updateVolumeIcon() {
 async function toggleFullscreen() {
     if (!document.fullscreenElement) {
         await playerContainer.requestFullscreen().catch(err => {
-            alert(`Fullscreen error: ${err.message}`);
+            alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
         });
         try {
             if (screen.orientation && screen.orientation.lock) {
@@ -175,44 +158,21 @@ function toggleSettingsMenu() {
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
 }
 
-function showTemporaryControls() {
-    playerContainer.classList.add('show-controls');
-    clearTimeout(controlsTimeout);
-    
-    if (!video.paused) {
-        controlsTimeout = setTimeout(() => {
-            playerContainer.classList.remove('show-controls');
-        }, 3000);
-    }
-}
-
 // Event Listeners
 video.addEventListener('click', togglePlay);
-video.addEventListener('mousemove', showTemporaryControls);
-playerContainer.addEventListener('mouseleave', () => {
-    if (!video.paused) {
-        playerContainer.classList.remove('show-controls');
-    }
-});
-
-video.addEventListener('play', () => {
-    updatePlayState();
-    requestWakeLock();
-});
-
-video.addEventListener('pause', () => {
-    updatePlayState();
-    releaseWakeLock();
-});
-
-video.addEventListener('ended', releaseWakeLock);
+video.addEventListener('play', updatePlayState);
+video.addEventListener('pause', updatePlayState);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
+
+// === canplay ইভেন্টটি এখন আর লোডিং স্ক্রিন নিয়ন্ত্রণ করে না ===
 video.addEventListener('canplay', () => {
     updateProgressUI();
     updateBufferBar();
     updatePlayState();
+    // hideLoadingScreen() ফাংশনটি এখান থেকে সরিয়ে দেওয়া হয়েছে
 });
+
 video.addEventListener('volumechange', updateVolumeIcon);
 
 centralPlayBtn.addEventListener('click', togglePlay);
@@ -233,6 +193,7 @@ speedOptions.forEach(option => {
     });
 });
 
+// === পরিবর্তন এখানে (DOMContentLoaded ইভেন্ট) ===
 document.addEventListener('DOMContentLoaded', () => {
     updatePlayState();
     updateProgressUI();
@@ -243,18 +204,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoUrl = urlParams.get('id');
     
     if (videoUrl) {
+        // পেছনে ভিডিও লোড শুরু
         loadVideo(videoUrl);
-        setTimeout(hideLoadingScreen, 3000);
+        
+        // ঠিক ৩ সেকেন্ড পর লোডিং স্ক্রিন লুকিয়ে ফেলা হবে
+        setTimeout(hideLoadingScreen, 3000); // 3000 মিলিসেকেন্ড = 3 সেকেন্ড
+
     } else {
+        // কোনো ভিডিও লিঙ্ক না থাকলে লোডিং স্ক্রিন সাথে সাথেই লুকিয়ে ফেলা হবে
         hideLoadingScreen();
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
-});
-
-document.addEventListener('visibilitychange', async () => {
-  if (wakeLock !== null && document.visibilityState === 'hidden') {
-    await releaseWakeLock();
-  } else if (document.visibilityState === 'visible' && !video.paused) {
-    await requestWakeLock();
-  }
 });
