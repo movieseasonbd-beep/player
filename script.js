@@ -22,7 +22,7 @@ let hls = new Hls();
 let controlsTimeout;
 
 // ==========================================================
-// === শুরু থেকে শেষ পর্যন্ত সকল ফাংশন এখানে গোছানো আছে ===
+// === ফাংশনসমূহ ===
 // ==========================================================
 
 function loadVideo(videoUrl) {
@@ -36,10 +36,19 @@ function loadVideo(videoUrl) {
     }
 }
 
-// === পরিবর্তন: togglePlay এবং handleVideoClick ফাংশনকে একত্রিত করে একটি নতুন ফাংশন বানানো হয়েছে ===
-function masterTogglePlay() {
+// === নতুন পরিবর্তন: এই ফাংশনটি শুধুমাত্র প্লে/পজ বাটনের জন্য ===
+function togglePlay() {
+    if (video.paused) {
+        video.play();
+    } else {
+        video.pause();
+    }
+}
+
+// === নতুন পরিবর্তন: এই ফাংশনটি শুধুমাত্র ভিডিও স্ক্রিনে ক্লিক করার জন্য ===
+function handleVideoClick() {
     // কন্ট্রোল বার দেখা যাচ্ছে কিনা তা পরীক্ষা করা হচ্ছে
-    const areControlsVisible = playerContainer.classList.contains('show-controls') || getComputedStyle(document.querySelector('.controls-container')).opacity === '1';
+    const areControlsVisible = playerContainer.classList.contains('show-controls');
 
     if (video.paused) {
         // যদি ভিডিও পজ থাকে, তাহলে প্লে করো
@@ -47,15 +56,16 @@ function masterTogglePlay() {
     } else {
         // যদি ভিডিও চলতে থাকে...
         if (areControlsVisible) {
-            // এবং কন্ট্রোল বার দেখা যায়, তাহলে ভিডিও পজ করো (দ্বিতীয় ট্যাপ)
+            // এবং কন্ট্রোল বার দেখা যায়, তাহলে ভিডিও পজ করো (এটি দ্বিতীয় ট্যাপ)
             video.pause();
         } else {
-            // এবং কন্ট্রোল বার দেখা না গেলে, শুধু কন্ট্রোল বার দেখাও (প্রথম ট্যাপ)
+            // এবং কন্ট্রোল বার দেখা না গেলে, শুধু কন্ট্রোল বার দেখাও (এটি প্রথম ট্যাপ)
             playerContainer.classList.add('show-controls');
             resetControlsTimer(); // টাইমার চালু করো যাতে কন্ট্রোল বার আবার লুকিয়ে যায়
         }
     }
 }
+
 
 function updatePlayState() {
     const playIcon = playPauseBtn.querySelector('.play-icon');
@@ -156,13 +166,13 @@ function toggleSettingsMenu() {
 }
 
 // ==========================================================
-// === সমস্ত Event Listener এখানে একসাথে রাখা হয়েছে ===
+// === Event Listeners (ইভেন্ট লিসেনার) ===
 // ==========================================================
 
-// প্লে/পজ সংক্রান্ত ক্লিক ইভেন্ট
-video.addEventListener('click', masterTogglePlay);
-centralPlayBtn.addEventListener('click', masterTogglePlay);
-playPauseBtn.addEventListener('click', masterTogglePlay);
+// === নতুন পরিবর্তন: ইভেন্টগুলো এখন সঠিক ফাংশনকে কল করবে ===
+video.addEventListener('click', handleVideoClick);       // ভিডিও স্ক্রিনের জন্য
+centralPlayBtn.addEventListener('click', togglePlay);     // মাঝখানের প্লে বাটনের জন্য
+playPauseBtn.addEventListener('click', togglePlay);       // কন্ট্রোল বারের প্লে বাটনের জন্য
 
 // ভিডিওর নিজস্ব ইভেন্ট
 video.addEventListener('play', () => {
@@ -203,8 +213,10 @@ speedOptions.forEach(option => {
 
 // কন্ট্রোল বার দেখানো এবং লুকানোর জন্য
 playerContainer.addEventListener('mousemove', () => {
-    playerContainer.classList.add('show-controls');
-    resetControlsTimer();
+    if (!video.paused) {
+        playerContainer.classList.add('show-controls');
+        resetControlsTimer();
+    }
 });
 
 // পেজ লোড হলে যা ঘটবে
