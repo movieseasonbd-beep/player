@@ -149,6 +149,8 @@ video.addEventListener('canplay', () => {
     hideLoadingScreen();
 });
 
+video.addEventListener('volumechange', updateVolumeIcon); // এই লাইনটি নিশ্চিত করে যে ভলিউম পরিবর্তন হলে আইকন আপডেট হবে
+
 centralPlayBtn.addEventListener('click', togglePlay);
 playPauseBtn.addEventListener('click', togglePlay);
 rewindBtn.addEventListener('click', () => { if(video.duration) video.currentTime -= 10; });
