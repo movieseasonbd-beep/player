@@ -47,8 +47,8 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-group { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px; }
 .controls-left, .controls-right { display: flex; align-items: center; gap: 20px; }
 .control-btn { background: none; border: none; color: white; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; display: flex; align-items: center; justify-content: center; }
-.control-btn:hover { color: var(--theme-color); transform: scale(1.15); }
-.control-btn:active { transform: scale(1.05); }
+.control-btn:hover { color: var(--theme-color); /* transform scale এখন আর কাজ করবে না কারণ নিচে transform ব্যবহার করা হয়েছে */ }
+.control-btn:active { transform: scale(0.95); } /* ছোট একটি Active ইফেক্ট দেওয়া হলো */
 .control-btn.active { color: var(--theme-color); }
 .control-btn svg path { fill: white; }
 .control-btn:hover svg path { fill: var(--theme-color); }
@@ -60,23 +60,21 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 ====================================================================
 */
 
-/* --- ১. সব কন্ট্রোল আইকনের জন্য সাধারণ সাইজ (এই অংশটি এখন আর সাইজ নিয়ন্ত্রণ করে না) --- */
 .control-btn svg {
     transition: fill 0.1s ease;
 }
 
-/* --- ২. প্রতিটি আইকনকে আলাদাভাবে স্টাইল করার জন্য --- */
-/* (এখানে প্রতিটি আইকনের জন্য আলাদা আলাদা সাইজ দেওয়া হয়েছে) */
-
 /* প্লে/পজ বাটন (#play-pause-btn) */
 #play-pause-btn svg {
     /* এই দুটি মান পরিবর্তন করে আইকনটি বড় বা ছোট করুন */
-    width: 35px;
-    height: 35px;
+    width: 28px;
+    height: 28px;
 }
 #play-pause-btn {
     /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
-    margin-right: -30px; 
+    /* transform: translateX(5px);  ডানে সরাতে পজিটিভ মান দিন */
+    /* transform: translateX(-5px); বামে সরাতে নেগেটিভ মান দিন */
+    transform: translateX(0px); 
 }
 
 /* রিওয়াইন্ড বাটন (#rewind-btn) */
@@ -85,7 +83,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     height: 24px;
 }
 #rewind-btn {
-    margin-right: 0px; 
+    transform: translateX(0px); 
 }
 
 /* ফরওয়ার্ড বাটন (#forward-btn) */
@@ -94,7 +92,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     height: 24px;
 }
 #forward-btn {
-    margin-right: 0px;
+    transform: translateX(0px);
 }
 
 /* ভলিউম বাটন (#volume-btn) */
@@ -103,7 +101,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     height: 24px;
 }
 #volume-btn {
-    margin-right: 0px;
+    transform: translateX(0px);
 }
 
 /* সেটিংস বাটন (#settings-btn) */
@@ -112,16 +110,16 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     height: 24px;
 }
 #settings-btn {
-    margin-right: 0px;
+    transform: translateX(0px);
 }
 
 /* ফুলস্ক্রিন বাটন (#fullscreen-btn) */
 #fullscreen-btn svg {
-    width: 35px;
-    height: 35px;
+    width: 24px;
+    height: 24px;
 }
 #fullscreen-btn {
-    margin-right: +20px;
+    transform: translateX(0px);
 }
 
 /* ... (বাকি কোড অপরিবর্তিত) ... */
