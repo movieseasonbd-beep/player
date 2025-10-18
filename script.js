@@ -19,6 +19,7 @@ const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
 const speedOptions = settingsMenu.querySelectorAll('li');
 
 let hls = new Hls();
+let controlsTimeout;
 
 // Functions
 function hideLoadingScreen() {
@@ -47,9 +48,13 @@ function updatePlayState() {
     if (video.paused) {
         playIcon.style.display = 'block';
         pauseIcon.style.display = 'none';
+        // ভিডিও পজ হলে কন্ট্রোল বার সবসময় দেখা যাবে
+        playerContainer.classList.add('show-controls');
     } else {
         playIcon.style.display = 'none';
         pauseIcon.style.display = 'block';
+        // ভিডিও প্লে হলে কন্ট্রোল বার লুকিয়ে যাবে
+        playerContainer.classList.remove('show-controls');
     }
     
     playerContainer.classList.toggle('playing', !video.paused);
@@ -153,38 +158,29 @@ function toggleSettingsMenu() {
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
 }
 
-// === পরিবর্তন এখানে (Single Tap Logic) ===
-let controlsTimeout;
-
-function showControls() {
-    playerContainer.classList.add('controls-visible');
-    // নির্দিষ্ট সময় পর কন্ট্রোল বার আবার লুকিয়ে ফেলার টাইমার
+// === পরিবর্তন এখানে (কন্ট্রোল বার দেখানোর নতুন নিয়ম) ===
+function showTemporaryControls() {
+    playerContainer.classList.add('show-controls');
     clearTimeout(controlsTimeout);
-    controlsTimeout = setTimeout(() => {
-        playerContainer.classList.remove('controls-visible');
-    }, 4000); // ৪ সেকেন্ড পর লুকিয়ে যাবে
-}
-
-function handleVideoClick() {
-    // যদি কন্ট্রোল বার দেখা যায়, তাহলে ভিডিও প্লে/পজ হবে
-    if (playerContainer.classList.contains('controls-visible')) {
-        togglePlay();
-    } else {
-        // যদি কন্ট্রোল বার দেখা না যায়, তাহলে শুধু কন্ট্রোল বার দেখানো হবে
-        showControls();
+    
+    // যদি ভিডিও চলতে থাকে, তাহলেই শুধু কন্ট্রোল বার লুকানো হবে
+    if (!video.paused) {
+        controlsTimeout = setTimeout(() => {
+            playerContainer.classList.remove('show-controls');
+        }, 3000); // ৩ সেকেন্ড পর লুকিয়ে যাবে
     }
 }
-// ===========================================
 
 // Event Listeners
-// video.addEventListener('click', togglePlay); // আগের লাইনটি মুছে ফেলা হয়েছে
-video.addEventListener('click', handleVideoClick); // নতুন ফাংশন যোগ করা হয়েছে
-
-video.addEventListener('play', () => {
-    updatePlayState();
-    // ভিডিও প্লে হলে কন্ট্রোল বার কিছুক্ষণের জন্য দেখিয়ে আবার লুকিয়ে ফেলা হবে
-    showControls();
+video.addEventListener('click', togglePlay);
+video.addEventListener('mousemove', showTemporaryControls); // মাউস নাড়ালে কন্ট্রোল বার দেখা যাবে
+playerContainer.addEventListener('mouseleave', () => { // মাউস প্লেয়ারের বাইরে গেলে কন্ট্রোল বার লুকিয়ে যাবে
+    if (!video.paused) {
+        playerContainer.classList.remove('show-controls');
+    }
 });
+
+video.addEventListener('play', updatePlayState);
 video.addEventListener('pause', updatePlayState);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
