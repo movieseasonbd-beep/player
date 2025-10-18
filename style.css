@@ -69,10 +69,11 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 
 .loading-bar-container {
-    width: 220px;
-    height: 4px;
+    width: 200px;
+    height: 6px;
     margin: 0 auto 12px auto;
     position: relative;
+    overflow: hidden;
 }
 
 /* === চূড়ান্ত এবং নিখুঁত সমাধান: Multiple Backgrounds এবং Single Mask === */
@@ -85,7 +86,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     /* নিচের স্তর: আপনার মূল লাল বার */
     background-image: 
         linear-gradient(to right, transparent 0%, white 50%, transparent 100%),
-        radial-gradient(ellipse at center, var(--loading-theme-color) 0%, transparent 70%);
+        radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
 
     /* প্রতিটি الخلفية-এর জন্য আলাদা সাইজ নির্ধারণ */
     background-size: 60% 100%, 100% 100%;
@@ -101,10 +102,10 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
 }
 
-/* ::before এখন আর প্রয়োজন নেই, তাই এটি সম্পূর্ণ মুছে ফেলা হয়েছে */
+/* === ::before এখন আর প্রয়োজন নেই, তাই এটি সম্পূর্ণ মুছে ফেলা হয়েছে === */
 
 .loading-text {
-    font-size: 12px; 
+    font-size: 12px;
     letter-spacing: 0.5px;
 }
 
@@ -122,13 +123,19 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 /* === নতুন অ্যানিমেশন Keyframes যা background-position পরিবর্তন করে === */
 @keyframes loading-scan-final {
     0% {
-        /* প্রথম الخلفية-এর অবস্থান (সাদা আলো), দ্বিতীয় الخلفية-এর অবস্থান (লাল বার) */
-        background-position: -150% 0, 0 0;
+        /* প্রথম الخلفية-এর অবস্থান (সাদা আলো) */
+        background-position: -100% 0, 0 0;
     }
     100% {
-        /* প্রথম الخلفية-এর অবস্থান (সাদা আলো), দ্বিতীয় الخلفية-এর অবস্থান (লাল বার) */
-        background-position: 250% 0, 0 0;
+        /* প্রথম الخلفية-এর অবস্থান (সাদা আলো) */
+        background-position: 200% 0, 0 0;
     }
+}
+
+/* পুরোনো @keyframes loading-scan এখন আর প্রয়োজন নেই, চাইলে মুছে ফেলতে পারেন */
+@keyframes loading-scan {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(166%); }
 }
 
 
