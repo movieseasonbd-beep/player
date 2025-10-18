@@ -81,7 +81,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     width: 100%;
     height: 100%;
     
-    /* আপনার মূল কোডের الخلفية, যা মাঝখানে মোটা এবং দুই পাশে শূন্যে মিলিয়ে যাওয়া ইফেক্ট তৈরি করে */
+    /* আপনার মূল কোডের الخلفية, যা সূঁচালো ইফেক্ট তৈরি করে */
     background: radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
     opacity: 1; /* ঝাপসা ভাব দূর করা হয়েছে */
     
