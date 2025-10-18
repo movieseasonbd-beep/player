@@ -137,7 +137,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 
 
-
 /* === সেন্ট্রাল প্লে বাটন === */
 .central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; transition: all 0.2s ease; background: none; width: auto; height: auto; }
 .central-play-btn:hover { transform: translate(-50%, -50%) scale(1.1); }
