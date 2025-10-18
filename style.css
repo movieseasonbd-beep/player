@@ -166,8 +166,8 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 /* প্লে/পজ বাটন (#play-pause-btn) */
 #play-pause-btn svg {
     /* এই দুটি মান পরিবর্তন করে আইকনটি বড় বা ছোট করুন */
-    width: 35px;
-    height: 35px;
+    width: 30px;
+    height: 30px;
 }
 #play-pause-btn {
     /* এই মান পরিবর্তন করে ডানে (+) বা বামে (-) সরান */
