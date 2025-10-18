@@ -218,7 +218,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     height: 30px;
 }
 #fullscreen-btn {
-    transform: translateX(+5px);
+    transform: translateX(+4px);
 }
 
 
