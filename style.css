@@ -82,14 +82,14 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
         linear-gradient(to right, transparent, white, transparent),
         linear-gradient(to right, 
             transparent, 
-            var(--gradient-start-color) 30%, 
+            var(--gradient-start-color) 25%, 
             var(--gradient-end-color) 70%, 
             transparent
         );
     background-size: 40% 100%, 100% 100%;
     background-repeat: no-repeat;
     background-blend-mode: screen;
-    animation: loading-scan-final 3.1s infinite linear;
+    animation: loading-scan-final 3s infinite linear;
     clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%);
 }
 
