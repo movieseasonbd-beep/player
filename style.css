@@ -4,10 +4,14 @@
     --progress-bar-height: 5px;
     --thumb-size: 16px;
     --central-play-btn-color: #fa0505;
-    --gradient-start-color: #cf0000;
-    --gradient-end-color: #f16d0f;
-    --loading-theme-color: #ff0000;
+    --gradient-start-color: #cf0000; /* প্রোগ্রেস বারের জন্য */
+    --gradient-end-color: #f16d0f;   /* প্রোগ্রেস বারের জন্য */
     
+    /* === নতুন ভেরিয়েবল: শুধুমাত্র আইকনের জন্য === */
+    --icon-gradient-start: #cf0000; /* <-- এখন থেকে এই লাইনটি আইকনের রঙ নিয়ন্ত্রণ করবে */
+    --icon-gradient-end: #f16d0f;   /* <-- এবং এই লাইনটি */
+
+    --loading-theme-color: #ff0000;
     --loading-gradient-start: #ff0000;
     --loading-gradient-end: #ff7e7e;
 }
@@ -16,7 +20,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container { width: 100vw; height: 100vh; position: relative; background-color: #000; display: flex; justify-content: center; align-items: center; }
 .player-container.playing .central-play-btn { opacity: 0; visibility: hidden; }
 
-/* === চূড়ান্ত এবং সঠিক সংস্করণ: :hover এখান থেকে বাদ দেওয়া হয়েছে === */
 .player-container.paused .controls-container, 
 .player-container.show-controls .controls-container { 
     opacity: 1; 
@@ -25,112 +28,32 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
-
-
-
-
-
-
-
 /* === লোডিং স্ক্রিনের স্টাইল === */
-.loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-    transition: opacity 0.5s ease, visibility 0.5s ease;
-}
+.loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s ease; }
+.loading-overlay.hidden { opacity: 0; visibility: hidden; }
+.loading-content { text-align: center; }
+.loading-logo { font-family: 'Arial', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 7px; letter-spacing: 0.5px; background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.loading-bar-container { width: 220px; height: 2.5px; margin: 0 auto 15px auto; position: relative; }
+.loading-bar { width: 100%; height: 100%; background-image: linear-gradient(to right, transparent, white, transparent), linear-gradient(to right, transparent, var(--gradient-start-color) 25%, var(--gradient-end-color) 70%, transparent); background-size: 40% 100%, 100% 100%; background-repeat: no-repeat; background-blend-mode: screen; animation: loading-scan-final 3.1s infinite linear; clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%); }
+@keyframes loading-scan-final { 0% { background-position: 10% 0, 0 0; } 100% { background-position: 90% 0, 0 0; } }
+.loading-text { font-size: 10px; letter-spacing: 0.5px; }
+.loading-maintext { color: white; }
+.loading-subtext { background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
-.loading-overlay.hidden {
-    opacity: 0;
-    visibility: hidden;
-}
-
-.loading-content {
-    text-align: center;
-}
-
-.loading-logo {
-    font-family: 'Arial', sans-serif;
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 7px;
-    letter-spacing: 0.5px;
-    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
+/* === সেন্ট্রাল প্লে বাটন (নতুন গ্রেডিয়েন্ট স্টাইল) === */
+.central-play-btn svg {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(to right, var(--icon-gradient-start), var(--icon-gradient-end)); /* <-- নতুন ভেরিয়েবল ব্যবহার করা হয়েছে */
     -webkit-background-clip: text;
     background-clip: text;
-    color: transparent;
+    fill: transparent;
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7));
 }
 
-.loading-bar-container {
-    width: 220px;
-    height: 2.5px; /* বারের পুরুত্ব */
-    margin: 0 auto 15px auto;
-    position: relative;
-}
-
-.loading-bar {
-    width: 100%;
-    height: 100%;
-    background-image: 
-        linear-gradient(to right, transparent, white, transparent),
-        linear-gradient(to right, 
-            transparent, 
-            var(--gradient-start-color) 25%, 
-            var(--gradient-end-color) 70%, 
-            transparent
-        );
-    background-size: 40% 100%, 100% 100%;
-    background-repeat: no-repeat;
-    background-blend-mode: screen;
-    animation: loading-scan-final 3.1s infinite linear;
-    clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%);
-}
-
-/* === চূড়ান্ত সપ્રতিসম (Symmetrical) অ্যানিমেশন === */
-@keyframes loading-scan-final {
-    0% {
-        /* শাইনটি 20% পজিশন থেকে শুরু হবে */
-        background-position: 10% 0, 0 0;
-    }
-    100% {
-        /* এবং 40% পজিশনে গিয়ে শেষ হবে */
-        /* (কারণ 40% পজিশন + 40% শাইনের প্রস্থ = 80% পজিশনে শেষ) */
-        background-position: 90% 0, 0 0;
-    }
-}
-
-.loading-text {
-    font-size: 10px; 
-    letter-spacing: 0.5px;
-}
-
-.loading-maintext {
-    color: white;
-}
-
-.loading-subtext {
-    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-
-
-
-
-/* === সেন্ট্রাল প্লে বাটন === */
 .central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; transition: all 0.2s ease; background: none; width: auto; height: auto; }
 .central-play-btn:hover { transform: translate(-50%, -50%) scale(1.1); }
 .central-play-btn:active { transform: translate(-50%, -50%) scale(1.0); }
-.central-play-btn svg { width: 80px; height: 80px; fill: var(--central-play-btn-color); filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); }
 
 /* === কন্ট্রোলস === */
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
@@ -145,33 +68,39 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-group { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px; }
 .controls-left, .controls-right { display: flex; align-items: center; gap: 20px; }
 .control-btn { background: none; border: none; color: white; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; display: flex; align-items: center; justify-content: center; }
-.control-btn:hover { color: var(--theme-color); }
-.control-btn:active { transform: scale(0.95); }
-.control-btn.active { color: var(--theme-color); }
-.control-btn svg path { fill: white; }
-.control-btn:hover svg path { fill: var(--theme-color); }
+
+/* === আইকন গ্রেডিয়েন্ট স্টাইল শুরু === */
+.control-btn svg {
+    background: linear-gradient(to right, var(--icon-gradient-start), var(--icon-gradient-end)); /* <-- নতুন ভেরিয়েবল ব্যবহার করা হয়েছে */
+    -webkit-background-clip: text;
+    background-clip: text;
+    transition: fill 0.1s ease;
+}
+.control-btn svg path { fill: transparent; }
+
+.control-btn:hover svg,
+.control-btn.active svg {
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+}
+.control-btn:hover svg path,
 .control-btn.active svg path { fill: var(--theme-color); }
-.control-btn svg { transition: fill 0.1s ease; }
+.control-btn:active { transform: scale(0.95); }
+/* === আইকন গ্রেডিয়েন্ট স্টাইল শেষ === */
 
 /* আইকন সাইজ */
 #play-pause-btn svg { width: 30px; height: 30px; }
 #play-pause-btn { transform: translateX(-9px); }
 #rewind-btn svg, #forward-btn svg, #volume-btn svg, #settings-btn svg { width: 24px; height: 24px; }
-
-/* === পরিবর্তন এখানে: forward এবং rewind বাটনকে বামে সরানো হয়েছে === */
 #forward-btn { transform: translateX(-8px); }
 #rewind-btn { transform: translateX(-8px); }
-
 #settings-btn { transform: translateX(+8px); }
 #fullscreen-btn svg { width: 30px; height: 30px; }
 #fullscreen-btn { transform: translateX(+4px); }
+
 /* === বাকি স্টাইল === */
-.time-display {
-    font-size: 11px;
-    user-select: none;
-    margin-left: -11px;
-    white-space: nowrap; /* এই লাইনটি যোগ করুন */
-}
+.time-display { font-size: 11px; user-select: none; margin-left: -11px; white-space: nowrap; }
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
 .settings-menu { position: absolute; bottom: 80px; right: 20px; background-color: rgba(40, 40, 40, 0.9); border-radius: 8px; z-index: 5; width: 200px; padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, transform 0.2s ease; transform: translateY(10px); }
