@@ -93,12 +93,15 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%);
 }
 
+/* === অ্যানিমেশনের নতুন পরিসীমা === */
 @keyframes loading-scan-final {
     0% {
-        background-position: -150% 0, 0 0;
+        /* শাইনটি এখন 10% পজিশন থেকে শুরু হবে */
+        background-position: 10% 0, 0 0;
     }
     100% {
-        background-position: 250% 0, 0 0;
+        /* এবং 50% পজিশনে গিয়ে শেষ হবে */
+        background-position: 50% 0, 0 0;
     }
 }
 
