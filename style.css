@@ -70,7 +70,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .loading-bar-container {
     width: 220px;
-    height: 4px;
+    height: 3px;
     margin: 0 auto 12px auto;
     position: relative;
 }
