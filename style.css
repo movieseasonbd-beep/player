@@ -18,7 +18,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container.show-controls .controls-container { opacity: 1; transform: translateY(0); }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
-/* === লোডিং স্ক্রিনের স্টাইল === */
+/* === লোডিং স্ক্রিনের স্টাইল (অপরিবর্তিত) === */
 .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s ease; }
 .loading-overlay.hidden { opacity: 0; visibility: hidden; }
 .loading-content { text-align: center; }
@@ -30,13 +30,13 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .loading-maintext { color: white; }
 .loading-subtext { background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
-/* === সেন্ট্রাল প্লে বাটন === */
+/* === সেন্ট্রাল প্লে বাটন (অপরিবর্তিত) === */
 .central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; transition: all 0.2s ease; background: none; width: auto; height: auto; }
 .central-play-btn:hover { transform: translate(-50%, -50%) scale(1.1); }
 .central-play-btn:active { transform: translate(-50%, -50%) scale(1.0); }
 .central-play-btn svg { width: 80px; height: 80px; fill: var(--central-play-btn-color); filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); }
 
-/* === কন্ট্রোলস === */
+/* === কন্ট্রোলস (অপরিবর্তিত) === */
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
 .progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 2px 0; cursor: pointer; position: relative; }
 .progress-background, .buffer-bar, .progress-filled, .progress-bar { grid-column: 1; grid-row: 1; }
@@ -68,35 +68,81 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
 
-/* === আধুনিক গ্রুপ-স্টাইল সেটিংস মেনু (নতুন) === */
-.settings-menu { position: absolute; bottom: 80px; right: 20px; width: 300px; background-color: #1f1f1f; border-radius: 16px; border: 1px solid #3a3a3a; transform: translateY(10px) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; padding: 8px 8px 12px 8px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); z-index: 5; opacity: 0; visibility: hidden; }
-.settings-menu.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+/* === আধুনিক গ্রুপ-স্টাইল সেটিংস মেনু (চূড়ান্ত সংস্করণ) === */
+.settings-menu {
+    /* মেনুকে মাঝখানে আনার কোড */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    
+    width: 280px; /* আপনার অনুরোধ অনুযায়ী স্লিম করা হয়েছে */
+    background-color: #1a1a1a; /* ছবির মতো সঠিক ডার্ক রঙ */
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    /* দেখানোর এবং লুকানোর অ্যানিমেশন */
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, -45%) scale(0.95); /* Y-অক্ষে সামান্য উপরে সরানো হয়েছে */
+    transition: opacity 0.2s ease, transform 0.2s ease;
+
+    padding: 8px 8px 12px 8px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    z-index: 5;
+}
+
+.settings-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1); /* সঠিক জায়গায় আসবে */
+}
+
+/* মেনুর উপরের হ্যান্ডেল */
 .menu-handle-container { width: 100%; padding: 4px 0 10px 0; display: flex; justify-content: center; }
-.menu-handle { width: 40px; height: 5px; background-color: #4d4d4d; border-radius: 10px; }
+.menu-handle { width: 35px; height: 4px; background-color: #4d4d4d; border-radius: 10px; }
+
 .settings-menu .menu-content-wrapper { position: relative; overflow: hidden; height: auto; }
 .settings-menu .menu-page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; background-color: transparent; transform: translateX(100%); transition: transform 0.2s ease-in-out; box-sizing: border-box; }
 .settings-menu .menu-page.active { transform: translateX(0); position: relative; }
 .menu-main { padding: 0; }
-.settings-group { list-style: none; padding: 0; margin: 0 0 10px 0; }
+.settings-group { list-style: none; padding: 0; margin: 0 0 8px 0; }
 .settings-group:empty { display: none; }
 .settings-group:last-child { margin-bottom: 0; }
-.settings-group li { display: flex; justify-content: space-between; align-items: center; padding: 14px; font-size: 15px; color: #f1f1f1; cursor: pointer; background-color: #2f2f2f; transition: background-color 0.2s ease; }
+
+/* গ্রুপের প্রতিটি আইটেম (li) - এখন এটি একটি বাটন */
+.settings-group li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px; /* প্যাডিং কমানো হয়েছে */
+    font-size: 14px; /* ফন্ট সাইজ কমানো হয়েছে */
+    color: #f1f1f1;
+    cursor: pointer;
+    background-color: #2c2c2c; /* বাটনের রঙ */
+    transition: background-color 0.2s ease;
+}
 .settings-group li:hover { background-color: #3f3f3f; }
-.settings-group li:not(:last-child) { border-bottom: 1px solid #4a4a4a; }
+.settings-group li:not(:last-child) { border-bottom: 1px solid #404040; }
 .settings-group li:first-child { border-top-left-radius: 12px; border-top-right-radius: 12px; }
 .settings-group li:last-child { border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
 .settings-group li:only-child { border-radius: 12px; }
-.menu-item-label, .menu-item-value { display: flex; align-items: center; gap: 12px; }
-.menu-item-label svg { width: 22px; height: 22px; fill: #e0e0e0; }
-.menu-item-value .current-value { color: #a0a0a0; font-size: 14px; }
-.menu-item-value .arrow-right { width: 22px; height: 22px; fill: #a0a0a0; }
+
+/* আইকন ও টেক্সটের আকার ও গ্যাপ ঠিক করা */
+.menu-item-label, .menu-item-value { display: flex; align-items: center; gap: 10px; }
+.menu-item-label svg { width: 20px; height: 20px; fill: #e0e0e0; }
+.menu-item-value .current-value { color: #a0a0a0; font-size: 13px; }
+.menu-item-value .arrow-right { width: 20px; height: 20px; fill: #a0a0a0; }
+
+/* সাব-মেনু স্টাইল */
 .menu-page .menu-header { display: flex; align-items: center; margin-bottom: 5px; font-size: 16px; font-weight: bold; padding: 10px; color: #f1f1f1; }
 .menu-page .back-btn { background: none; border: none; color: white; cursor: pointer; padding: 0 10px 0 0; margin-left: -5px; }
 .menu-page .back-btn svg { width: 24px; height: 24px; fill: white; }
 .settings-menu .menu-speed ul, .settings-menu .menu-quality ul { list-style: none; margin: 0; padding: 0 5px 5px 5px; }
-.settings-menu .menu-speed li, .settings-menu .menu-quality li { padding: 10px 12px; cursor: pointer; border-radius: 6px; transition: background-color 0.2s ease; font-size: 15px; color: #f1f1f1; }
+.settings-menu .menu-speed li, .settings-menu .menu-quality li { padding: 10px 12px; cursor: pointer; border-radius: 6px; transition: background-color 0.2s ease; font-size: 14px; color: #f1f1f1; }
 .settings-menu .menu-speed li:hover, .settings-menu .menu-quality li:hover { background-color: rgba(255, 255, 255, 0.1); }
 .settings-menu .menu-speed li.active, .settings-menu .menu-quality li.active { color: var(--theme-color); font-weight: bold; background-color: rgba(255, 255, 255, 0.08); }
+
+/* === স্ক্রলবার === */
 .settings-menu ul { max-height: 25vh; overflow-y: auto; }
 .settings-menu ul::-webkit-scrollbar { width: 6px; }
 .settings-menu ul::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
