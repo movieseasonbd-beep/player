@@ -32,7 +32,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 
 
-য়েছে *//* === লোডিং স্ক্রিনের স্টাইল (চূড়ান্ত ও স্পষ্ট সংস্করণ) === */
+/* === লোডিং স্ক্রিনের স্টাইল (ছবির মতো Glow ইফেক্ট) === */
 .loading-overlay {
     position: absolute;
     top: 0;
@@ -70,34 +70,33 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .loading-bar-container {
     width: 300px;
-    height: 8px;
+    /* === পরিবর্তন: উচ্চতা বাড়িয়ে গ্লো ইফেক্টের জন্য জায়গা দেওয়া হয়েছে === */
+    height: 20px; 
     margin: 0 auto 14px auto;
     position: relative;
-    /* === পরিবর্তন: কন্টেইনারের overflow hidden না রাখলেও চলবে === */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* === ঝাপসা ভাব দূর করে সম্পূর্ণ স্পষ্ট বার তৈরি করা হয়েছে === */
+/* === চূড়ান্ত সমাধান: ছবির মতো উজ্জ্বল Glow এবং অ্যানিমেশন === */
 .loading-bar {
     width: 100%;
     height: 100%;
-    
-    /* === নতুন: বারটিকে গোলাকার ও স্পষ্ট করার জন্য === */
-    border-radius: 100px; /* এটি বারটির দুই প্রান্তকে গোলাকার করবে */
-    
-    /* === পরিবর্তন: ঝাপসা radial-gradient এর বদলে সলিড লাল রঙ === */
-    background-color: var(--loading-theme-color);
-    
-    /* === উপরের স্তরে উজ্জ্বল আলোর অ্যানিমেশন === */
-    /* background-image এখন শুধু চলমান আলোর জন্য ব্যবহৃত হচ্ছে */
-    background-image: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.8) 45%, white 50%, rgba(255,255,255,0.8) 55%, transparent 100%);
-    background-size: 60% 100%;
+    background-image: 
+        /* স্তর ১ (উপরে): চলমান উজ্জ্বল সাদা আলোর আভা */
+        linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.8) 45%, white 50%, rgba(255, 255, 255, 0.8) 55%, transparent 100%),
+        /* স্তর ২ (নিচে): মূল স্থির লাল Glow Bar */
+        radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 65%);
+
+    background-size: 
+        60% 100%,  /* প্রথমটির (সাদা আলো) সাইজ */
+        100% 100%; /* দ্বিতীয়টির (Glow) সাইজ */
+
     background-repeat: no-repeat;
     
-    /* অ্যানিমেশন আগের মতোই থাকছে */
+    /* অ্যানিমেশনটি শুধুমাত্র প্রথম الخلفية (সাদা আলো)-এর অবস্থান পরিবর্তন করবে */
     animation: loading-scan-final 3.1s infinite linear;
-    
-    /* === অপ্রয়োজনীয়: মাস্ক সম্পূর্ণ মুছে ফেলা হয়েছে === */
-    /* -webkit-mask-image এবং mask-image লাইনগুলো আর নেই */
 }
 
 .loading-text {
@@ -116,13 +115,15 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     color: transparent;
 }
 
-/* === অ্যানিমেশন Keyframes (অপরিবর্তিত) === */
+/* === অ্যানিমেশন Keyframes যা দুটি background-position একসাথে পরিবর্তন করে === */
 @keyframes loading-scan-final {
     0% {
-        background-position: -100% 0;
+        /* প্রথম الخلفية, দ্বিতীয় الخلفية */
+        background-position: -100% 0, 0 0;
     }
     100% {
-        background-position: 200% 0;
+        /* প্রথম الخلفية, দ্বিতীয় الخلفية */
+        background-position: 200% 0, 0 0;
     }
 }
 
