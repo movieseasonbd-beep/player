@@ -125,25 +125,21 @@ function updateFullscreenState() {
 // === নতুন: সেটিংস মেনু পেজ পরিবর্তনের জন্য ফাংশন ===
 function showMenuPage(pageToShow) {
     const currentPage = menuContentWrapper.querySelector('.menu-page.active');
-    
-    // নতুন পেজের উচ্চতা অনুযায়ী কন্টেইনারের উচ্চতা সেট করা
-    // setTimeout ব্যবহার করা হয়েছে যাতে DOM আপডেটের পর উচ্চতা মাপা হয়
     setTimeout(() => {
         const newHeight = pageToShow.scrollHeight;
         menuContentWrapper.style.height = `${newHeight}px`;
     }, 0);
-
     if (currentPage) {
         if (pageToShow === mainSettingsPage) {
             currentPage.classList.remove('active');
-            currentPage.classList.add('slide-out-right'); // পুরনো পেজ ডানে চলে যাবে (অদৃশ্য)
+            currentPage.classList.add('slide-out-right');
             mainSettingsPage.classList.remove('slide-out-left');
             mainSettingsPage.classList.add('active');
         } else {
             mainSettingsPage.classList.add('slide-out-left');
             currentPage.classList.remove('active');
             pageToShow.classList.add('active');
-            pageToShow.classList.remove('slide-out-right'); // নতুন পেজ যেন সঠিক জায়গা থেকে আসে
+            pageToShow.classList.remove('slide-out-right');
         }
     }
 }
@@ -224,10 +220,10 @@ function setQuality(level) {
 hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
     if (data.levels.length > 1) {
         const qualityMenuBtn = document.createElement('li');
-        qualityMenuBtn.id = 'quality-menu-btn'; // আইডি যোগ করা হলো
+        qualityMenuBtn.id = 'quality-menu-btn';
         qualityMenuBtn.innerHTML = `
             <div class="menu-item-label">
-                <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"></path></svg>
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M216,104H102.09L210,75.51a8,8,0,0,0,5.68-9.84l-8.16-30a15.93,15.93,0,0,0-19.42-11.13L35.81,64.74a15.75,15.75,0,0,0-9.7,7.4,15.51,15.51,0,0,0-1.55,12L32,111.56c0,.14,0,.29,0,.44v88a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V112A8,8,0,0,0,216,104ZM192.16,40l6,22.07L164.57,71,136.44,54.72ZM77.55,70.27l28.12,16.24-59.6,15.73-6-22.08Z"></path></svg>
                 <span>Quality</span>
             </div>
             <div class="menu-item-value">
@@ -252,6 +248,12 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
             qualityOptionsList.appendChild(option);
         });
         playerSettingsGroup.prepend(qualityMenuBtn);
+        // মেনু খোলার সময় উচ্চতা অ্যাডজাস্ট করার জন্য
+        if (settingsMenu.classList.contains('active')) {
+            setTimeout(() => {
+                menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
+            }, 0);
+        }
     }
 });
 hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
