@@ -16,8 +16,18 @@ const fullscreenBtn = document.getElementById('fullscreen-btn');
 const fullscreenTooltip = fullscreenBtn.querySelector('.tooltip');
 const settingsBtn = document.getElementById('settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
-const closeSettingsBtn = settingsMenu.querySelector('.close-btn');
-const speedOptions = settingsMenu.querySelectorAll('li');
+
+// === নতুন সেটিংস মেনুর DOM এলিমেন্টস ===
+const mainSettingsPage = document.querySelector('.menu-main');
+const speedSettingsPage = document.querySelector('.menu-speed');
+const qualitySettingsPage = document.querySelector('.menu-quality');
+const speedMenuBtn = document.getElementById('speed-menu-btn');
+const qualityMenuBtnContainer = document.getElementById('main-settings-list');
+const speedOptionsList = document.getElementById('speed-options-list');
+const qualityOptionsList = document.getElementById('quality-options-list');
+const backBtns = document.querySelectorAll('.back-btn');
+const speedCurrentValue = speedMenuBtn.querySelector('.current-value');
+const speedOptions = speedOptionsList.querySelectorAll('li');
 
 let hls = new Hls();
 let controlsTimeout;
@@ -114,21 +124,16 @@ function updateVolumeIcon() {
     const isMuted = video.muted || video.volume === 0;
     volumeBtn.querySelector('.volume-on-icon').style.display = isMuted ? 'none' : 'block';
     volumeBtn.querySelector('.volume-off-icon').style.display = isMuted ? 'block' : 'none';
-    // === পরিবর্তন এখানে: Mute থাকা অবস্থায় বাটনে .active ক্লাস যোগ করা হচ্ছে ===
     volumeBtn.classList.toggle('active', isMuted);
 }
 
 async function toggleFullscreen() {
     if (!document.fullscreenElement) {
         await playerContainer.requestFullscreen();
-        try {
-            if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
-        } catch (err) { console.warn("Screen orientation lock failed:", err); }
+        try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (err) { console.warn("Screen orientation lock failed:", err); }
     } else {
         await document.exitFullscreen();
-        try {
-            if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
-        } catch (err) { console.warn("Screen orientation unlock failed:", err); }
+        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (err) { console.warn("Screen orientation unlock failed:", err); }
     }
 }
 
@@ -137,14 +142,7 @@ function updateFullscreenState() {
     fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block';
     fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
     fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
-    // === পরিবর্তন এখানে: Fullscreen থাকা অবস্থায় বাটনে .active ক্লাস যোগ করা হচ্ছে ===
     fullscreenBtn.classList.toggle('active', isFullscreen);
-}
-
-function toggleSettingsMenu() {
-    settingsMenu.classList.toggle('active');
-    // === পরিবর্তন এখানে: Settings মেনু খোলা থাকলে বাটনে .active ক্লাস যোগ করা হচ্ছে ===
-    settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
 }
 
 // ==========================================================
@@ -173,7 +171,6 @@ progressBar.addEventListener('mousedown', (e) => {
     isScrubbing = true;
     wasPlaying = !video.paused;
     if (wasPlaying) video.pause();
-    // Touch support for mobile
     if (e.type === 'touchstart') {
         document.addEventListener('touchmove', scrub);
         document.addEventListener('touchend', endScrub);
@@ -186,21 +183,107 @@ document.addEventListener('mouseup', (e) => {
     }
 });
 
-settingsBtn.addEventListener('click', toggleSettingsMenu);
-closeSettingsBtn.addEventListener('click', toggleSettingsMenu);
-speedOptions.forEach(option => {
-    option.addEventListener('click', () => {
-        video.playbackRate = option.dataset.speed;
-        speedOptions.forEach(opt => opt.classList.remove('active'));
-        option.classList.add('active');
-        toggleSettingsMenu();
-    });
-});
-
 playerContainer.addEventListener('mousemove', () => {
     playerContainer.classList.add('show-controls');
     resetControlsTimer();
 });
+
+// === সেটিংস মেনুর নতুন ইভেন্ট লিসেনার ===
+settingsBtn.addEventListener('click', () => {
+    settingsMenu.classList.toggle('active');
+    settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
+    // মেনু খুললে প্রধান পেজ দেখাবে
+    if (settingsMenu.classList.contains('active')) {
+        speedSettingsPage.classList.remove('active');
+        qualitySettingsPage.classList.remove('active');
+        mainSettingsPage.classList.add('active');
+    }
+});
+
+speedMenuBtn.addEventListener('click', () => {
+    mainSettingsPage.classList.remove('active');
+    speedSettingsPage.classList.add('active');
+});
+
+backBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        speedSettingsPage.classList.remove('active');
+        qualitySettingsPage.classList.remove('active');
+        mainSettingsPage.classList.add('active');
+    });
+});
+
+speedOptions.forEach(option => {
+    option.addEventListener('click', () => {
+        video.playbackRate = parseFloat(option.dataset.speed);
+        speedOptions.forEach(opt => opt.classList.remove('active'));
+        option.classList.add('active');
+        speedCurrentValue.textContent = `${option.dataset.speed}x`;
+        speedSettingsPage.classList.remove('active');
+        mainSettingsPage.classList.add('active');
+    });
+});
+
+// ===== নতুন HLS কোয়ালিটি ম্যানেজমেন্ট কোড =====
+
+hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+    if (data.levels.length > 1) {
+        const qualityMenuBtn = document.createElement('li');
+        qualityMenuBtn.innerHTML = `<span>Quality</span><span class="current-value">Auto</span>`;
+        qualityMenuBtn.addEventListener('click', () => {
+            mainSettingsPage.classList.remove('active');
+            qualitySettingsPage.classList.add('active');
+        });
+        
+        qualityOptionsList.innerHTML = '';
+        
+        const autoOption = document.createElement('li');
+        autoOption.textContent = 'Auto';
+        autoOption.dataset.level = -1;
+        autoOption.classList.add('active');
+        autoOption.addEventListener('click', () => setQuality(-1));
+        qualityOptionsList.appendChild(autoOption);
+        
+        data.levels.forEach((level, index) => {
+            const option = document.createElement('li');
+            option.textContent = `${level.height}p`;
+            option.dataset.level = index;
+            option.addEventListener('click', () => setQuality(index));
+            qualityOptionsList.appendChild(option);
+        });
+        
+        qualityMenuBtnContainer.prepend(qualityMenuBtn);
+    }
+});
+
+hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+    const qualityCurrentValue = qualityMenuBtnContainer.querySelector('li .current-value');
+    const allQualityOptions = qualityOptionsList.querySelectorAll('li');
+    
+    allQualityOptions.forEach(opt => {
+        opt.classList.remove('active');
+        if (parseInt(opt.dataset.level) === data.level) {
+            opt.classList.add('active');
+            if(qualityCurrentValue) {
+                qualityCurrentValue.textContent = hls.autoLevelEnabled ? `${opt.textContent} (Auto)` : opt.textContent;
+            }
+        }
+    });
+
+    if (hls.autoLevelEnabled && !qualityOptionsList.querySelector('li[data-level="-1"].active')) {
+         const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
+         if (autoOpt) autoOpt.classList.add('active');
+    } else if (!hls.autoLevelEnabled) {
+         const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
+         if (autoOpt) autoOpt.classList.remove('active');
+    }
+});
+
+function setQuality(level) {
+    hls.currentLevel = parseInt(level);
+    qualitySettingsPage.classList.remove('active');
+    mainSettingsPage.classList.add('active');
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
