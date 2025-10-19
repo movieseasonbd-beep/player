@@ -48,7 +48,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .controls-left, .controls-right { display: flex; align-items: center; gap: 20px; }
 .control-btn { background: none; border: none; color: white; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; display: flex; align-items: center; justify-content: center; }
 .control-btn:hover { color: var(--theme-color); }
-.control-btn:active { transform: scale(0.95); }
+.control-btn:active { transform: scale(1); }
 .control-btn.active { color: var(--theme-color); }
 .control-btn svg path { fill: white; }
 .control-btn:hover svg path { fill: var(--theme-color); }
