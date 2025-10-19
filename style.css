@@ -32,7 +32,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 
 
-/* === লোডিং স্ক্রিনের স্টাইল (ছবির মতো Glow ইফেক্ট) === */
+/* === লোডিং স্ক্রিনের স্টাইল === */
 .loading-overlay {
     position: absolute;
     top: 0;
@@ -58,9 +58,9 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .loading-logo {
     font-family: 'Arial', sans-serif;
-    font-size: 25px;
+    font-size: 28px;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     letter-spacing: 0.5px;
     background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
     -webkit-background-clip: text;
@@ -69,128 +69,36 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 
 .loading-bar-container {
-    width: 300px;
-    /* === পরিবর্তন: উচ্চতা বাড়িয়ে গ্লো ইফেক্টের জন্য জায়গা দেওয়া হয়েছে === */
-    height: 20px; 
-    margin: 0 auto 14px auto;
+    width: 220px;
+    height: 4px;
+    margin: 0 auto 12px auto;
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
-/* === চূড়ান্ত সমাধান: ছবির মতো উজ্জ্বল Glow এবং অ্যানিমেশন === */
+/* === চূড়ান্ত এবং নিখুঁত সমাধান: clip-path ব্যবহার করে === */
 .loading-bar {
     width: 100%;
     height: 100%;
+    
+    /* উপরের স্তর: উজ্জ্বল সাদা আলো (Shine) */
+    /* নিচের স্তর: আপনার মূল লাল বার */
     background-image: 
-        /* স্তর ১ (উপরে): চলমান উজ্জ্বল সাদা আলোর আভা */
-        linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.8) 45%, white 50%, rgba(255, 255, 255, 0.8) 55%, transparent 100%),
-        /* স্তর ২ (নিচে): মূল স্থির লাল Glow Bar */
-        radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 65%);
+        linear-gradient(to right, transparent 0%, white 50%, transparent 100%),
+        linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
 
-    background-size: 
-        60% 100%,  /* প্রথমটির (সাদা আলো) সাইজ */
-        100% 100%; /* দ্বিতীয়টির (Glow) সাইজ */
-
+    background-size: 60% 100%, 100% 100%;
     background-repeat: no-repeat;
-    
-    /* অ্যানিমেশনটি শুধুমাত্র প্রথম الخلفية (সাদা আলো)-এর অবস্থান পরিবর্তন করবে */
-    animation: loading-scan-final 3.1s infinite linear;
-}
-
-.loading-text {
-    font-size: 11px;
-    letter-spacing: 0.5px;
-}
-
-.loading-maintext {
-    color: white;
-}
-
-.loading-subtext {
-    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-/* === অ্যানিমেশন Keyframes যা দুটি background-position একসাথে পরিবর্তন করে === */
-@keyframes loading-scan-final {
-    0% {
-        /* প্রথম الخلفية, দ্বিতীয় الخلفية */
-        background-position: -100% 0, 0 0;
-    }
-    100% {
-        /* প্রথম الخلفية, দ্বিতীয় الخلفية */
-        background-position: 200% 0, 0 0;
-    }
-}/* === লোডিং স্ক্রিনের স্টাইল (চূড়ান্ত এবং সঠিক সংস্করণ) === */
-.loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-    transition: opacity 0.5s ease, visibility 0.5s ease;
-}
-
-.loading-overlay.hidden {
-    opacity: 0;
-    visibility: hidden;
-}
-
-.loading-content {
-    text-align: center;
-}
-
-.loading-logo {
-    font-family: 'Arial', sans-serif;
-    font-size: 25px;
-    font-weight: 700;
-    margin-bottom: 8px;
-    letter-spacing: 0.5px;
-    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-.loading-bar-container {
-    width: 300px;
-    height: 10px; /* বারের পুরুত্ব ছবির মতো করা হয়েছে */
-    margin: 0 auto 14px auto;
-    position: relative;
-    overflow: hidden; /* এটি খুব গুরুত্বপূর্ণ */
-}
-
-/* === নতুন সমাধান: ছবির মতো সলিড হেড এবং গ্লো টেইল === */
-.loading-bar {
-    width: 150%; /* কন্টেইনারের চেয়ে চওড়া করা হয়েছে */
-    height: 100%;
-    border-radius: 10px;
-
-    /* === মূল কৌশল: একটিমাত্র লিনিয়ার গ্র্যাডিয়েন্ট দিয়ে পুরো ইফেক্ট তৈরি === */
-    background: linear-gradient(to right,
-        #a0a0a0 0%,      /* কঠিন (Solid) ধূসর অংশ */
-        white 15%,         /* উজ্জ্বল সাদা অংশ */
-        #ff4b4b 30%,       /* লালের সাথে মেশার অংশ */
-        var(--loading-theme-color) 45%, /* মূল লাল রঙ */
-        transparent 70%    /* শেষে স্বচ্ছ হয়ে মিলিয়ে যাওয়া (Glow Tail) */
-    );
-    
-    /* অ্যানিমেশনটি পুরো বারটিকে নাড়াচাড়া করবে */
     animation: loading-scan-final 2.5s infinite linear;
+    
+    /* === মূল কৌশল: এই clip-path বারটিকে দুই পাশে সূঁচালো আকৃতি দেবে === */
+    /* এটি একটি ছয়-বিন্দু বিশিষ্ট বহুভুজ যা সুইয়ের মতো দেখতে */
+    clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%);
 }
 
+/* ::before এখন আর প্রয়োজন নেই */
 
 .loading-text {
-    font-size: 11px;
+    font-size: 12px; 
     letter-spacing: 0.5px;
 }
 
@@ -205,13 +113,13 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     color: transparent;
 }
 
-/* === নতুন অ্যানিমেশন: পুরো বারটিকে নাড়ানোর জন্য === */
+/* নতুন অ্যানিমেশন Keyframes যা background-position পরিবর্তন করে */
 @keyframes loading-scan-final {
     0% {
-        transform: translateX(-100%);
+        background-position: -150% 0, 0 0;
     }
     100% {
-        transform: translateX(100%);
+        background-position: 250% 0, 0 0;
     }
 }
 
