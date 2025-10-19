@@ -93,15 +93,16 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%);
 }
 
-/* === অ্যানিমেশনের নতুন পরিসীমা === */
+/* === চূড়ান্ত সપ્રতিসম (Symmetrical) অ্যানিমেশন === */
 @keyframes loading-scan-final {
     0% {
-        /* শাইনটি এখন 10% পজিশন থেকে শুরু হবে */
-        background-position: 10% 0, 0 0;
+        /* শাইনটি 20% পজিশন থেকে শুরু হবে */
+        background-position: 20% 0, 0 0;
     }
     100% {
-        /* এবং 50% পজিশনে গিয়ে শেষ হবে */
-        background-position: 50% 0, 0 0;
+        /* এবং 40% পজিশনে গিয়ে শেষ হবে */
+        /* (কারণ 40% পজিশন + 40% শাইনের প্রস্থ = 80% পজিশনে শেষ) */
+        background-position: 40% 0, 0 0;
     }
 }
 
