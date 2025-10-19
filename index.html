@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="player-container">
-        <!-- === লোডিং স্ক্রিন === -->
+        <!-- লোডিং স্ক্রিন -->
         <div class="loading-overlay">
             <div class="loading-content">
                 <div class="loading-logo">MovieSeason</div>
@@ -28,7 +28,7 @@
         </div>
         <video class="video" src=""></video>
 
-        <!-- পরিবর্তন শুরু: সেটিংস মেনুকে দুটি স্তরে ভাগ করা হয়েছে -->
+        <!-- সেটিংস মেনু -->
         <div class="settings-menu">
             <div class="main-menu">
                 <div class="menu-header">
@@ -77,8 +77,8 @@
                 </ul>
             </div>
         </div>
-        <!-- পরিবর্তন শেষ -->
 
+        <!-- কন্ট্রোলস প্যানেল -->
         <div class="controls-container">
             <div class="progress-range" title="Seek">
                 <div class="progress-background"></div>
@@ -99,16 +99,13 @@
                     <button class="control-btn" id="forward-btn" title="Forward 10s (→)">
                         <svg viewBox="0 0 32 32"><path d="M26,18A10,10,0,1,1,16,8h4v5l6-6L20,1V6H16A12,12,0,1,0,28,18Z"/><path d="M19.63,22.13a2.84,2.84,0,0,1-1.28-.27,2.44,2.44,0,0,1-.89-.77,3.57,3.57,0,0,1-.52-1.25,7.69,7.69,0,0,1-.17-1.68,7.83,7.83,0,0,1,.17-1.68,3.65,3.65,0,0,1,.52-1.25,2.44,2.44,0,0,1,.89-.77,2.84,2.84,0,0,1,1.28-.27,2.44,2.44,0,0,1,2.16,1,5.23,5.23,0,0,1,.7,2.93,5.23,5.23,0,0,1-.7,2.93A2.44,2.44,0,0,1,19.63,22.13Zm0-1.22a1.07,1.07,0,0,0,1-.55A3.38,3.38,0,0,0,21,18.85V17.47a3.31,3.31,0,0,0-.29-1.5,1.23,1.23,0,0,0-2.06,0,3.31,3.31,0,0,0-.29,1.5v1.38a3.38,3.38,0,0,0,.29,1.51A1.06,1.06,0,0,0,19.63,20.91Z"/><path d="M10.63,22V20.82h2V15.63l-1.86,1-.55-1.06,2.32-1.3H14v6.5h1.78V22Z"/></svg>
                     </button>
-                    
                     <button class="control-btn" id="volume-btn" title="Mute/Unmute (m)">
                         <svg class="volume-on-icon" viewBox="0 0 24 24"><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77c0-4.28-2.99-7.86-7-8.77M16.5 12c0-1.77-1-3.29-2.5-4.03v8.05c1.5-0.73 2.5-2.25 2.5-4.02zM3 9v6h4l5 5V4L7 9H3z"></path></svg>
                         <svg class="volume-off-icon" viewBox="0 0 24 24" style="display:none;"><path d="M16.5 12c0-1.77-1-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51c.66-1.24 1.03-2.65 1.03-4.15 0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z"></path></svg>
                     </button>
-                    <!-- পরিবর্তন শুরু: ভলিউম স্লাইডার যোগ করা হয়েছে -->
                      <div class="volume-container">
                         <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="1" title="Volume (↑/↓)">
                     </div>
-                    <!-- পরিবর্তন শেষ -->
                     <span class="time-display">00:00 / 00:00</span>
                 </div>
                 <div class="controls-right">
