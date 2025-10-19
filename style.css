@@ -32,7 +32,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 
 
-/* === লোডিং স্ক্রিনের স্টাইল (উন্নত সংস্করণ) === */
+য়েছে *//* === লোডিং স্ক্রিনের স্টাইল (চূড়ান্ত ও স্পষ্ট সংস্করণ) === */
 .loading-overlay {
     position: absolute;
     top: 0;
@@ -73,31 +73,31 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     height: 8px;
     margin: 0 auto 14px auto;
     position: relative;
-    overflow: hidden;
+    /* === পরিবর্তন: কন্টেইনারের overflow hidden না রাখলেও চলবে === */
 }
 
-/* === উজ্জ্বল আলোর আভাযুক্ত উন্নত সংস্করণ === */
+/* === ঝাপসা ভাব দূর করে সম্পূর্ণ স্পষ্ট বার তৈরি করা হয়েছে === */
 .loading-bar {
     width: 100%;
     height: 100%;
     
-    /* === মূল পরিবর্তন এখানে: আলোর গ্র্যাডিয়েন্টকে আরও উজ্জ্বল এবং ঘনীভূত করা হয়েছে === */
-    background-image: 
-        linear-gradient(to right, transparent 0%, rgba(255,255,255,0.8) 45%, white 50%, rgba(255,255,255,0.8) 55%, transparent 100%),
-        radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
-
-    /* প্রতিটি الخلفية-এর জন্য আলাদা সাইজ নির্ধারণ */
-    background-size: 60% 100%, 100% 100%;
+    /* === নতুন: বারটিকে গোলাকার ও স্পষ্ট করার জন্য === */
+    border-radius: 100px; /* এটি বারটির দুই প্রান্তকে গোলাকার করবে */
     
-    /* দুটি الخلفية-এর জন্যই no-repeat */
+    /* === পরিবর্তন: ঝাপসা radial-gradient এর বদলে সলিড লাল রঙ === */
+    background-color: var(--loading-theme-color);
+    
+    /* === উপরের স্তরে উজ্জ্বল আলোর অ্যানিমেশন === */
+    /* background-image এখন শুধু চলমান আলোর জন্য ব্যবহৃত হচ্ছে */
+    background-image: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.8) 45%, white 50%, rgba(255,255,255,0.8) 55%, transparent 100%);
+    background-size: 60% 100%;
     background-repeat: no-repeat;
-
-    /* অ্যানিমেশনটি শুধুমাত্র প্রথম الخلفية (সাদা আলো)-এর অবস্থান পরিবর্তন করবে */
-   animation: loading-scan-final 3.1s infinite linear;
     
-    /* === একক মাস্ক: এই মাস্কটি দুটি الخلفية-কেই একসাথে নিখুঁতভাবে কেটে দেবে === */
-    -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
-    mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+    /* অ্যানিমেশন আগের মতোই থাকছে */
+    animation: loading-scan-final 3.1s infinite linear;
+    
+    /* === অপ্রয়োজনীয়: মাস্ক সম্পূর্ণ মুছে ফেলা হয়েছে === */
+    /* -webkit-mask-image এবং mask-image লাইনগুলো আর নেই */
 }
 
 .loading-text {
@@ -116,18 +116,15 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     color: transparent;
 }
 
-/* === নতুন অ্যানিমেশন Keyframes যা background-position পরিবর্তন করে === */
+/* === অ্যানিমেশন Keyframes (অপরিবর্তিত) === */
 @keyframes loading-scan-final {
     0% {
-        /* প্রথম الخلفية-এর অবস্থান (সাদা আলো) */
-        background-position: -100% 0, 0 0;
+        background-position: -100% 0;
     }
     100% {
-        /* প্রথম الخلفية-এর অবস্থান (সাদা আলো) */
-        background-position: 200% 0, 0 0;
+        background-position: 200% 0;
     }
 }
-/* পুরোনো অপ্রয়োজনীয় keyframes মুছে ফেলা হয়েছে */
 
 
 
