@@ -70,7 +70,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .loading-bar-container {
     width: 220px;
-    height: 3px; /* বারের পুরুত্ব */
+    height: 2.5px; /* বারের পুরুত্ব */
     margin: 0 auto 15px auto;
     position: relative;
 }
