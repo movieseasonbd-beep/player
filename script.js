@@ -53,31 +53,37 @@ function directTogglePlay() {
     video.paused ? video.play() : video.pause();
 }
 
+// === পরিবর্তন #১: ট্যাপ করার আচরণ চূড়ান্তভাবে ঠিক করা হয়েছে ===
 function handleScreenTap(e) {
+    // ডাবল ট্যাপের ডিলে চলাকালীন অন্য ট্যাপ ইভেন্ট উপেক্ষা করুন
+    if (e.detail > 1) {
+        e.preventDefault();
+        return;
+    }
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
-    const wasControlsVisible = playerContainer.classList.contains('show-controls');
     clearTimeout(singleTapTimeout);
 
-    if (tapLength < 300 && tapLength > 0) {
+    if (tapLength < 300 && tapLength > 0) { // ডাবল ট্যাপ
         const rect = video.getBoundingClientRect();
         const tapPosition = (e.clientX - rect.left) / rect.width;
         if (tapPosition < 0.4) video.currentTime -= 10;
         else if (tapPosition > 0.6) video.currentTime += 10;
-        lastTap = 0;
-    } else {
+        lastTap = 0; // ডাবল ট্যাপের পর রিসেট করুন
+    } else { // সিঙ্গেল ট্যাপ
         singleTapTimeout = setTimeout(() => {
-            if (video.paused) {
-                video.play();
-                return;
+            const isControlsVisible = playerContainer.classList.contains('show-controls');
+            if (!video.paused) { // ভিডিও চলন্ত অবস্থায়...
+                if (isControlsVisible) {
+                    video.pause(); // কন্ট্রোল দেখা গেলে -> পজ কর
+                } else {
+                    playerContainer.classList.add('show-controls'); // কন্ট্রোল হাইড থাকলে -> দেখাও
+                    resetControlsTimer();
+                }
+            } else { // ভিডিও পজড অবস্থায়...
+                video.play(); // -> প্লে কর
             }
-            if (wasControlsVisible) {
-                video.pause();
-            } else {
-                playerContainer.classList.add('show-controls');
-                resetControlsTimer();
-            }
-        }, 250);
+        }, 200);
     }
     lastTap = currentTime;
 }
@@ -152,34 +158,50 @@ function updateVolume() {
     volumeSlider.value = video.muted ? 0 : video.volume;
 }
 
-// === পরিবর্তন শুরু: সব ডিভাইসের জন্য নির্ভরযোগ্য ফুলস্ক্রিন ফাংশন ===
+
+// === পরিবর্তন #২: ফুলস্ক্রিন এবং স্ক্রিন ঘোরানোর চূড়ান্ত নির্ভরযোগ্য কোড ===
 function isFullScreen() {
-    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+    return !!(document.fullscreenElement || document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement);
 }
 
-function toggleFullscreen() {
-    if (!isFullScreen()) {
-        if (playerContainer.requestFullscreen) {
-            playerContainer.requestFullscreen();
-        } else if (playerContainer.webkitRequestFullscreen) {
-            playerContainer.webkitRequestFullscreen();
-        } else if (playerContainer.mozRequestFullScreen) { // Firefox
-            playerContainer.mozRequestFullScreen();
-        } else if (playerContainer.msRequestFullscreen) { // IE
-            playerContainer.msRequestFullscreen();
+async function toggleFullscreen() {
+    // প্রথমে পরীক্ষা করুন ফুলস্ক্রিন বর্তমানে সক্রিয় কি না
+    const isCurrentlyFullScreen = isFullScreen();
+
+    if (!isCurrentlyFullScreen) {
+        // ফুলস্ক্রিন মোডে প্রবেশ
+        if (playerContainer.requestFullscreen) await playerContainer.requestFullscreen();
+        else if (playerContainer.webkitRequestFullscreen) await playerContainer.webkitRequestFullscreen();
+        else if (video.webkitEnterFullscreen) { // iOS Safari এর জন্য বিশেষ পদ্ধতি
+            video.webkitEnterFullscreen();
+            return;
         }
+
+        // ফুলস্ক্রিনে প্রবেশের পর স্ক্রিন ঘোরানোর চেষ্টা (শুধুমাত্র সমর্থিত ডিভাইসে কাজ করবে)
+        try {
+            if (screen.orientation && screen.orientation.lock) {
+                await screen.orientation.lock('landscape');
+            }
+        } catch (err) {
+            console.warn("Could not lock screen orientation:", err);
+        }
+
     } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
+        // ফুলস্ক্রিন মোড থেকে প্রস্থান
+        // প্রস্থান করার আগে স্ক্রিন আনলক করার চেষ্টা
+         try {
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
+        } catch (err) {
+             console.warn("Could not unlock screen orientation:", err);
         }
+
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
     }
 }
+
 
 function updateFullscreenState() {
     const isFullscreen = isFullScreen();
@@ -187,7 +209,6 @@ function updateFullscreenState() {
     fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block';
     fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
 }
-// === পরিবর্তন শেষ ===
 
 
 function toggleSettingsMenu() {
@@ -221,12 +242,11 @@ forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 
-// === পরিবর্তন শুরু: সব ধরনের ব্রাউজারের জন্য ফুলস্ক্রিন ইভেন্ট লিসেনার ===
-document.addEventListener('fullscreenchange', updateFullscreenState);
-document.addEventListener('webkitfullscreenchange', updateFullscreenState);
-document.addEventListener('mozfullscreenchange', updateFullscreenState);
-document.addEventListener('MSFullscreenChange', updateFullscreenState);
-// === পরিবর্তন শেষ ===
+// সব ধরনের ব্রাউজারের জন্য ফুলস্ক্রিন ইভেন্ট লিসেনার
+['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(
+    event => document.addEventListener(event, updateFullscreenState, false)
+);
+
 
 progressBar.addEventListener('input', e => {
     const scrubTime = (e.target.value / 100) * video.duration;
