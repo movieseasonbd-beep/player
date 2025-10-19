@@ -85,12 +85,12 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 
 
-/* === চূড়ান্ত সমাধান: দুই প্রান্ত মিলিয়ে যাওয়া এফেক্টের জন্য === */
+/* === চূড়ান্ত সমাধান: সূঁচালো এবং মিলিয়ে যাওয়া প্রান্তের জন্য === */
 .loading-bar {
     width: 100%;
     height: 100%;
     
-    /* উপরের স্তর: আগের মতোই উজ্জ্বল সাদা আলোর ঝলকানি (Shine) */
+    /* উপরের স্তর: আলোর ঝলকানি (Shine) */
     /* নিচের স্তর: নতুন গ্রেডিয়েন্ট যা দুই পাশে স্বচ্ছ হয়ে মিলিয়ে যায় */
     background-image: 
         linear-gradient(to right, transparent 0%, white 50%, transparent 100%),
@@ -105,7 +105,8 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     background-repeat: no-repeat;
     animation: loading-scan-final 2.5s infinite linear;
     
-    /* clip-path এখন আর প্রয়োজন নেই, তাই এটি মুছে ফেলা হয়েছে */
+    /* === মূল কৌশল: আকৃতি তৈরির জন্য clip-path আবার যোগ করা হলো === */
+    clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%);
 }
 
 /* @keyframes loading-scan-final আগের মতোই থাকবে, কোনো পরিবর্তনের প্রয়োজন নেই */
