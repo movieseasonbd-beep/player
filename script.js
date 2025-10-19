@@ -32,7 +32,8 @@ let controlsTimeout;
 let isScrubbing = false;
 let wasPlaying = false;
 let lastTap = 0;
-let singleTapTimeout; // সিঙ্গেল ও ডাবল ট্যাপ আলাদা করার জন্য
+let singleTapTimeout;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
 // ==========================================================
 // === ফাংশনসমূহ ===
@@ -53,44 +54,34 @@ function directTogglePlay() {
     video.paused ? video.play() : video.pause();
 }
 
-// === পরিবর্তন শুরু: handleScreenTap ফাংশনটি আপনার চাহিদা অনুযায়ী পুনর্গঠন করা হয়েছে ===
 function handleScreenTap(e) {
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
-    clearTimeout(singleTapTimeout); // আগের ট্যাপের টাইমার বাতিল করুন
+    clearTimeout(singleTapTimeout);
 
-    if (tapLength < 300 && tapLength > 0) {
-        // ডাবল ট্যাপের কার্যকারিতা
+    if (tapLength < 300 && tapLength > 0) { // ডাবল ট্যাপ
         const rect = video.getBoundingClientRect();
         const tapPosition = (e.clientX - rect.left) / rect.width;
-        if (tapPosition < 0.4) {
-            video.currentTime -= 10;
-        } else if (tapPosition > 0.6) {
-            video.currentTime += 10;
-        }
-        lastTap = 0; // রিসেট
-    } else {
-        // সিঙ্গেল ট্যাপের জন্য একটি ছোট ডিলে সেট করুন
+        if (tapPosition < 0.4) video.currentTime -= 10;
+        else if (tapPosition > 0.6) video.currentTime += 10;
+        lastTap = 0;
+    } else { // সিঙ্গেল ট্যাপ
         singleTapTimeout = setTimeout(() => {
             if (video.paused) {
-                // ভিডিও পজ থাকলে প্লে হবে
                 video.play();
-            } else {
-                const areControlsVisible = playerContainer.classList.contains('show-controls') || getComputedStyle(controlsContainer).opacity === '1';
-                if (areControlsVisible) {
-                    // কন্ট্রোল দেখা গেলে ভিডিও পজ হবে (আপনার চাওয়া আচরণ)
-                    video.pause();
-                } else {
-                    // কন্ট্রোল দেখা না গেলে, শুধু কন্ট্রোল দেখাবে
-                    playerContainer.classList.add('show-controls');
-                    resetControlsTimer();
-                }
+                return;
             }
-        }, 250); // 250ms ডিলে
+            const isControlsVisible = playerContainer.classList.contains('show-controls');
+            if (isControlsVisible) {
+                video.pause();
+            } else {
+                playerContainer.classList.add('show-controls');
+                resetControlsTimer();
+            }
+        }, 250);
     }
     lastTap = currentTime;
 }
-// === পরিবর্তন শেষ ===
 
 function updatePlayState() {
     const isPaused = video.paused;
@@ -163,22 +154,26 @@ function updateVolume() {
 }
 
 async function toggleFullscreen() {
+    if (isIOS) {
+        try {
+            if (video.webkitSupportsFullscreen) video.webkitEnterFullscreen();
+        } catch (err) { console.error("iOS Fullscreen error:", err); }
+        return;
+    }
     try {
         if (!document.fullscreenElement) {
             await playerContainer.requestFullscreen();
         } else {
             await document.exitFullscreen();
         }
-    } catch (err) {
-        console.error("Fullscreen API error:", err);
-    }
+    } catch (err) { console.error("Standard Fullscreen API error:", err); }
 }
 
 function updateFullscreenState() {
     const isFullscreen = !!document.fullscreenElement;
+    fullscreenBtn.classList.toggle('active', isFullscreen);
     fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block';
     fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
-    fullscreenBtn.classList.toggle('active', isFullscreen);
 }
 
 function toggleSettingsMenu() {
@@ -212,6 +207,8 @@ forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
+video.addEventListener('webkitbeginfullscreen', () => fullscreenBtn.classList.add('active'));
+video.addEventListener('webkitendfullscreen', () => fullscreenBtn.classList.remove('active'));
 
 progressBar.addEventListener('input', e => {
     const scrubTime = (e.target.value / 100) * video.duration;
@@ -238,7 +235,6 @@ volumeSlider.addEventListener('input', e => {
     video.muted = e.target.value === "0";
 });
 
-// Settings Menu Navigation
 settingsBtn.addEventListener('click', toggleSettingsMenu);
 closeSettingsBtn.addEventListener('click', toggleSettingsMenu);
 
