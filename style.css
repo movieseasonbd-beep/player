@@ -46,48 +46,40 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .progress-bar::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: var(--thumb-size); height: var(--thumb-size); background: white; border-radius: 50%; cursor: pointer; }
 .control-group { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px; }
 .controls-left, .controls-right { display: flex; align-items: center; gap: 20px; }
-.control-btn { background: none; border: none; color: white; cursor: pointer; padding: 0; transition: transform 0.1s ease; position: relative; display: flex; align-items: center; justify-content: center; }
+.control-btn { background: none; border: none; color: white; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; display: flex; align-items: center; justify-content: center; }
 
-/* === আইকনের রঙ এবং সাইজ ঠিক করার জন্য চূড়ান্ত কোড === */
+/* === আইকন ছোট হয়ে যাওয়ার সমস্যার সমাধান এবং গ্রেডিয়েন্ট === */
+.control-btn:active { transform: scale(0.95); }
+.control-btn.active { transform: scale(1); }
 
-/* ১. সাধারণ অবস্থায় সব আইকনের রঙ সাদা */
+/* সাধারণ অবস্থায় সব আইকনের রঙ সাদা */
 .control-btn svg path, .control-btn svg {
     fill: white;
     stroke: white; /* Fullscreen আইকনের জন্য */
     transition: all 0.2s ease;
 }
-
-/* ২. হোভার করলে আইকনের রঙ থিম কালার (লাল) হবে */
+/* হোভার করলে আইকনের রঙ থিম কালার (লাল) হবে */
 .control-btn:hover svg path, .control-btn:hover svg {
     fill: var(--theme-color);
     stroke: var(--theme-color);
 }
 
-/* ৩. সাধারণ Active অবস্থায় আইকনের রঙ লাল হবে (যেমন Settings বাটন) */
-.control-btn.active svg path, .control-btn.active svg {
+/* অ্যাক্টিভ Mute বাটনের জন্য গ্রেডিয়েন্ট */
+.control-btn.active .volume-off-icon path {
+    fill: url(#activeIconGradient);
+}
+/* অ্যাক্টিভ Fullscreen বাটনের জন্য গ্রেডিয়েন্ট */
+.control-btn.active .fullscreen-off-icon path {
+    fill: url(#activeIconGradientFullscreen);
+}
+
+/* যদি কোনো অ্যাক্টিভ আইকনের গ্রেডিয়েন্ট না থাকে, তবে সেটির রঙ থিম কালার হবে */
+.control-btn.active:not(:has(.volume-off-icon, .fullscreen-off-icon)) svg path,
+.control-btn.active:not(:has(.volume-off-icon, .fullscreen-off-icon)) svg {
     fill: var(--theme-color);
     stroke: var(--theme-color);
 }
 
-/* ৪. নির্দিষ্ট Active আইকনে গ্রেডিয়েন্ট প্রয়োগ করা (এটি আগের লাল রঙকে ওভাররাইড করবে) */
-.control-btn.active .volume-off-icon path {
-    fill: url(#activeIconGradient);
-    stroke: none; /* stroke থাকলে তুলে দেওয়া হলো */
-}
-.control-btn.active .fullscreen-off-icon path {
-    fill: url(#activeIconGradientFullscreen);
-    stroke: none;
-}
-
-/* ৫. আইকন ছোট হয়ে যাওয়ার সমস্যার সমাধান */
-.control-btn:active {
-    transform: scale(0.95); /* শুধু ক্লিক করার মুহূর্তে ছোট হবে */
-}
-.control-btn.active {
-    transform: scale(1); /* Active অবস্থায় স্বাভাবিক আকারে ফিরে আসবে */
-}
-
-/* === বাকি স্টাইল অপরিবর্তিত === */
 #play-pause-btn svg { width: 30px; height: 30px; }
 #play-pause-btn { transform: translateX(-9px); }
 #rewind-btn svg, #forward-btn svg, #volume-btn svg, #settings-btn svg { width: 24px; height: 24px; }
@@ -99,6 +91,8 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .time-display { font-size: 11px; user-select: none; margin-left: -11px; white-space: nowrap; }
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
+
+/* === আধুনিক স্লাইডিং সেটিংস মেনু (অপরিবর্তিত) === */
 .settings-menu { position: absolute; top: 50%; left: 50%; width: 280px; background-color: #1f1f1f; border-radius: 16px; border: 1px solid #3a3a3a; opacity: 0; visibility: hidden; transform: translate(-50%, -45%) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; padding: 8px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); z-index: 5; }
 .settings-menu.active { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
 .menu-handle-container { width: 100%; padding: 4px 0 10px 0; display: flex; justify-content: center; }
