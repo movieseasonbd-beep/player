@@ -60,7 +60,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     font-family: 'Arial', sans-serif;
     font-size: 24px;
     font-weight: 700;
-    margin-bottom: 9px;
+    margin-bottom: 7px;
     letter-spacing: 0.5px;
     background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
     -webkit-background-clip: text;
