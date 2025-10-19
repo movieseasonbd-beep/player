@@ -60,7 +60,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     font-family: 'Arial', sans-serif;
     font-size: 24px;
     font-weight: 700;
-    margin-bottom: 10px;
+    margin-bottom: 9px;
     letter-spacing: 0.5px;
     background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
     -webkit-background-clip: text;
@@ -71,7 +71,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .loading-bar-container {
     width: 220px;
     height: 3px; /* বারের পুরুত্ব */
-    margin: 0 auto 14px auto;
+    margin: 0 auto 15px auto;
     position: relative;
 }
 
