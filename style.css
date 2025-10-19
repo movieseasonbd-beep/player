@@ -50,9 +50,19 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .progress-background { background: rgba(255, 255, 255, 0.2); }
 .buffer-bar { background: rgba(255, 255, 255, 0.4); width: 0; transition: width 0.1s linear; }
 .progress-filled { background: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color)); width: 0; }
-.progress-bar { -webkit-appearance: none; appearance: none; width: 100%; background: transparent; outline: none; margin: 0; padding: 0; z-index: 2; }
 
-/* === পরিবর্তন #১: প্রগ্রেস বারের Thumb এর অবস্থান চূড়ান্তভাবে ঠিক করা হয়েছে === */
+.progress-bar {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    background: transparent;
+    outline: none;
+    margin: 0;
+    padding: 0;
+    z-index: 2;
+    height: var(--thumb-size);
+}
+
 .progress-bar::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -61,10 +71,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     background: white;
     border-radius: 50%;
     cursor: pointer;
-    position: relative;
-    /* top এবং margin ব্যবহার করে সকল ব্রাউজারের জন্য এটি কেন্দ্র বরাবর থাকবে */
-    top: 50%;
-    transform: translateY(-50%);
 }
 
 .control-group { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px; }
@@ -86,9 +92,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 #fullscreen-btn svg { width: 30px; height: 30px; }
 #fullscreen-btn { transform: translateX(+4px); }
 
-#fullscreen-btn.active .fullscreen-on-icon {
-    transform: rotate(90deg);
-}
+#fullscreen-btn.active .fullscreen-on-icon,
 #fullscreen-btn.active .fullscreen-off-icon {
     transform: rotate(90deg);
 }
@@ -125,7 +129,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container, .player-container * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .player-container input[type="range"] { -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; }
 
-/* শুধুমাত্র টাচস্ক্রিন/মোবাইল ডিভাইসে ভলিউম স্লাইডার লুকানোর জন্য কোড */
+/* টাচস্ক্রিন ডিভাইসে ভলিউম স্লাইডার লুকানোর জন্য কোড */
 @media (hover: none) and (pointer: coarse) {
     .volume-container {
         display: none !important;
