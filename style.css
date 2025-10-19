@@ -32,7 +32,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 
 
-/* === লোডিং স্ক্রিনের স্টাইল === */
+/* === লোডিং স্ক্রিনের স্টাইল (উন্নত সংস্করণ) === */
 .loading-overlay {
     position: absolute;
     top: 0;
@@ -76,16 +76,14 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     overflow: hidden;
 }
 
-/* === চূড়ান্ত এবং নিখুঁত সমাধান: Multiple Backgrounds এবং Single Mask === */
+/* === উজ্জ্বল আলোর আভাযুক্ত উন্নত সংস্করণ === */
 .loading-bar {
     width: 100%;
     height: 100%;
     
-    /* === মূল কৌশল: দুটি الخلفية একসাথে ব্যবহার করা হচ্ছে === */
-    /* উপরের স্তর: উজ্জ্বল সাদা আলো (Shine) */
-    /* নিচের স্তর: আপনার মূল লাল বার */
+    /* === মূল পরিবর্তন এখানে: আলোর গ্র্যাডিয়েন্টকে আরও উজ্জ্বল এবং ঘনীভূত করা হয়েছে === */
     background-image: 
-        linear-gradient(to right, transparent 0%, white 50%, transparent 100%),
+        linear-gradient(to right, transparent 0%, rgba(255,255,255,0.8) 45%, white 50%, rgba(255,255,255,0.8) 55%, transparent 100%),
         radial-gradient(ellipse at center, var(--loading-theme-color) 0%, rgba(0,0,0,0) 70%);
 
     /* প্রতিটি الخلفية-এর জন্য আলাদা সাইজ নির্ধারণ */
@@ -101,8 +99,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
     mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
 }
-
-/* === ::before এখন আর প্রয়োজন নেই, তাই এটি সম্পূর্ণ মুছে ফেলা হয়েছে === */
 
 .loading-text {
     font-size: 11px;
@@ -131,13 +127,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
         background-position: 200% 0, 0 0;
     }
 }
-
-/* পুরোনো @keyframes loading-scan এখন আর প্রয়োজন নেই, চাইলে মুছে ফেলতে পারেন */
-@keyframes loading-scan {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(166%); }
-}
-
+/* পুরোনো অপ্রয়োজনীয় keyframes মুছে ফেলা হয়েছে */
 
 
 
