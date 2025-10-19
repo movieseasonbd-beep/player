@@ -33,7 +33,6 @@ let isScrubbing = false;
 let wasPlaying = false;
 let lastTap = 0;
 let singleTapTimeout;
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
 // ==========================================================
 // === ফাংশনসমূহ ===
@@ -153,20 +152,16 @@ function updateVolume() {
     volumeSlider.value = video.muted ? 0 : video.volume;
 }
 
+// === পরিবর্তন শুরু: ফুলস্ক্রিন ফাংশনটিকে আপনার আসল এবং সরল কোডে ফিরিয়ে আনা হয়েছে ===
 async function toggleFullscreen() {
-    if (isIOS) {
-        try {
-            if (video.webkitSupportsFullscreen) video.webkitEnterFullscreen();
-        } catch (err) { console.error("iOS Fullscreen error:", err); }
-        return;
+    if (!document.fullscreenElement) {
+        // এই সরল পদ্ধতিটিই অ্যান্ড্রয়েডে আপনার কাস্টম কন্ট্রোলসহ ফুলস্ক্রিন করবে
+        await playerContainer.requestFullscreen().catch(err => {
+            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+        });
+    } else {
+        await document.exitFullscreen();
     }
-    try {
-        if (!document.fullscreenElement) {
-            await playerContainer.requestFullscreen();
-        } else {
-            await document.exitFullscreen();
-        }
-    } catch (err) { console.error("Standard Fullscreen API error:", err); }
 }
 
 function updateFullscreenState() {
@@ -175,6 +170,7 @@ function updateFullscreenState() {
     fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block';
     fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
 }
+// === পরিবর্তন শেষ ===
 
 function toggleSettingsMenu() {
     const isActive = settingsMenu.classList.toggle('active');
@@ -206,9 +202,10 @@ rewindBtn.addEventListener('click', () => { video.currentTime -= 10; });
 forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+// === পরিবর্তন শুরু: শুধুমাত্র একটি 'fullscreenchange' ইভেন্ট লিসেনার রাখা হয়েছে ===
 document.addEventListener('fullscreenchange', updateFullscreenState);
-video.addEventListener('webkitbeginfullscreen', () => fullscreenBtn.classList.add('active'));
-video.addEventListener('webkitendfullscreen', () => fullscreenBtn.classList.remove('active'));
+// === পরিবর্তন শেষ ===
 
 progressBar.addEventListener('input', e => {
     const scrubTime = (e.target.value / 100) * video.duration;
