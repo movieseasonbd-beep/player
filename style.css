@@ -32,8 +32,14 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; transition: all 0.2s ease; background: none; width: auto; height: auto; }
 .central-play-btn:hover { transform: translate(-50%, -50%) scale(1.1); }
 .central-play-btn:active { transform: translate(-50%, -50%) scale(1.0); }
-.central-play-btn svg { width: 80px; height: 80px; fill: var(--central-play-btn-color); filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); }
-
+/* === সেন্ট্রাল প্লে বাটন === */
+/* ... অন্যান্য স্টাইল ... */
+.central-play-btn svg { 
+    width: 80px; 
+    height: 80px; 
+    fill: none; /* আগের fill কালারটি তুলে দেওয়া হলো */
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); 
+}
 /* === কন্ট্রোলস (অপরিবর্তিত) === */
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
 .progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 2px 0; cursor: pointer; position: relative; }
