@@ -32,6 +32,7 @@ let controlsTimeout;
 let isScrubbing = false;
 let wasPlaying = false;
 let lastTap = 0;
+let singleTapTimeout; // সিঙ্গেল ও ডাবল ট্যাপ আলাদা করার জন্য
 
 // ==========================================================
 // === ফাংশনসমূহ ===
@@ -52,11 +53,14 @@ function directTogglePlay() {
     video.paused ? video.play() : video.pause();
 }
 
+// === পরিবর্তন শুরু: handleScreenTap ফাংশনটি আপনার চাহিদা অনুযায়ী পুনর্গঠন করা হয়েছে ===
 function handleScreenTap(e) {
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
-    
-    if (tapLength < 300 && tapLength > 0) { // ডাবল ট্যাপ
+    clearTimeout(singleTapTimeout); // আগের ট্যাপের টাইমার বাতিল করুন
+
+    if (tapLength < 300 && tapLength > 0) {
+        // ডাবল ট্যাপের কার্যকারিতা
         const rect = video.getBoundingClientRect();
         const tapPosition = (e.clientX - rect.left) / rect.width;
         if (tapPosition < 0.4) {
@@ -64,22 +68,29 @@ function handleScreenTap(e) {
         } else if (tapPosition > 0.6) {
             video.currentTime += 10;
         }
-        e.preventDefault();
-        lastTap = 0; // ডাবল ট্যাপ রিসেট
-    } else { // সিঙ্গেল ট্যাপ
-        if (video.paused) {
-            video.play();
-        } else {
-            playerContainer.classList.toggle('show-controls');
-            if (playerContainer.classList.contains('show-controls')) {
-                 resetControlsTimer();
+        lastTap = 0; // রিসেট
+    } else {
+        // সিঙ্গেল ট্যাপের জন্য একটি ছোট ডিলে সেট করুন
+        singleTapTimeout = setTimeout(() => {
+            if (video.paused) {
+                // ভিডিও পজ থাকলে প্লে হবে
+                video.play();
             } else {
-                 clearTimeout(controlsTimeout);
+                const areControlsVisible = playerContainer.classList.contains('show-controls') || getComputedStyle(controlsContainer).opacity === '1';
+                if (areControlsVisible) {
+                    // কন্ট্রোল দেখা গেলে ভিডিও পজ হবে (আপনার চাওয়া আচরণ)
+                    video.pause();
+                } else {
+                    // কন্ট্রোল দেখা না গেলে, শুধু কন্ট্রোল দেখাবে
+                    playerContainer.classList.add('show-controls');
+                    resetControlsTimer();
+                }
             }
-        }
+        }, 250); // 250ms ডিলে
     }
     lastTap = currentTime;
 }
+// === পরিবর্তন শেষ ===
 
 function updatePlayState() {
     const isPaused = video.paused;
@@ -202,7 +213,15 @@ volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
 
-progressBar.addEventListener('input', scrub);
+progressBar.addEventListener('input', e => {
+    const scrubTime = (e.target.value / 100) * video.duration;
+    if (video.duration) {
+       progressFilled.style.width = `${e.target.value}%`;
+       timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`;
+    }
+    scrub(e);
+});
+
 progressBar.addEventListener('mousedown', () => { isScrubbing = true; wasPlaying = !video.paused; if(wasPlaying) video.pause(); });
 document.addEventListener('mouseup', () => { if(isScrubbing) { isScrubbing = false; if(wasPlaying) video.play(); }});
 progressBar.addEventListener('touchstart', () => { isScrubbing = true; wasPlaying = !video.paused; if(wasPlaying) video.pause(); }, { passive: true });
@@ -300,15 +319,13 @@ document.addEventListener('keydown', e => {
     }
 });
 
-// === পরিবর্তন শুরু: এখানে আপনার আসল কোডটি ফিরিয়ে আনা হয়েছে ===
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     
     if (videoUrl) {
         loadVideo(videoUrl);
-        // অ্যানিমেশনটি ঠিক ৩ সেকেন্ড পর বন্ধ হবে
-        setTimeout(() => loadingOverlay.classList.add('hidden'), 2000); 
+        setTimeout(() => loadingOverlay.classList.add('hidden'), 3000); 
     } else {
         loadingOverlay.classList.add('hidden');
         loadingOverlay.querySelector('.loading-content').innerHTML = "No video source found.";
@@ -318,4 +335,3 @@ document.addEventListener('DOMContentLoaded', () => {
     updateVolume();
     updateFullscreenState();
 });
-// === পরিবর্তন শেষ ===
