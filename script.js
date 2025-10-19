@@ -1,4 +1,4 @@
-// DOM Elements
+// DOM Elements (এইচটিএমএল এলিমেন্টগুলো এখানে ধরা হয়েছে)
 const playerContainer = document.querySelector('.player-container');
 const loadingOverlay = document.querySelector('.loading-overlay');
 const video = document.querySelector('.video');
@@ -22,7 +22,7 @@ const mainSettingsPage = document.querySelector('.menu-main');
 const speedSettingsPage = document.querySelector('.menu-speed');
 const qualitySettingsPage = document.querySelector('.menu-quality');
 const speedMenuBtn = document.getElementById('speed-menu-btn');
-const qualityMenuBtnContainer = document.getElementById('main-settings-list');
+const playerSettingsGroup = document.getElementById('player-settings-group');
 const speedOptionsList = document.getElementById('speed-options-list');
 const qualityOptionsList = document.getElementById('quality-options-list');
 const backBtns = document.querySelectorAll('.back-btn');
@@ -122,7 +122,7 @@ function updateFullscreenState() {
 }
 
 // ==========================================================
-// === Event Listeners ===
+// === Event Listeners (ইভেন্ট লিসেনার) ===
 // ==========================================================
 video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
@@ -185,18 +185,16 @@ speedOptions.forEach(option => {
         video.playbackRate = parseFloat(option.dataset.speed);
         speedOptions.forEach(opt => opt.classList.remove('active'));
         option.classList.add('active');
-        // "Normal" টেক্সট আপডেট
         speedCurrentValue.textContent = option.dataset.speed === '1' ? 'Normal' : `${option.dataset.speed}x`;
         speedSettingsPage.classList.remove('active');
         mainSettingsPage.classList.add('active');
     });
 });
 
-// ===== HLS কোয়ালিটি ম্যানেজমেন্ট কোড (আপডেট করা) =====
+// ===== HLS কোয়ালিটি ম্যানেজমেন্ট কোড (গ্রুপ ডিজাইনের জন্য আপডেট করা) =====
 hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
     if (data.levels.length > 1) {
         const qualityMenuBtn = document.createElement('li');
-        // নতুন HTML গঠন ও আইকন যোগ করা
         qualityMenuBtn.innerHTML = `
             <div class="menu-item-label">
                 <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"></path></svg>
@@ -227,12 +225,12 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
             qualityOptionsList.appendChild(option);
         });
         
-        qualityMenuBtnContainer.prepend(qualityMenuBtn); // স্পিড বাটনের আগে যোগ করা
+        playerSettingsGroup.prepend(qualityMenuBtn);
     }
 });
 hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
-    const qualityMenuLi = qualityMenuBtnContainer.querySelector('li:first-child');
-    if (!qualityMenuLi) return;
+    const qualityMenuLi = playerSettingsGroup.querySelector('li:first-child');
+    if (!qualityMenuLi || !qualityMenuLi.querySelector('.current-value')) return;
 
     const qualityCurrentValue = qualityMenuLi.querySelector('.current-value');
     const allQualityOptions = qualityOptionsList.querySelectorAll('li');
@@ -261,7 +259,7 @@ function setQuality(level) {
     mainSettingsPage.classList.add('active');
 }
 
-// DOMContentLoaded
+// === পেজ লোড হলে যা যা ঘটবে ===
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
