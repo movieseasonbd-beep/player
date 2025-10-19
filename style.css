@@ -58,7 +58,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .loading-logo {
     font-family: 'Arial', sans-serif;
-    font-size: 28px;
+    font-size: 25px;
     font-weight: 700;
     margin-bottom: 10px;
     letter-spacing: 0.5px;
@@ -71,7 +71,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .loading-bar-container {
     width: 300px;
     height: 8px;
-    margin: 0 auto 12px auto;
+    margin: 0 auto 13px auto;
     position: relative;
     overflow: hidden;
 }
@@ -105,7 +105,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 /* === ::before এখন আর প্রয়োজন নেই, তাই এটি সম্পূর্ণ মুছে ফেলা হয়েছে === */
 
 .loading-text {
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 0.5px;
 }
 
