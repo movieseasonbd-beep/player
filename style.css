@@ -185,3 +185,28 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .settings-menu li { padding: 8px 12px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s ease; }
 .settings-menu li:hover { background-color: rgba(255, 255, 255, 0.1); }
 .settings-menu li.active { color: var(--theme-color); font-weight: bold; }
+
+
+/* === ব্যবহারকারীর সিলেকশন এবং ডিফল্ট টাচ আচরণ বন্ধ করার জন্য কোড === */
+
+/* পুরো প্লেয়ার কন্টেইনার এবং এর ভেতরের সবকিছুর জন্য সিলেকশন বন্ধ করা হলো */
+.player-container, .player-container * {
+    -webkit-user-select: none; /* Safari, Chrome */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* Internet Explorer/Edge */
+    user-select: none;         /* Standard syntax */
+    
+    /* iOS Safari তে লং-প্রেস (long-press) করলে যে মেনু আসে, তা বন্ধ করবে */
+    -webkit-touch-callout: none; 
+    
+    /* মোবাইলে টাচ করলে যে একটি নীল বা ধূসর হাইলাইট আসে, তা বন্ধ করবে */
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* বিশেষভাবে ইনপুট রেঞ্জগুলোর (প্রগ্রেস ও ভলিউম বার) জন্য ডিফল্ট আচরণ রাখা হলো, যেন ඒවා ঠিকমতো কাজ করে */
+.player-container input[type="range"] {
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    user-select: auto;
+}
