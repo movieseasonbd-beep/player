@@ -85,30 +85,32 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 
 
-/* === চূড়ান্ত এবং নিখুঁত সমাধান: clip-path ব্যবহার করে === */
+/* === চূড়ান্ত সমাধান: দুই প্রান্ত মিলিয়ে যাওয়া এফেক্টের জন্য === */
 .loading-bar {
     width: 100%;
     height: 100%;
     
-    /* নিচের স্তর: আপনার মূল লাল বার */
-    /* উপরের স্তর: উজ্জ্বল সাদা আলো (Shine) */
+    /* উপরের স্তর: আগের মতোই উজ্জ্বল সাদা আলোর ঝলকানি (Shine) */
+    /* নিচের স্তর: নতুন গ্রেডিয়েন্ট যা দুই পাশে স্বচ্ছ হয়ে মিলিয়ে যায় */
     background-image: 
         linear-gradient(to right, transparent 0%, white 50%, transparent 100%),
-        linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color));
+        linear-gradient(to right, 
+            transparent, 
+            var(--gradient-start-color) 20%, 
+            var(--gradient-end-color) 80%, 
+            transparent
+        );
 
-    background-size: 60% 100%, 100% 100%; /* প্রথমটি আলোর জন্য, দ্বিতীয়টি মূল বারের জন্য */
+    background-size: 60% 100%, 100% 100%;
     background-repeat: no-repeat;
     animation: loading-scan-final 2.5s infinite linear;
     
-    /* === মূল কৌশল: এই clip-path বারটিকে দুই পাশে সূঁচালো আকৃতি দেবে === */
-    /* এটি একটি ছয়-বিন্দু বিশিষ্ট বহুভুজ যা সুইয়ের মতো দেখতে */
-    clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%);
+    /* clip-path এখন আর প্রয়োজন নেই, তাই এটি মুছে ফেলা হয়েছে */
 }
 
-/* নতুন অ্যানিমেশন Keyframes যা background-position পরিবর্তন করে */
+/* @keyframes loading-scan-final আগের মতোই থাকবে, কোনো পরিবর্তনের প্রয়োজন নেই */
 @keyframes loading-scan-final {
     0% {
-        /* প্রথম মানটি আলোর পজিশন, দ্বিতীয়টি মূল বারের */
         background-position: -150% 0, 0 0;
     }
     100% {
