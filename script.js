@@ -247,7 +247,7 @@ speedOptions.forEach(option => {
         speedOptions.forEach(opt => opt.classList.remove('active'));
         option.classList.add('active');
         currentSpeedDisplay.textContent = `${option.dataset.speed}x`;
-        toggleSettingsMenu(); // Close menu after selection
+        toggleSettingsMenu();
     });
 });
 
@@ -300,14 +300,15 @@ document.addEventListener('keydown', e => {
     }
 });
 
+// === পরিবর্তন শুরু: এখানে আপনার আসল কোডটি ফিরিয়ে আনা হয়েছে ===
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     
     if (videoUrl) {
         loadVideo(videoUrl);
-        video.addEventListener('canplay', () => loadingOverlay.classList.add('hidden'), { once: true });
-        setTimeout(() => loadingOverlay.classList.add('hidden'), 5000);
+        // অ্যানিমেশনটি ঠিক ৩ সেকেন্ড পর বন্ধ হবে
+        setTimeout(() => loadingOverlay.classList.add('hidden'), 3000); 
     } else {
         loadingOverlay.classList.add('hidden');
         loadingOverlay.querySelector('.loading-content').innerHTML = "No video source found.";
@@ -317,3 +318,4 @@ document.addEventListener('DOMContentLoaded', () => {
     updateVolume();
     updateFullscreenState();
 });
+// === পরিবর্তন শেষ ===
