@@ -39,109 +39,109 @@ let wasPlaying = false;
 // === ফাংশনসমূহ ===
 // ==========================================================
 function loadVideo(videoUrl) {
-    if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
-        hls.loadSource(videoUrl);
-        hls.attachMedia(video);
-    } else {
-        video.src = videoUrl;
-    }
+if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
+hls.loadSource(videoUrl);
+hls.attachMedia(video);
+} else {
+video.src = videoUrl;
+}
 }
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
 function handleScreenTap() {
-    const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
-    if (video.paused) { video.play(); } else {
-        if (isControlsVisible) { video.pause(); } 
-        else { playerContainer.classList.add('show-controls'); resetControlsTimer(); }
-    }
+const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
+if (video.paused) { video.play(); } else {
+if (isControlsVisible) { video.pause(); }
+else { playerContainer.classList.add('show-controls'); resetControlsTimer(); }
+}
 }
 function updatePlayState() {
-    const isPaused = video.paused;
-    playPauseBtn.querySelector('.play-icon').style.display = isPaused ? 'block' : 'none';
-    playPauseBtn.querySelector('.pause-icon').style.display = isPaused ? 'none' : 'block';
-    playerContainer.classList.toggle('paused', isPaused);
-    playerContainer.classList.toggle('playing', !isPaused);
+const isPaused = video.paused;
+playPauseBtn.querySelector('.play-icon').style.display = isPaused ? 'block' : 'none';
+playPauseBtn.querySelector('.pause-icon').style.display = isPaused ? 'none' : 'block';
+playerContainer.classList.toggle('paused', isPaused);
+playerContainer.classList.toggle('playing', !isPaused);
 }
 function hideControls() {
-    if (!video.paused && !settingsMenu.classList.contains('active') && !isScrubbing) {
-        playerContainer.classList.remove('show-controls');
-    }
+if (!video.paused && !settingsMenu.classList.contains('active') && !isScrubbing) {
+playerContainer.classList.remove('show-controls');
+}
 }
 function resetControlsTimer() {
-    clearTimeout(controlsTimeout);
-    controlsTimeout = setTimeout(hideControls, 3000);
+clearTimeout(controlsTimeout);
+controlsTimeout = setTimeout(hideControls, 3000);
 }
 function updateProgressUI() {
-    if (isScrubbing) return;
-    if (video.duration) {
-        const progressPercent = (video.currentTime / video.duration) * 100;
-        progressFilled.style.width = `${progressPercent}%`;
-        progressBar.value = progressPercent;
-        timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
-    }
+if (isScrubbing) return;
+if (video.duration) {
+const progressPercent = (video.currentTime / video.duration) * 100;
+progressFilled.style.width = ${progressPercent}%;
+progressBar.value = progressPercent;
+timeDisplay.textContent = ${formatTime(video.currentTime)} / ${formatTime(video.duration)};
+}
 }
 function updateBufferBar() {
-    if (video.duration > 0 && video.buffered.length > 0) {
-        const bufferEnd = video.buffered.end(video.buffered.length - 1);
-        bufferBar.style.width = `${(bufferEnd / video.duration) * 100}%`;
-    }
+if (video.duration > 0 && video.buffered.length > 0) {
+const bufferEnd = video.buffered.end(video.buffered.length - 1);
+bufferBar.style.width = ${(bufferEnd / video.duration) * 100}%;
+}
 }
 function scrub(e) {
-    const scrubTime = (e.target.value / 100) * video.duration;
-    if (isNaN(scrubTime)) return;
-    video.currentTime = scrubTime;
-    progressFilled.style.width = `${e.target.value}%`;
-    timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`;
+const scrubTime = (e.target.value / 100) * video.duration;
+if (isNaN(scrubTime)) return;
+video.currentTime = scrubTime;
+progressFilled.style.width = ${e.target.value}%;
+timeDisplay.textContent = ${formatTime(scrubTime)} / ${formatTime(video.duration)};
 }
 function formatTime(seconds) {
-    if (isNaN(seconds)) return "00:00";
-    const date = new Date(seconds * 1000);
-    const [hh, mm, ss] = [date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()].map(v => v.toString().padStart(2, '0'));
-    return hh > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
+if (isNaN(seconds)) return "00:00";
+const date = new Date(seconds * 1000);
+const [hh, mm, ss] = [date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()].map(v => v.toString().padStart(2, '0'));
+return hh > 0 ? ${hh}:${mm}:${ss} : ${mm}:${ss};
 }
 function toggleMute() { video.muted = !video.muted; }
 function updateVolumeIcon() {
-    const isMuted = video.muted || video.volume === 0;
-    volumeBtn.querySelector('.volume-on-icon').style.display = isMuted ? 'none' : 'block';
-    volumeBtn.querySelector('.volume-off-icon').style.display = isMuted ? 'block' : 'none';
-    volumeBtn.classList.toggle('active', isMuted);
+const isMuted = video.muted || video.volume === 0;
+volumeBtn.querySelector('.volume-on-icon').style.display = isMuted ? 'none' : 'block';
+volumeBtn.querySelector('.volume-off-icon').style.display = isMuted ? 'block' : 'none';
+volumeBtn.classList.toggle('active', isMuted);
 }
 async function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        await playerContainer.requestFullscreen();
-        try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (err) { console.warn("Screen orientation lock failed:", err); }
-    } else {
-        await document.exitFullscreen();
-        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (err) { console.warn("Screen orientation unlock failed:", err); }
-    }
+if (!document.fullscreenElement) {
+await playerContainer.requestFullscreen();
+try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (err) { console.warn("Screen orientation lock failed:", err); }
+} else {
+await document.exitFullscreen();
+try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (err) { console.warn("Screen orientation unlock failed:", err); }
+}
 }
 function updateFullscreenState() {
-    const isFullscreen = !!document.fullscreenElement;
-    fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block';
-    fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
-    fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
-    fullscreenBtn.classList.toggle('active', isFullscreen);
+const isFullscreen = !!document.fullscreenElement;
+fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block';
+fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
+fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
+fullscreenBtn.classList.toggle('active', isFullscreen);
 }
 
 // === নতুন: সেটিংস মেনু পেজ পরিবর্তনের জন্য ফাংশন ===
 function showMenuPage(pageToShow) {
-    const currentPage = menuContentWrapper.querySelector('.menu-page.active');
-    setTimeout(() => {
-        const newHeight = pageToShow.scrollHeight;
-        menuContentWrapper.style.height = `${newHeight}px`;
-    }, 0);
-    if (currentPage) {
-        if (pageToShow === mainSettingsPage) {
-            currentPage.classList.remove('active');
-            currentPage.classList.add('slide-out-right');
-            mainSettingsPage.classList.remove('slide-out-left');
-            mainSettingsPage.classList.add('active');
-        } else {
-            mainSettingsPage.classList.add('slide-out-left');
-            currentPage.classList.remove('active');
-            pageToShow.classList.add('active');
-            pageToShow.classList.remove('slide-out-right');
-        }
-    }
+const currentPage = menuContentWrapper.querySelector('.menu-page.active');
+setTimeout(() => {
+const newHeight = pageToShow.scrollHeight;
+menuContentWrapper.style.height = ${newHeight}px;
+}, 0);
+if (currentPage) {
+if (pageToShow === mainSettingsPage) {
+currentPage.classList.remove('active');
+currentPage.classList.add('slide-out-right');
+mainSettingsPage.classList.remove('slide-out-left');
+mainSettingsPage.classList.add('active');
+} else {
+mainSettingsPage.classList.add('slide-out-left');
+currentPage.classList.remove('active');
+pageToShow.classList.add('active');
+pageToShow.classList.remove('slide-out-right');
+}
+}
 }
 
 // ==========================================================
@@ -163,133 +163,126 @@ fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
 progressBar.addEventListener('input', scrub);
 progressBar.addEventListener('mousedown', (e) => {
-    isScrubbing = true;
-    wasPlaying = !video.paused;
-    if (wasPlaying) video.pause();
-    if (e.type === 'touchstart') {
-        document.addEventListener('touchmove', scrub);
-        document.addEventListener('touchend', endScrub);
-    }
+isScrubbing = true;
+wasPlaying = !video.paused;
+if (wasPlaying) video.pause();
+if (e.type === 'touchstart') {
+document.addEventListener('touchmove', scrub);
+document.addEventListener('touchend', endScrub);
+}
 });
 document.addEventListener('mouseup', (e) => {
-    if (isScrubbing) {
-        isScrubbing = false;
-        if (wasPlaying) video.play();
-    }
+if (isScrubbing) {
+isScrubbing = false;
+if (wasPlaying) video.play();
+}
 });
 playerContainer.addEventListener('mousemove', () => {
-    playerContainer.classList.add('show-controls');
-    resetControlsTimer();
+playerContainer.classList.add('show-controls');
+resetControlsTimer();
 });
 
 // === সেটিংস মেনুর নতুন ইভেন্ট লিসেনার (স্লাইডিং অ্যানিমেশনসহ) ===
 settingsBtn.addEventListener('click', () => {
-    settingsMenu.classList.toggle('active');
-    settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
-    if (settingsMenu.classList.contains('active')) {
-        [mainSettingsPage, speedSettingsPage, qualitySettingsPage].forEach(p => {
-            p.classList.remove('active', 'slide-out-left', 'slide-out-right');
-        });
-        mainSettingsPage.classList.add('active');
-        menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
-    }
+settingsMenu.classList.toggle('active');
+settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
+if (settingsMenu.classList.contains('active')) {
+[mainSettingsPage, speedSettingsPage, qualitySettingsPage].forEach(p => {
+p.classList.remove('active', 'slide-out-left', 'slide-out-right');
+});
+mainSettingsPage.classList.add('active');
+menuContentWrapper.style.height = ${mainSettingsPage.scrollHeight}px;
+}
 });
 speedMenuBtn.addEventListener('click', () => {
-    showMenuPage(speedSettingsPage);
+showMenuPage(speedSettingsPage);
 });
 backBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        showMenuPage(mainSettingsPage);
-    });
+btn.addEventListener('click', () => {
+showMenuPage(mainSettingsPage);
+});
 });
 speedOptions.forEach(option => {
-    option.addEventListener('click', () => {
-        video.playbackRate = parseFloat(option.dataset.speed);
-        speedOptions.forEach(opt => opt.classList.remove('active'));
-        option.classList.add('active');
-        speedCurrentValue.textContent = option.dataset.speed === '1' ? 'Normal' : `${option.dataset.speed}x`;
-        showMenuPage(mainSettingsPage);
-    });
+option.addEventListener('click', () => {
+video.playbackRate = parseFloat(option.dataset.speed);
+speedOptions.forEach(opt => opt.classList.remove('active'));
+option.classList.add('active');
+speedCurrentValue.textContent = option.dataset.speed === '1' ? 'Normal' : ${option.dataset.speed}x;
+showMenuPage(mainSettingsPage);
+});
 });
 function setQuality(level) {
-    hls.currentLevel = parseInt(level);
-    showMenuPage(mainSettingsPage);
+hls.currentLevel = parseInt(level);
+showMenuPage(mainSettingsPage);
 }
 
 // ===== HLS কোয়ালিটি ম্যানেজমেন্ট কোড =====
 hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-    if (data.levels.length > 1) {
-        const qualityMenuBtn = document.createElement('li');
-        qualityMenuBtn.id = 'quality-menu-btn';
-        qualityMenuBtn.innerHTML = `
-            <div class="menu-item-label">
-                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M216,104H102.09L210,75.51a8,8,0,0,0,5.68-9.84l-8.16-30a15.93,15.93,0,0,0-19.42-11.13L35.81,64.74a15.75,15.75,0,0,0-9.7,7.4,15.51,15.51,0,0,0-1.55,12L32,111.56c0,.14,0,.29,0,.44v88a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V112A8,8,0,0,0,216,104ZM192.16,40l6,22.07L164.57,71,136.44,54.72ZM77.55,70.27l28.12,16.24-59.6,15.73-6-22.08Z"></path></svg>
-                <span>Quality</span>
-            </div>
-            <div class="menu-item-value">
-                <span class="current-value">Auto</span>
-                <svg class="arrow-right" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg>
-            </div>`;
-        qualityMenuBtn.addEventListener('click', () => {
-            showMenuPage(qualitySettingsPage);
-        });
-        qualityOptionsList.innerHTML = '';
-        const autoOption = document.createElement('li');
-        autoOption.textContent = 'Auto';
-        autoOption.dataset.level = -1;
-        autoOption.classList.add('active');
-        autoOption.addEventListener('click', () => setQuality(-1));
-        qualityOptionsList.appendChild(autoOption);
-        data.levels.forEach((level, index) => {
-            const option = document.createElement('li');
-            option.textContent = `${level.height}p`;
-            option.dataset.level = index;
-            option.addEventListener('click', () => setQuality(index));
-            qualityOptionsList.appendChild(option);
-        });
-        playerSettingsGroup.prepend(qualityMenuBtn);
-        if (settingsMenu.classList.contains('active')) {
-            setTimeout(() => {
-                menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
-            }, 0);
-        }
-    }
+if (data.levels.length > 1) {
+const qualityMenuBtn = document.createElement('li');
+qualityMenuBtn.id = 'quality-menu-btn';
+qualityMenuBtn.innerHTML =  <div class="menu-item-label"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M216,104H102.09L210,75.51a8,8,0,0,0,5.68-9.84l-8.16-30a15.93,15.93,0,0,0-19.42-11.13L35.81,64.74a15.75,15.75,0,0,0-9.7,7.4,15.51,15.51,0,0,0-1.55,12L32,111.56c0,.14,0,.29,0,.44v88a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V112A8,8,0,0,0,216,104ZM192.16,40l6,22.07L164.57,71,136.44,54.72ZM77.55,70.27l28.12,16.24-59.6,15.73-6-22.08Z"></path></svg> <span>Quality</span> </div> <div class="menu-item-value"> <span class="current-value">Auto</span> <svg class="arrow-right" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg> </div>;
+qualityMenuBtn.addEventListener('click', () => {
+showMenuPage(qualitySettingsPage);
+});
+qualityOptionsList.innerHTML = '';
+const autoOption = document.createElement('li');
+autoOption.textContent = 'Auto';
+autoOption.dataset.level = -1;
+autoOption.classList.add('active');
+autoOption.addEventListener('click', () => setQuality(-1));
+qualityOptionsList.appendChild(autoOption);
+data.levels.forEach((level, index) => {
+const option = document.createElement('li');
+option.textContent = ${level.height}p;
+option.dataset.level = index;
+option.addEventListener('click', () => setQuality(index));
+qualityOptionsList.appendChild(option);
+});
+playerSettingsGroup.prepend(qualityMenuBtn);
+// মেনু খোলার সময় উচ্চতা অ্যাডজাস্ট করার জন্য
+if (settingsMenu.classList.contains('active')) {
+setTimeout(() => {
+menuContentWrapper.style.height = ${mainSettingsPage.scrollHeight}px;
+}, 0);
+}
+}
 });
 hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
-    const qualityMenuBtn = document.getElementById('quality-menu-btn');
-    if (!qualityMenuBtn) return;
-    const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
-    const allQualityOptions = qualityOptionsList.querySelectorAll('li');
-    allQualityOptions.forEach(opt => {
-        opt.classList.remove('active');
-        if (parseInt(opt.dataset.level) === data.level) {
-            opt.classList.add('active');
-            if(qualityCurrentValue) {
-                qualityCurrentValue.textContent = hls.autoLevelEnabled ? `${opt.textContent.replace(' (Auto)', '')} (Auto)` : opt.textContent;
-            }
-        }
-    });
-    if (hls.autoLevelEnabled) {
-         const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
-         if (autoOpt) autoOpt.classList.add('active');
-         if(qualityCurrentValue && !qualityCurrentValue.textContent.includes('(Auto)')) {
-             qualityCurrentValue.textContent = 'Auto';
-         }
-    }
+const qualityMenuBtn = document.getElementById('quality-menu-btn');
+if (!qualityMenuBtn) return;
+const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
+const allQualityOptions = qualityOptionsList.querySelectorAll('li');
+allQualityOptions.forEach(opt => {
+opt.classList.remove('active');
+if (parseInt(opt.dataset.level) === data.level) {
+opt.classList.add('active');
+if(qualityCurrentValue) {
+qualityCurrentValue.textContent = hls.autoLevelEnabled ? ${opt.textContent.replace(' (Auto)', '')} (Auto) : opt.textContent;
+}
+}
+});
+if (hls.autoLevelEnabled) {
+const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
+if (autoOpt) autoOpt.classList.add('active');
+if(qualityCurrentValue && !qualityCurrentValue.textContent.includes('(Auto)')) {
+qualityCurrentValue.textContent = 'Auto';
+}
+}
 });
 
 // === পেজ লোড হলে যা যা ঘটবে ===
 document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const videoUrl = urlParams.get('id');
-    if (videoUrl) {
-        loadVideo(videoUrl);
-        setTimeout(() => loadingOverlay.classList.add('hidden'), 3000);
-    } else {
-        loadingOverlay.classList.add('hidden');
-        loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
-    }
-    updatePlayState();
-    updateVolumeIcon();
-    updateFullscreenState();
+const urlParams = new URLSearchParams(window.location.search);
+const videoUrl = urlParams.get('id');
+if (videoUrl) {
+loadVideo(videoUrl);
+setTimeout(() => loadingOverlay.classList.add('hidden'), 3000);
+} else {
+loadingOverlay.classList.add('hidden');
+loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
+}
+updatePlayState();
+updateVolumeIcon();
+updateFullscreenState();
 });
