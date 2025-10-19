@@ -56,22 +56,22 @@ function directTogglePlay() {
 function handleScreenTap(e) {
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
+    const wasControlsVisible = playerContainer.classList.contains('show-controls');
     clearTimeout(singleTapTimeout);
 
-    if (tapLength < 300 && tapLength > 0) { // ডাবল ট্যাপ
+    if (tapLength < 300 && tapLength > 0) {
         const rect = video.getBoundingClientRect();
         const tapPosition = (e.clientX - rect.left) / rect.width;
         if (tapPosition < 0.4) video.currentTime -= 10;
         else if (tapPosition > 0.6) video.currentTime += 10;
         lastTap = 0;
-    } else { // সিঙ্গেল ট্যাপ
+    } else {
         singleTapTimeout = setTimeout(() => {
             if (video.paused) {
                 video.play();
                 return;
             }
-            const isControlsVisible = playerContainer.classList.contains('show-controls');
-            if (isControlsVisible) {
+            if (wasControlsVisible) {
                 video.pause();
             } else {
                 playerContainer.classList.add('show-controls');
@@ -152,25 +152,43 @@ function updateVolume() {
     volumeSlider.value = video.muted ? 0 : video.volume;
 }
 
-// === পরিবর্তন শুরু: ফুলস্ক্রিন ফাংশনটিকে আপনার আসল এবং সরল কোডে ফিরিয়ে আনা হয়েছে ===
-async function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        // এই সরল পদ্ধতিটিই অ্যান্ড্রয়েডে আপনার কাস্টম কন্ট্রোলসহ ফুলস্ক্রিন করবে
-        await playerContainer.requestFullscreen().catch(err => {
-            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-        });
+// === পরিবর্তন শুরু: সব ডিভাইসের জন্য নির্ভরযোগ্য ফুলস্ক্রিন ফাংশন ===
+function isFullScreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+}
+
+function toggleFullscreen() {
+    if (!isFullScreen()) {
+        if (playerContainer.requestFullscreen) {
+            playerContainer.requestFullscreen();
+        } else if (playerContainer.webkitRequestFullscreen) {
+            playerContainer.webkitRequestFullscreen();
+        } else if (playerContainer.mozRequestFullScreen) { // Firefox
+            playerContainer.mozRequestFullScreen();
+        } else if (playerContainer.msRequestFullscreen) { // IE
+            playerContainer.msRequestFullscreen();
+        }
     } else {
-        await document.exitFullscreen();
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
     }
 }
 
 function updateFullscreenState() {
-    const isFullscreen = !!document.fullscreenElement;
+    const isFullscreen = isFullScreen();
     fullscreenBtn.classList.toggle('active', isFullscreen);
     fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block';
     fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
 }
 // === পরিবর্তন শেষ ===
+
 
 function toggleSettingsMenu() {
     const isActive = settingsMenu.classList.toggle('active');
@@ -203,8 +221,11 @@ forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 
-// === পরিবর্তন শুরু: শুধুমাত্র একটি 'fullscreenchange' ইভেন্ট লিসেনার রাখা হয়েছে ===
+// === পরিবর্তন শুরু: সব ধরনের ব্রাউজারের জন্য ফুলস্ক্রিন ইভেন্ট লিসেনার ===
 document.addEventListener('fullscreenchange', updateFullscreenState);
+document.addEventListener('webkitfullscreenchange', updateFullscreenState);
+document.addEventListener('mozfullscreenchange', updateFullscreenState);
+document.addEventListener('MSFullscreenChange', updateFullscreenState);
 // === পরিবর্তন শেষ ===
 
 progressBar.addEventListener('input', e => {
