@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (videoUrl) {
         loadVideo(videoUrl);
         // অ্যানিমেশনটি ঠিক ৩ সেকেন্ড পর বন্ধ হবে
-        setTimeout(() => loadingOverlay.classList.add('hidden'), 3000); 
+        setTimeout(() => loadingOverlay.classList.add('hidden'), 2000); 
     } else {
         loadingOverlay.classList.add('hidden');
         loadingOverlay.querySelector('.loading-content').innerHTML = "No video source found.";
