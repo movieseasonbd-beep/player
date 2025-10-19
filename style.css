@@ -82,8 +82,8 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
         linear-gradient(to right, transparent, white, transparent),
         linear-gradient(to right, 
             transparent, 
-            var(--gradient-start-color) 20%, 
-            var(--gradient-end-color) 80%, 
+            var(--gradient-start-color) 30%, 
+            var(--gradient-end-color) 70%, 
             transparent
         );
     background-size: 40% 100%, 100% 100%;
@@ -97,12 +97,12 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 @keyframes loading-scan-final {
     0% {
         /* শাইনটি 20% পজিশন থেকে শুরু হবে */
-        background-position: 20% 0, 0 0;
+        background-position: 10% 0, 0 0;
     }
     100% {
         /* এবং 40% পজিশনে গিয়ে শেষ হবে */
         /* (কারণ 40% পজিশন + 40% শাইনের প্রস্থ = 80% পজিশনে শেষ) */
-        background-position: 80% 0, 0 0;
+        background-position: 90% 0, 0 0;
     }
 }
 
