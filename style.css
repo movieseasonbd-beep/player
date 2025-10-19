@@ -51,6 +51,8 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .buffer-bar { background: rgba(255, 255, 255, 0.4); width: 0; transition: width 0.1s linear; }
 .progress-filled { background: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color)); width: 0; }
 .progress-bar { -webkit-appearance: none; appearance: none; width: 100%; background: transparent; outline: none; margin: 0; padding: 0; z-index: 2; }
+
+/* === পরিবর্তন #১: প্রগ্রেস বারের Thumb এর অবস্থান চূড়ান্তভাবে ঠিক করা হয়েছে === */
 .progress-bar::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -59,7 +61,10 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     background: white;
     border-radius: 50%;
     cursor: pointer;
-    margin-top: calc((var(--progress-bar-height) - var(--thumb-size)) / 2); 
+    position: relative;
+    /* top এবং margin ব্যবহার করে সকল ব্রাউজারের জন্য এটি কেন্দ্র বরাবর থাকবে */
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .control-group { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px; }
