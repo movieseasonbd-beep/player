@@ -103,3 +103,67 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 /* === ব্যবহারকারীর সিলেকশন বন্ধ করা === */
 .player-container, .player-container * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .player-container input[type="range"] { -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; }
+
+
+/* === মোবাইল ডিভাইসের জন্য অপটিমাইজেশন (মিডিয়া কোয়েরি) === */
+@media (max-width: 600px) {
+    
+    /* সেটিংস মেনুকে স্ক্রিনের নিচে নিয়ে আসা হচ্ছে (বটম শীট ডিজাইন) */
+    .settings-menu {
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-height: 50vh; /* মেনু যেন অর্ধেক স্ক্রিনের বেশি জায়গা না নেয় */
+        overflow-y: auto; /* অপশন বেশি হলে স্ক্রল করা যাবে */
+        border-radius: 15px 15px 0 0; /* শুধুমাত্র উপরের কোণাগুলো গোল হবে */
+        background-color: rgba(25, 25, 25, 0.95); /* الخلفية আরও স্পষ্ট করা হয়েছে */
+        
+        /* পুরোনো পজিশনিং এবং অ্যানিমেশন তুলে দেওয়া হচ্ছে */
+        transform: translateY(100%); /* ডিফল্টভাবে নিচে লুকানো থাকবে */
+        transition: transform 0.3s ease-out; /* মসৃণ স্লাইড অ্যানিমেশন */
+    }
+
+    /* মেনু সক্রিয় হলে স্লাইড করে উপরে উঠবে */
+    .settings-menu.active {
+        transform: translateY(0);
+        opacity: 1; /* অপাসিটি নিশ্চিত করা */
+    }
+    
+    /* ভেতরের পেজগুলোর প্যাডিং বাড়ানো হচ্ছে */
+    .settings-menu .menu-page {
+        padding: 15px;
+    }
+
+    /* প্রধান মেনুর আইটেমগুলো আরও বড় এবং সহজে ট্যাপযোগ্য করা হচ্ছে */
+    .menu-main li {
+        padding: 15px 20px;
+        font-size: 16px;
+    }
+
+    /* সাব-মেনুর আইটেমগুলো আরও বড় করা হচ্ছে */
+    .settings-menu li {
+        padding: 15px 20px;
+        font-size: 16px;
+    }
+
+    /* হেডার এবং ব্যাক বাটনকে আরও ব্যবহার-বান্ধব করা হচ্ছে */
+    .menu-page .menu-header {
+        font-size: 18px;
+        padding-bottom: 5px;
+    }
+
+    .menu-page .back-btn {
+        padding: 5px;
+    }
+
+    .menu-page .back-btn svg {
+        width: 28px;
+        height: 28px;
+    }
+
+    /* কন্ট্রোল বারের সাথে মেনুর দূরত্ব কমানো হয়েছে */
+    .controls-container {
+        padding: 10px 15px; /* মোবাইলের জন্য প্যাডিং অ্যাডজাস্ট করা */
+    }
+}
