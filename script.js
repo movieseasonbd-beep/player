@@ -35,13 +35,15 @@ let isScrubbing = false;
 let wasPlaying = false;
 
 // ==========================================================
-// === ফাংশনসমূহ (অপরিবর্তিত) ===
+// === ফাংশনসমূহ (আপনার আগের সব ফাংশন ফিরিয়ে আনা হয়েছে) ===
 // ==========================================================
 function loadVideo(videoUrl) {
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
-    } else { video.src = videoUrl; }
+    } else {
+        video.src = videoUrl;
+    }
 }
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
 function handleScreenTap() {
@@ -76,30 +78,89 @@ function updateProgressUI() {
         timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
     }
 }
+function updateBufferBar() {
+    if (video.duration > 0 && video.buffered.length > 0) {
+        const bufferEnd = video.buffered.end(video.buffered.length - 1);
+        bufferBar.style.width = `${(bufferEnd / video.duration) * 100}%`;
+    }
+}
+function scrub(e) {
+    const scrubTime = (e.target.value / 100) * video.duration;
+    if (isNaN(scrubTime)) return;
+    video.currentTime = scrubTime;
+    progressFilled.style.width = `${e.target.value}%`;
+    timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`;
+}
 function formatTime(seconds) {
     if (isNaN(seconds)) return "00:00";
     const date = new Date(seconds * 1000);
     const [hh, mm, ss] = [date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()].map(v => v.toString().padStart(2, '0'));
     return hh > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
 }
+function toggleMute() { video.muted = !video.muted; }
+function updateVolumeIcon() {
+    const isMuted = video.muted || video.volume === 0;
+    volumeBtn.querySelector('.volume-on-icon').style.display = isMuted ? 'none' : 'block';
+    volumeBtn.querySelector('.volume-off-icon').style.display = isMuted ? 'block' : 'none';
+    volumeBtn.classList.toggle('active', isMuted);
+}
 async function toggleFullscreen() {
     if (!document.fullscreenElement) {
         await playerContainer.requestFullscreen();
+        try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (err) { console.warn("Screen orientation lock failed:", err); }
     } else {
         await document.exitFullscreen();
+        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (err) { console.warn("Screen orientation unlock failed:", err); }
     }
+}
+function updateFullscreenState() {
+    const isFullscreen = !!document.fullscreenElement;
+    fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block';
+    fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
+    fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
+    fullscreenBtn.classList.toggle('active', isFullscreen);
 }
 
 // ==========================================================
-// === Event Listeners (সেটিংস মেনুর অংশ আপডেট করা হয়েছে) ===
+// === Event Listeners (সব ইভেন্ট লিসেনার সঠিকভাবে ফিরিয়ে আনা হয়েছে) ===
 // ==========================================================
 video.addEventListener('click', handleScreenTap);
+centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
+
 video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); });
 video.addEventListener('pause', () => { updatePlayState(); clearTimeout(controlsTimeout); playerContainer.classList.add('show-controls'); });
 video.addEventListener('timeupdate', updateProgressUI);
+video.addEventListener('progress', updateBufferBar);
+video.addEventListener('volumechange', updateVolumeIcon);
+video.addEventListener('canplay', updateProgressUI);
+
+rewindBtn.addEventListener('click', () => { video.currentTime -= 10; });
+forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
+volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
-playerContainer.addEventListener('mousemove', () => { playerContainer.classList.add('show-controls'); resetControlsTimer(); });
+document.addEventListener('fullscreenchange', updateFullscreenState);
+
+progressBar.addEventListener('input', scrub);
+progressBar.addEventListener('mousedown', (e) => {
+    isScrubbing = true;
+    wasPlaying = !video.paused;
+    if (wasPlaying) video.pause();
+    if (e.type === 'touchstart') {
+        document.addEventListener('touchmove', scrub);
+        document.addEventListener('touchend', endScrub);
+    }
+});
+document.addEventListener('mouseup', (e) => {
+    if (isScrubbing) {
+        isScrubbing = false;
+        if (wasPlaying) video.play();
+    }
+});
+playerContainer.addEventListener('mousemove', () => {
+    playerContainer.classList.add('show-controls');
+    resetControlsTimer();
+});
 
 // === সেটিংস মেনুর নতুন এবং উন্নত ইভেন্ট লিসেনার ===
 settingsBtn.addEventListener('click', (e) => {
@@ -114,7 +175,6 @@ settingsMenu.addEventListener('click', (e) => {
         playerContainer.classList.remove('sub-menu-active');
     }
 });
-
 function showSubMenu(menuPage) {
     playerContainer.classList.add('sub-menu-active');
     menuPage.classList.add('active');
@@ -123,7 +183,6 @@ function hideSubMenu(menuPage) {
     playerContainer.classList.remove('sub-menu-active');
     menuPage.classList.remove('active');
 }
-
 speedMenuBtn.addEventListener('click', () => showSubMenu(speedSettingsPage));
 backBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -155,7 +214,6 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
                 <svg class="arrow-right" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg>
             </div>`;
         qualityMenuBtn.addEventListener('click', () => showSubMenu(qualitySettingsPage));
-        
         qualityOptionsList.innerHTML = '';
         const autoOption = document.createElement('li');
         autoOption.textContent = 'Auto';
@@ -163,7 +221,6 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         autoOption.classList.add('active');
         autoOption.addEventListener('click', () => setQuality(-1));
         qualityOptionsList.appendChild(autoOption);
-        
         data.levels.forEach((level, index) => {
             const option = document.createElement('li');
             option.textContent = `${level.height}p`;
@@ -171,8 +228,29 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
             option.addEventListener('click', () => setQuality(index));
             qualityOptionsList.appendChild(option);
         });
-        
         playerSettingsGroup.prepend(qualityMenuBtn);
+    }
+});
+hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+    const qualityMenuLi = playerSettingsGroup.querySelector('li:first-child');
+    if (!qualityMenuLi || !qualityMenuLi.querySelector('.current-value')) return;
+    const qualityCurrentValue = qualityMenuLi.querySelector('.current-value');
+    const allQualityOptions = qualityOptionsList.querySelectorAll('li');
+    allQualityOptions.forEach(opt => {
+        opt.classList.remove('active');
+        if (parseInt(opt.dataset.level) === data.level) {
+            opt.classList.add('active');
+            if(qualityCurrentValue) {
+                qualityCurrentValue.textContent = hls.autoLevelEnabled ? `${opt.textContent.replace(' (Auto)', '')} (Auto)` : opt.textContent;
+            }
+        }
+    });
+    if (hls.autoLevelEnabled) {
+         const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
+         if (autoOpt) autoOpt.classList.add('active');
+         if(qualityCurrentValue && !qualityCurrentValue.textContent.includes('(Auto)')) {
+             qualityCurrentValue.textContent = 'Auto';
+         }
     }
 });
 function setQuality(level) {
@@ -180,7 +258,7 @@ function setQuality(level) {
     hideSubMenu(qualitySettingsPage);
 }
 
-// === পেজ লোড হলে যা যা ঘটবে (অপরিবর্তিত) ===
+// === পেজ লোড হলে যা যা ঘটবে (সঠিক ফাংশন কলসহ) ===
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
@@ -188,7 +266,10 @@ document.addEventListener('DOMContentLoaded', () => {
         loadVideo(videoUrl);
         setTimeout(() => loadingOverlay.classList.add('hidden'), 3000);
     } else {
-        loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
         loadingOverlay.classList.add('hidden');
+        loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
+    updatePlayState();
+    updateVolumeIcon();
+    updateFullscreenState();
 });
