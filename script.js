@@ -35,7 +35,7 @@ let isScrubbing = false;
 let wasPlaying = false;
 
 // ==========================================================
-// === ফাংশনসমূহ (আপনার আগের সব ফাংশন ফিরিয়ে আনা হয়েছে) ===
+// === ফাংশনসমূহ ===
 // ==========================================================
 function loadVideo(videoUrl) {
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
@@ -122,25 +122,22 @@ function updateFullscreenState() {
 }
 
 // ==========================================================
-// === Event Listeners (সব ইভেন্ট লিসেনার সঠিকভাবে ফিরিয়ে আনা হয়েছে) ===
+// === Event Listeners (ইভেন্ট লিসেনার) ===
 // ==========================================================
 video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
-
 video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); });
 video.addEventListener('pause', () => { updatePlayState(); clearTimeout(controlsTimeout); playerContainer.classList.add('show-controls'); });
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 video.addEventListener('volumechange', updateVolumeIcon);
 video.addEventListener('canplay', updateProgressUI);
-
 rewindBtn.addEventListener('click', () => { video.currentTime -= 10; });
 forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
-
 progressBar.addEventListener('input', scrub);
 progressBar.addEventListener('mousedown', (e) => {
     isScrubbing = true;
@@ -162,32 +159,25 @@ playerContainer.addEventListener('mousemove', () => {
     resetControlsTimer();
 });
 
-// === সেটিংস মেনুর নতুন এবং উন্নত ইভেন্ট লিসেনার ===
-settingsBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
+// === সেটিংস মেনুর নতুন ইভেন্ট লিসেনার ===
+settingsBtn.addEventListener('click', () => {
     settingsMenu.classList.toggle('active');
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
-});
-settingsMenu.addEventListener('click', (e) => {
-    if (e.target === settingsMenu) {
-        settingsMenu.classList.remove('active');
-        settingsBtn.classList.remove('active');
-        playerContainer.classList.remove('sub-menu-active');
+    if (settingsMenu.classList.contains('active')) {
+        speedSettingsPage.classList.remove('active');
+        qualitySettingsPage.classList.remove('active');
+        mainSettingsPage.classList.add('active');
     }
 });
-function showSubMenu(menuPage) {
-    playerContainer.classList.add('sub-menu-active');
-    menuPage.classList.add('active');
-}
-function hideSubMenu(menuPage) {
-    playerContainer.classList.remove('sub-menu-active');
-    menuPage.classList.remove('active');
-}
-speedMenuBtn.addEventListener('click', () => showSubMenu(speedSettingsPage));
+speedMenuBtn.addEventListener('click', () => {
+    mainSettingsPage.classList.remove('active');
+    speedSettingsPage.classList.add('active');
+});
 backBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-        hideSubMenu(speedSettingsPage);
-        hideSubMenu(qualitySettingsPage);
+        speedSettingsPage.classList.remove('active');
+        qualitySettingsPage.classList.remove('active');
+        mainSettingsPage.classList.add('active');
     });
 });
 speedOptions.forEach(option => {
@@ -196,11 +186,12 @@ speedOptions.forEach(option => {
         speedOptions.forEach(opt => opt.classList.remove('active'));
         option.classList.add('active');
         speedCurrentValue.textContent = option.dataset.speed === '1' ? 'Normal' : `${option.dataset.speed}x`;
-        hideSubMenu(speedSettingsPage);
+        speedSettingsPage.classList.remove('active');
+        mainSettingsPage.classList.add('active');
     });
 });
 
-// ===== HLS কোয়ালিটি ম্যানেজমেন্ট কোড (অপরিবর্তিত) =====
+// ===== HLS কোয়ালিটি ম্যানেজমেন্ট কোড (গ্রুপ ডিজাইনের জন্য আপডেট করা) =====
 hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
     if (data.levels.length > 1) {
         const qualityMenuBtn = document.createElement('li');
@@ -213,7 +204,11 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
                 <span class="current-value">Auto</span>
                 <svg class="arrow-right" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg>
             </div>`;
-        qualityMenuBtn.addEventListener('click', () => showSubMenu(qualitySettingsPage));
+        qualityMenuBtn.addEventListener('click', () => {
+            mainSettingsPage.classList.remove('active');
+            qualitySettingsPage.classList.add('active');
+        });
+        
         qualityOptionsList.innerHTML = '';
         const autoOption = document.createElement('li');
         autoOption.textContent = 'Auto';
@@ -221,6 +216,7 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         autoOption.classList.add('active');
         autoOption.addEventListener('click', () => setQuality(-1));
         qualityOptionsList.appendChild(autoOption);
+        
         data.levels.forEach((level, index) => {
             const option = document.createElement('li');
             option.textContent = `${level.height}p`;
@@ -228,14 +224,17 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
             option.addEventListener('click', () => setQuality(index));
             qualityOptionsList.appendChild(option);
         });
+        
         playerSettingsGroup.prepend(qualityMenuBtn);
     }
 });
 hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
     const qualityMenuLi = playerSettingsGroup.querySelector('li:first-child');
     if (!qualityMenuLi || !qualityMenuLi.querySelector('.current-value')) return;
+
     const qualityCurrentValue = qualityMenuLi.querySelector('.current-value');
     const allQualityOptions = qualityOptionsList.querySelectorAll('li');
+    
     allQualityOptions.forEach(opt => {
         opt.classList.remove('active');
         if (parseInt(opt.dataset.level) === data.level) {
@@ -245,6 +244,7 @@ hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
             }
         }
     });
+
     if (hls.autoLevelEnabled) {
          const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
          if (autoOpt) autoOpt.classList.add('active');
@@ -255,10 +255,11 @@ hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
 });
 function setQuality(level) {
     hls.currentLevel = parseInt(level);
-    hideSubMenu(qualitySettingsPage);
+    qualitySettingsPage.classList.remove('active');
+    mainSettingsPage.classList.add('active');
 }
 
-// === পেজ লোড হলে যা যা ঘটবে (সঠিক ফাংশন কলসহ) ===
+// === পেজ লোড হলে যা যা ঘটবে ===
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
