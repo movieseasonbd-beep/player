@@ -16,7 +16,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container { width: 100vw; height: 100vh; position: relative; background-color: #000; display: flex; justify-content: center; align-items: center; }
 .player-container.playing .central-play-btn { opacity: 0; visibility: hidden; }
 
-/* === চূড়ান্ত এবং সঠিক সংস্করণ: :hover এখান থেকে বাদ দেওয়া হয়েছে === */
 .player-container.paused .controls-container, 
 .player-container.show-controls .controls-container { 
     opacity: 1; 
@@ -25,106 +24,17 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
-
-
-
-
-
-
-
 /* === লোডিং স্ক্রিনের স্টাইল === */
-.loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-    transition: opacity 0.5s ease, visibility 0.5s ease;
-}
-
-.loading-overlay.hidden {
-    opacity: 0;
-    visibility: hidden;
-}
-
-.loading-content {
-    text-align: center;
-}
-
-.loading-logo {
-    font-family: 'Arial', sans-serif;
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 7px;
-    letter-spacing: 0.5px;
-    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-.loading-bar-container {
-    width: 220px;
-    height: 2.5px; /* বারের পুরুত্ব */
-    margin: 0 auto 15px auto;
-    position: relative;
-}
-
-.loading-bar {
-    width: 100%;
-    height: 100%;
-    background-image: 
-        linear-gradient(to right, transparent, white, transparent),
-        linear-gradient(to right, 
-            transparent, 
-            var(--gradient-start-color) 25%, 
-            var(--gradient-end-color) 70%, 
-            transparent
-        );
-    background-size: 40% 100%, 100% 100%;
-    background-repeat: no-repeat;
-    background-blend-mode: screen;
-    animation: loading-scan-final 3.1s infinite linear;
-    clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%);
-}
-
-/* === চূড়ান্ত সપ્રতিসম (Symmetrical) অ্যানিমেশন === */
-@keyframes loading-scan-final {
-    0% {
-        /* শাইনটি 20% পজিশন থেকে শুরু হবে */
-        background-position: 10% 0, 0 0;
-    }
-    100% {
-        /* এবং 40% পজিশনে গিয়ে শেষ হবে */
-        /* (কারণ 40% পজিশন + 40% শাইনের প্রস্থ = 80% পজিশনে শেষ) */
-        background-position: 90% 0, 0 0;
-    }
-}
-
-.loading-text {
-    font-size: 10px; 
-    letter-spacing: 0.5px;
-}
-
-.loading-maintext {
-    color: white;
-}
-
-.loading-subtext {
-    background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-
-
-
+.loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s ease; }
+.loading-overlay.hidden { opacity: 0; visibility: hidden; }
+.loading-content { text-align: center; }
+.loading-logo { font-family: 'Arial', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 7px; letter-spacing: 0.5px; background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.loading-bar-container { width: 220px; height: 2.5px; margin: 0 auto 15px auto; position: relative; }
+.loading-bar { width: 100%; height: 100%; background-image: linear-gradient(to right, transparent, white, transparent), linear-gradient(to right, transparent, var(--gradient-start-color) 25%, var(--gradient-end-color) 70%, transparent ); background-size: 40% 100%, 100% 100%; background-repeat: no-repeat; background-blend-mode: screen; animation: loading-scan-final 3.1s infinite linear; clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%); }
+@keyframes loading-scan-final { 0% { background-position: 10% 0, 0 0; } 100% { background-position: 90% 0, 0 0; } }
+.loading-text { font-size: 10px; letter-spacing: 0.5px; }
+.loading-maintext { color: white; }
+.loading-subtext { background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
 /* === সেন্ট্রাল প্লে বাটন === */
 .central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; transition: all 0.2s ease; background: none; width: auto; height: auto; }
@@ -157,79 +67,39 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 #play-pause-btn svg { width: 30px; height: 30px; }
 #play-pause-btn { transform: translateX(-9px); }
 #rewind-btn svg, #forward-btn svg, #volume-btn svg, #settings-btn svg { width: 24px; height: 24px; }
-
-/* === পরিবর্তন এখানে: forward এবং rewind বাটনকে বামে সরানো হয়েছে === */
 #forward-btn { transform: translateX(-8px); }
 #rewind-btn { transform: translateX(-8px); }
-
 #settings-btn { transform: translateX(+8px); }
 #fullscreen-btn svg { width: 30px; height: 30px; }
 #fullscreen-btn { transform: translateX(+4px); }
-/* === বাকি স্টাইল === */
-.time-display {
-    font-size: 11px;
-    user-select: none;
-    margin-left: -11px;
-    white-space: nowrap; /* এই লাইনটি যোগ করুন */
-}
+.time-display { font-size: 11px; user-select: none; margin-left: -11px; white-space: nowrap; }
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
-.settings-menu { position: absolute; bottom: 80px; right: 20px; background-color: rgba(40, 40, 40, 0.9); border-radius: 8px; z-index: 5; width: 200px; padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, transform 0.2s ease; transform: translateY(10px); }
+
+/* === সেটিংস মেনু (আপডেট করা) === */
+.settings-menu { position: absolute; bottom: 80px; right: 20px; background-color: rgba(40, 40, 40, 0.9); border-radius: 8px; z-index: 5; width: 200px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, transform 0.2s ease; transform: translateY(10px); }
 .settings-menu.active { opacity: 1; visibility: visible; transform: translateY(0); }
-.menu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 16px; font-weight: bold; }
-.menu-header div { display: flex; align-items: center; gap: 8px; }
-.menu-header svg { width: 20px; height: 20px; }
-.close-btn { background: none; border: none; color: white; cursor: pointer; padding: 0; }
-.close-btn svg { width: 18px; height: 18px; }
+
+/* --- সেটিংস মেনুর নতুন গঠন --- */
+.settings-menu .menu-content-wrapper { position: relative; width: 100%; height: auto; overflow: hidden; }
+.settings-menu .menu-page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; background-color: rgba(40, 40, 40, 0.9); transform: translateX(100%); transition: transform 0.2s ease-in-out; padding: 10px; box-sizing: border-box; }
+.settings-menu .menu-page.active { transform: translateX(0); position: relative; } /* Active page should be visible */
+/* প্রধান মেনুর স্টাইল */
+.menu-main { padding: 0; }
+.menu-main ul { list-style: none; padding: 5px; margin: 0; }
+.menu-main li { display: flex; justify-content: space-between; padding: 10px 12px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s ease; }
+.menu-main li:hover { background-color: rgba(255, 255, 255, 0.1); }
+.menu-main li .current-value { color: #aaa; }
+/* সাব-মেনু হেডার এবং ব্যাক বাটন */
+.menu-page .menu-header { display: flex; align-items: center; margin-bottom: 10px; font-size: 16px; font-weight: bold; padding: 0 5px; }
+.menu-page .back-btn { background: none; border: none; color: white; cursor: pointer; padding: 0 10px 0 0; margin-left: -5px; }
+.menu-page .back-btn svg { width: 24px; height: 24px; fill: white; }
+/* সাধারণ ul এবং li স্টাইল */
 .settings-menu ul { list-style: none; margin: 0; padding: 0; }
 .settings-menu li { padding: 8px 12px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s ease; }
 .settings-menu li:hover { background-color: rgba(255, 255, 255, 0.1); }
 .settings-menu li.active { color: var(--theme-color); font-weight: bold; }
 
-
-/* === ব্যবহারকারীর সিলেকশন এবং ডিফল্ট টাচ আচরণ বন্ধ করার জন্য কোড === */
-
-/* পুরো প্লেয়ার কন্টেইনার এবং এর ভেতরের সবকিছুর জন্য সিলেকশন বন্ধ করা হলো */
-.player-container, .player-container * {
-    -webkit-user-select: none; /* Safari, Chrome */
-    -moz-user-select: none;    /* Firefox */
-    -ms-user-select: none;     /* Internet Explorer/Edge */
-    user-select: none;         /* Standard syntax */
-    
-    /* iOS Safari তে লং-প্রেস (long-press) করলে যে মেনু আসে, তা বন্ধ করবে */
-    -webkit-touch-callout: none; 
-    
-    /* মোবাইলে টাচ করলে যে একটি নীল বা ধূসর হাইলাইট আসে, তা বন্ধ করবে */
-    -webkit-tap-highlight-color: transparent;
-}
-
-/* বিশেষভাবে ইনপুট রেঞ্জগুলোর (প্রগ্রেস ও ভলিউম বার) জন্য ডিফল্ট আচরণ রাখা হলো, যেন ඒවා ঠিকমতো কাজ করে */
-.player-container input[type="range"] {
-    -webkit-user-select: auto;
-    -moz-user-select: auto;
-    -ms-user-select: auto;
-    user-select: auto;
-}
-/* === ব্যবহারকারীর সিলেকশন এবং ডিফল্ট টাচ আচরণ বন্ধ করার জন্য কোড === */
-
-/* পুরো প্লেয়ার কন্টেইনার এবং এর ভেতরের সবকিছুর জন্য সিলেকশন বন্ধ করা হলো */
-.player-container, .player-container * {
-    -webkit-user-select: none; /* Safari, Chrome */
-    -moz-user-select: none;    /* Firefox */
-    -ms-user-select: none;     /* Internet Explorer/Edge */
-    user-select: none;         /* Standard syntax */
-    
-    /* iOS Safari তে লং-প্রেস (long-press) করলে যে মেনু আসে, তা বন্ধ করবে */
-    -webkit-touch-callout: none; 
-    
-    /* মোবাইলে টাচ করলে যে একটি নীল বা ধূসর হাইলাইট আসে, তা বন্ধ করবে */
-    -webkit-tap-highlight-color: transparent;
-}
-
-/* বিশেষভাবে ইনপুট রেঞ্জগুলোর (প্রগ্রেস ও ভলিউম বার) জন্য ডিফল্ট আচরণ রাখা হলো, যেন ඒවා ঠিকমতো কাজ করে */
-.player-container input[type="range"] {
-    -webkit-user-select: auto;
-    -moz-user-select: auto;
-    -ms-user-select: auto;
-    user-select: auto;
-}
+/* === ব্যবহারকারীর সিলেকশন বন্ধ করা === */
+.player-container, .player-container * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+.player-container input[type="range"] { -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; }
