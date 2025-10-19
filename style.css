@@ -10,15 +10,13 @@
     
     --loading-gradient-start: #ff0000;
     --loading-gradient-end: #ff7e7e;
-
-    /* === নতুন সংযোজন: আইকনের জন্য গ্রেডিয়েন্ট ভ্যারিয়েবল === */
-    --theme-gradient: linear-gradient(135deg, var(--gradient-start-color), var(--gradient-end-color));
 }
 
 body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; overflow: hidden; }
 .player-container { width: 100vw; height: 100vh; position: relative; background-color: #000; display: flex; justify-content: center; align-items: center; }
 .player-container.playing .central-play-btn { opacity: 0; visibility: hidden; }
 
+/* === চূড়ান্ত এবং সঠিক সংস্করণ: :hover এখান থেকে বাদ দেওয়া হয়েছে === */
 .player-container.paused .controls-container, 
 .player-container.show-controls .controls-container { 
     opacity: 1; 
@@ -26,6 +24,12 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
+
+
+
+
+
+
 
 
 /* === লোডিং স্ক্রিনের স্টাইল === */
@@ -66,7 +70,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .loading-bar-container {
     width: 220px;
-    height: 2.5px;
+    height: 2.5px; /* বারের পুরুত্ব */
     margin: 0 auto 15px auto;
     position: relative;
 }
@@ -89,11 +93,15 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%);
 }
 
+/* === চূড়ান্ত সપ્રতিসম (Symmetrical) অ্যানিমেশন === */
 @keyframes loading-scan-final {
     0% {
+        /* শাইনটি 20% পজিশন থেকে শুরু হবে */
         background-position: 10% 0, 0 0;
     }
     100% {
+        /* এবং 40% পজিশনে গিয়ে শেষ হবে */
+        /* (কারণ 40% পজিশন + 40% শাইনের প্রস্থ = 80% পজিশনে শেষ) */
         background-position: 90% 0, 0 0;
     }
 }
@@ -115,25 +123,14 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 
 
-/* === সেন্ট্রাল প্লে বাটন (গ্রেডিয়েন্টসহ) === */
+
+
+
+/* === সেন্ট্রাল প্লে বাটন === */
 .central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; transition: all 0.2s ease; background: none; width: auto; height: auto; }
 .central-play-btn:hover { transform: translate(-50%, -50%) scale(1.1); }
 .central-play-btn:active { transform: translate(-50%, -50%) scale(1.0); }
-/* === পরিবর্তন এখানে === */
-.central-play-btn svg {
-    width: 80px; 
-    height: 80px; 
-    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7));
-    background: var(--theme-gradient); /* গ্রেডিয়েন্ট ব্যাকগ্রাউন্ড */
-    -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.14-5.18c.62-.39.62-1.29 0-1.69L9.54 5.98C8.87 5.55 8 6.03 8 6.82z"></path></svg>');
-    mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.14-5.18c.62-.39.62-1.29 0-1.69L9.54 5.98C8.87 5.55 8 6.03 8 6.82z"></path></svg>');
-    -webkit-mask-size: cover;
-    mask-size: cover;
-}
-.central-play-btn svg path {
-    fill: transparent; /* মূল রঙ লুকিয়ে ফেলা হয়েছে */
-}
-
+.central-play-btn svg { width: 80px; height: 80px; fill: var(--central-play-btn-color); filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); }
 
 /* === কন্ট্রোলস === */
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
@@ -142,57 +139,38 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .progress-background, .buffer-bar, .progress-filled { height: var(--progress-bar-height); border-radius: 5px; pointer-events: none; }
 .progress-background { background: rgba(255, 255, 255, 0.2); }
 .buffer-bar { background: rgba(255, 255, 255, 0.4); width: 0; transition: width 0.1s linear; }
-.progress-filled { background: var(--theme-gradient); width: 0; } /* এখানেও গ্রেডিয়েন্ট ব্যবহার করা হলো */
+.progress-filled { background: linear-gradient(to right, var(--gradient-start-color), var(--gradient-end-color)); width: 0; }
 .progress-bar { -webkit-appearance: none; appearance: none; width: 100%; background: transparent; outline: none; margin: 0; padding: 0; z-index: 2; }
 .progress-bar::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: var(--thumb-size); height: var(--thumb-size); background: white; border-radius: 50%; cursor: pointer; }
 .control-group { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px; }
 .controls-left, .controls-right { display: flex; align-items: center; gap: 20px; }
-.control-btn { background: none; border: none; color: white; cursor: pointer; padding: 0; transition: transform 0.1s ease; position: relative; display: flex; align-items: center; justify-content: center; }
+.control-btn { background: none; border: none; color: white; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; display: flex; align-items: center; justify-content: center; }
+.control-btn:hover { color: var(--theme-color); }
 .control-btn:active { transform: scale(0.95); }
-.control-btn svg { transition: background 0.2s ease; } /* ট্রানজিশন background এর জন্য */
-.control-btn svg path { fill: white; transition: fill 0.2s ease; }
+.control-btn.active { color: var(--theme-color); }
+.control-btn svg path { fill: white; }
+.control-btn:hover svg path { fill: var(--theme-color); }
+.control-btn.active svg path { fill: var(--theme-color); }
+.control-btn svg { transition: fill 0.1s ease; }
 
-/* === কন্ট্রোল আইকনের গ্রেডিয়েন্ট (হোভার এবং অ্যাক্টিভ) === */
-.control-btn:hover svg path,
-.control-btn.active svg path {
-    fill: transparent;
-}
-.control-btn:hover svg,
-.control-btn.active svg {
-    background: var(--theme-gradient);
-    -webkit-mask-image: var(--svg-mask);
-    mask-image: var(--svg-mask);
-    -webkit-mask-size: contain;
-    mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    mask-position: center;
-}
-
-/* আইকন সাইজ এবং মাস্ক URL সেট করা */
-#play-pause-btn svg { width: 30px; height: 30px; --svg-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.14-5.18c.62-.39.62-1.29 0-1.69L9.54 5.98C8.87 5.55 8 6.03 8 6.82z"></path><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>'); }
+/* আইকন সাইজ */
+#play-pause-btn svg { width: 30px; height: 30px; }
 #play-pause-btn { transform: translateX(-9px); }
-
 #rewind-btn svg, #forward-btn svg, #volume-btn svg, #settings-btn svg { width: 24px; height: 24px; }
-#rewind-btn { --svg-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M4,18A12,12,0,1,0,16,6H12V1L6,7l6,6V8h4A10,10,0,1,1,6,18Z"/><path d="M19.63,22.13a2.84,2.84,0,0,1-1.28-.27,2.44,2.44,0,0,1-.89-.77,3.57,3.57,0,0,1-.52-1.25,7.69,7.69,0,0,1-.17-1.68,7.83,7.83,0,0,1,.17-1.68,3.65,3.65,0,0,1,.52-1.25,2.44,2.44,0,0,1,.89-.77,2.84,2.84,0,0,1,1.28-.27,2.44,2.44,0,0,1,2.16,1,5.23,5.23,0,0,1,.7,2.93,5.23,5.23,0,0,1-.7,2.93A2.44,2.44,0,0,1,19.63,22.13Zm0-1.22a1.07,1.07,0,0,0,1-.55A3.38,3.38,0,0,0,21,18.85V17.47a3.31,3.31,0,0,0-.29-1.5,1.23,1.23,0,0,0-2.06,0,3.31,3.31,0,0,0-.29,1.5v1.38a3.38,3.38,0,0,0,.29,1.51A1.06,1.06,0,0,0,19.63,20.91Z"/><path d="M10.63,22V20.82h2V15.63l-1.86,1-.55-1.06,2.32-1.3H14v6.5h1.78V22Z"/></svg>'); }
-#forward-btn { --svg-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M26,18A10,10,0,1,1,16,8h4v5l6-6L20,1V6H16A12,12,0,1,0,28,18Z"/><path d="M19.63,22.13a2.84,2.84,0,0,1-1.28-.27,2.44,2.44,0,0,1-.89-.77,3.57,3.57,0,0,1-.52-1.25,7.69,7.69,0,0,1-.17-1.68,7.83,7.83,0,0,1,.17-1.68,3.65,3.65,0,0,1,.52-1.25,2.44,2.44,0,0,1,.89-.77,2.84,2.84,0,0,1,1.28-.27,2.44,2.44,0,0,1,2.16,1,5.23,5.23,0,0,1,.7,2.93,5.23,5.23,0,0,1-.7,2.93A2.44,2.44,0,0,1,19.63,22.13Zm0-1.22a1.07,1.07,0,0,0,1-.55A3.38,3.38,0,0,0,21,18.85V17.47a3.31,3.31,0,0,0-.29-1.5,1.23,1.23,0,0,0-2.06,0,3.31,3.31,0,0,0-.29,1.5v1.38a3.38,3.38,0,0,0,.29,1.51A1.06,1.06,0,0,0,19.63,20.91Z"/><path d="M10.63,22V20.82h2V15.63l-1.86,1-.55-1.06,2.32-1.3H14v6.5h1.78V22Z"/></svg>'); }
-#volume-btn { --svg-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77c0-4.28-2.99-7.86-7-8.77M16.5 12c0-1.77-1-3.29-2.5-4.03v8.05c1.5-0.73 2.5-2.25 2.5-4.02zM3 9v6h4l5 5V4L7 9H3z"></path><path d="M16.5 12c0-1.77-1-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51c.66-1.24 1.03-2.65 1.03-4.15 0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z"></path></svg>'); }
-#settings-btn { --svg-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.43,12.98c0.04-0.32,0.07-0.64,0.07-0.98s-0.03-0.66-0.07-0.98l2.11-1.65c0.19-0.15,0.24-0.42,0.12-0.64 l-2-3.46c-0.12-0.22-0.39-0.3-0.61-0.22l-2.49,1c-0.52-0.4-1.08-0.73-1.69-0.98l-0.38-2.65C14.46,2.18,14.25,2,14,2h-4 C9.75,2,9.54,2.18,9.51,2.42l-0.38,2.65c-0.61,0.25-1.17,0.59-1.69,0.98l-2.49-1c-0.23-0.09-0.49,0-0.61,0.22l-2,3.46 c-0.13,0.22-0.07,0.49,0.12,0.64l2.11,1.65c-0.04,0.32-0.07,0.65-0.07,0.98s0.03,0.66,0.07,0.98l-2.11,1.65 c-0.19,0.15-0.24,0.42-0.12,0.64l2,3.46c0.12,0.22,0.39,0.3,0.61,0.22l2.49-1c0.52,0.4,1.08,0.73,1.69,0.98l0.38,2.65 C9.54,21.82,9.75,22,10,22h4c0.25,0,0.46-0.18,0.49-0.42l0.38-2.65c0.61-0.25,1.17-0.59,1.69-0.98l2.49,1 c0.23,0.09,0.49,0,0.61,0.22l2-3.46c0.12-0.22,0.07-0.49-0.12-0.64L19.43,12.98z M12,15.5c-1.93,0-3.5-1.57-3.5-3.5 s1.57-3.5,3.5-3.5s3.5,1.57,3.5,3.5S13.93,15.5,12,15.5z"></path></svg>'); }
 
+/* === পরিবর্তন এখানে: forward এবং rewind বাটনকে বামে সরানো হয়েছে === */
 #forward-btn { transform: translateX(-8px); }
 #rewind-btn { transform: translateX(-8px); }
+
 #settings-btn { transform: translateX(+8px); }
-
-#fullscreen-btn svg { width: 30px; height: 30px; --svg-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"></path><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"></path></svg>'); }
+#fullscreen-btn svg { width: 30px; height: 30px; }
 #fullscreen-btn { transform: translateX(+4px); }
-
 /* === বাকি স্টাইল === */
 .time-display {
     font-size: 11px;
     user-select: none;
     margin-left: -11px;
-    white-space: nowrap;
+    white-space: nowrap; /* এই লাইনটি যোগ করুন */
 }
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
@@ -206,4 +184,4 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .settings-menu ul { list-style: none; margin: 0; padding: 0; }
 .settings-menu li { padding: 8px 12px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s ease; }
 .settings-menu li:hover { background-color: rgba(255, 255, 255, 0.1); }
-.settings-menu li.active { color: var(--gradient-end-color); font-weight: bold; } /* এখানেও গ্রেডিয়েন্টের একটি রঙ ব্যবহার করা হলো */
+.settings-menu li.active { color: var(--theme-color); font-weight: bold; }
