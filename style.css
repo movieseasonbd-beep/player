@@ -95,7 +95,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     background-repeat: no-repeat;
 
     /* অ্যানিমেশনটি শুধুমাত্র প্রথম الخلفية (সাদা আলো)-এর অবস্থান পরিবর্তন করবে */
-   animation: loading-scan-final 4s infinite linear;
+   animation: loading-scan-final 3.6s infinite linear;
     
     /* === একক মাস্ক: এই মাস্কটি দুটি الخلفية-কেই একসাথে নিখুঁতভাবে কেটে দেবে === */
     -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
