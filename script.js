@@ -18,6 +18,7 @@ const settingsBtn = document.getElementById('settings-btn');
 const settingsMenu = document.querySelector('.settings-menu');
 
 // সেটিংস মেনুর DOM এলিমেন্টস
+const menuContentWrapper = document.querySelector('.menu-content-wrapper');
 const mainSettingsPage = document.querySelector('.menu-main');
 const speedSettingsPage = document.querySelector('.menu-speed');
 const qualitySettingsPage = document.querySelector('.menu-quality');
@@ -121,6 +122,32 @@ function updateFullscreenState() {
     fullscreenBtn.classList.toggle('active', isFullscreen);
 }
 
+// === নতুন: সেটিংস মেনু পেজ পরিবর্তনের জন্য ফাংশন ===
+function showMenuPage(pageToShow) {
+    const currentPage = menuContentWrapper.querySelector('.menu-page.active');
+    
+    // নতুন পেজের উচ্চতা অনুযায়ী কন্টেইনারের উচ্চতা সেট করা
+    // setTimeout ব্যবহার করা হয়েছে যাতে DOM আপডেটের পর উচ্চতা মাপা হয়
+    setTimeout(() => {
+        const newHeight = pageToShow.scrollHeight;
+        menuContentWrapper.style.height = `${newHeight}px`;
+    }, 0);
+
+    if (currentPage) {
+        if (pageToShow === mainSettingsPage) {
+            currentPage.classList.remove('active');
+            currentPage.classList.add('slide-out-right'); // পুরনো পেজ ডানে চলে যাবে (অদৃশ্য)
+            mainSettingsPage.classList.remove('slide-out-left');
+            mainSettingsPage.classList.add('active');
+        } else {
+            mainSettingsPage.classList.add('slide-out-left');
+            currentPage.classList.remove('active');
+            pageToShow.classList.add('active');
+            pageToShow.classList.remove('slide-out-right'); // নতুন পেজ যেন সঠিক জায়গা থেকে আসে
+        }
+    }
+}
+
 // ==========================================================
 // === Event Listeners (ইভেন্ট লিসেনার) ===
 // ==========================================================
@@ -159,25 +186,24 @@ playerContainer.addEventListener('mousemove', () => {
     resetControlsTimer();
 });
 
-// === সেটিংস মেনুর নতুন ইভেন্ট লিসেনার ===
+// === সেটিংস মেনুর নতুন ইভেন্ট লিসেনার (স্লাইডিং অ্যানিমেশনসহ) ===
 settingsBtn.addEventListener('click', () => {
     settingsMenu.classList.toggle('active');
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
     if (settingsMenu.classList.contains('active')) {
-        speedSettingsPage.classList.remove('active');
-        qualitySettingsPage.classList.remove('active');
+        [mainSettingsPage, speedSettingsPage, qualitySettingsPage].forEach(p => {
+            p.classList.remove('active', 'slide-out-left', 'slide-out-right');
+        });
         mainSettingsPage.classList.add('active');
+        menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
     }
 });
 speedMenuBtn.addEventListener('click', () => {
-    mainSettingsPage.classList.remove('active');
-    speedSettingsPage.classList.add('active');
+    showMenuPage(speedSettingsPage);
 });
 backBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-        speedSettingsPage.classList.remove('active');
-        qualitySettingsPage.classList.remove('active');
-        mainSettingsPage.classList.add('active');
+        showMenuPage(mainSettingsPage);
     });
 });
 speedOptions.forEach(option => {
@@ -186,15 +212,19 @@ speedOptions.forEach(option => {
         speedOptions.forEach(opt => opt.classList.remove('active'));
         option.classList.add('active');
         speedCurrentValue.textContent = option.dataset.speed === '1' ? 'Normal' : `${option.dataset.speed}x`;
-        speedSettingsPage.classList.remove('active');
-        mainSettingsPage.classList.add('active');
+        showMenuPage(mainSettingsPage);
     });
 });
+function setQuality(level) {
+    hls.currentLevel = parseInt(level);
+    showMenuPage(mainSettingsPage);
+}
 
-// ===== HLS কোয়ালিটি ম্যানেজমেন্ট কোড (গ্রুপ ডিজাইনের জন্য আপডেট করা) =====
+// ===== HLS কোয়ালিটি ম্যানেজমেন্ট কোড =====
 hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
     if (data.levels.length > 1) {
         const qualityMenuBtn = document.createElement('li');
+        qualityMenuBtn.id = 'quality-menu-btn'; // আইডি যোগ করা হলো
         qualityMenuBtn.innerHTML = `
             <div class="menu-item-label">
                 <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"></path></svg>
@@ -205,10 +235,8 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
                 <svg class="arrow-right" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg>
             </div>`;
         qualityMenuBtn.addEventListener('click', () => {
-            mainSettingsPage.classList.remove('active');
-            qualitySettingsPage.classList.add('active');
+            showMenuPage(qualitySettingsPage);
         });
-        
         qualityOptionsList.innerHTML = '';
         const autoOption = document.createElement('li');
         autoOption.textContent = 'Auto';
@@ -216,7 +244,6 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         autoOption.classList.add('active');
         autoOption.addEventListener('click', () => setQuality(-1));
         qualityOptionsList.appendChild(autoOption);
-        
         data.levels.forEach((level, index) => {
             const option = document.createElement('li');
             option.textContent = `${level.height}p`;
@@ -224,17 +251,14 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
             option.addEventListener('click', () => setQuality(index));
             qualityOptionsList.appendChild(option);
         });
-        
         playerSettingsGroup.prepend(qualityMenuBtn);
     }
 });
 hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
-    const qualityMenuLi = playerSettingsGroup.querySelector('li:first-child');
-    if (!qualityMenuLi || !qualityMenuLi.querySelector('.current-value')) return;
-
-    const qualityCurrentValue = qualityMenuLi.querySelector('.current-value');
+    const qualityMenuBtn = document.getElementById('quality-menu-btn');
+    if (!qualityMenuBtn) return;
+    const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
     const allQualityOptions = qualityOptionsList.querySelectorAll('li');
-    
     allQualityOptions.forEach(opt => {
         opt.classList.remove('active');
         if (parseInt(opt.dataset.level) === data.level) {
@@ -244,7 +268,6 @@ hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
             }
         }
     });
-
     if (hls.autoLevelEnabled) {
          const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
          if (autoOpt) autoOpt.classList.add('active');
@@ -253,11 +276,6 @@ hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
          }
     }
 });
-function setQuality(level) {
-    hls.currentLevel = parseInt(level);
-    qualitySettingsPage.classList.remove('active');
-    mainSettingsPage.classList.add('active');
-}
 
 // === পেজ লোড হলে যা যা ঘটবে ===
 document.addEventListener('DOMContentLoaded', () => {
