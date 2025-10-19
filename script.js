@@ -248,7 +248,6 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
             qualityOptionsList.appendChild(option);
         });
         playerSettingsGroup.prepend(qualityMenuBtn);
-        // মেনু খোলার সময় উচ্চতা অ্যাডজাস্ট করার জন্য
         if (settingsMenu.classList.contains('active')) {
             setTimeout(() => {
                 menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
