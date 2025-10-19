@@ -58,7 +58,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .loading-logo {
     font-family: 'Arial', sans-serif;
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 700;
     margin-bottom: 10px;
     letter-spacing: 0.5px;
@@ -71,7 +71,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .loading-bar-container {
     width: 220px;
     height: 3px; /* বারের পুরুত্ব */
-    margin: 0 auto 12px auto;
+    margin: 0 auto 14px auto;
     position: relative;
 }
 
