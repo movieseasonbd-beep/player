@@ -4,12 +4,12 @@
     --progress-bar-height: 5px;
     --thumb-size: 16px;
     --central-play-btn-color: #fa0505;
-    --gradient-start-color: #cf0000; /* প্রোগ্রেস বারের জন্য */
-    --gradient-end-color: #f16d0f;   /* প্রোগ্রেস বারের জন্য */
-    
-    /* === নতুন ভেরিয়েবল: শুধুমাত্র আইকনের জন্য === */
-    --icon-gradient-start: #cf0000; /* <-- এখন থেকে এই লাইনটি আইকনের রঙ নিয়ন্ত্রণ করবে */
-    --icon-gradient-end: #f16d0f;   /* <-- এবং এই লাইনটি */
+    --gradient-start-color: #cf0000;
+    --gradient-end-color: #f16d0f;
+
+    /* === আইকনের গ্লো এফেক্টের জন্য রঙ === */
+    --icon-gradient-start: #cf0000; 
+    --icon-gradient-end: #f16d0f;
 
     --loading-theme-color: #ff0000;
     --loading-gradient-start: #ff0000;
@@ -28,6 +28,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
+
 /* === লোডিং স্ক্রিনের স্টাইল === */
 .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s ease; }
 .loading-overlay.hidden { opacity: 0; visibility: hidden; }
@@ -40,17 +41,20 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .loading-maintext { color: white; }
 .loading-subtext { background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
-/* === সেন্ট্রাল প্লে বাটন (নতুন গ্রেডিয়েন্ট স্টাইল) === */
+
+/* === সেন্ট্রাল প্লে বাটন (নতুন গ্লো-এফেক্ট সহ) === */
 .central-play-btn svg {
     width: 80px;
     height: 80px;
-    background: linear-gradient(to right, var(--icon-gradient-start), var(--icon-gradient-end)); /* <-- নতুন ভেরিয়েবল ব্যবহার করা হয়েছে */
-    -webkit-background-clip: text;
-    background-clip: text;
-    fill: transparent;
+    fill: white;
     filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7));
+    transition: filter 0.3s ease;
 }
-
+.central-play-btn:hover svg {
+    filter: 
+        drop-shadow(0 0 4px var(--icon-gradient-start)) 
+        drop-shadow(0 0 8px var(--icon-gradient-end));
+}
 .central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; transition: all 0.2s ease; background: none; width: auto; height: auto; }
 .central-play-btn:hover { transform: translate(-50%, -50%) scale(1.1); }
 .central-play-btn:active { transform: translate(-50%, -50%) scale(1.0); }
@@ -67,27 +71,28 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .progress-bar::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: var(--thumb-size); height: var(--thumb-size); background: white; border-radius: 50%; cursor: pointer; }
 .control-group { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 5px; }
 .controls-left, .controls-right { display: flex; align-items: center; gap: 20px; }
-.control-btn { background: none; border: none; color: white; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; display: flex; align-items: center; justify-content: center; }
+.control-btn { background: none; border: none; color: white; cursor: pointer; padding: 0; transition: transform 0.1s ease; position: relative; display: flex; align-items: center; justify-content: center; }
 
-/* === আইকন গ্রেডিয়েন্ট স্টাইল শুরু === */
-.control-btn svg {
-    background: linear-gradient(to right, var(--icon-gradient-start), var(--icon-gradient-end)); /* <-- নতুন ভেরিয়েবল ব্যবহার করা হয়েছে */
-    -webkit-background-clip: text;
-    background-clip: text;
-    transition: fill 0.1s ease;
+
+/* === কন্ট্রোল আইকন স্টাইল (গ্রেডিয়েন্ট গ্লো এফেক্ট) === */
+.control-btn svg path {
+    fill: white;
 }
-.control-btn svg path { fill: transparent; }
-
+.control-btn svg {
+    filter: none;
+    transition: filter 0.3s ease;
+}
 .control-btn:hover svg,
 .control-btn.active svg {
-    background: none;
-    -webkit-background-clip: initial;
-    background-clip: initial;
+    filter: 
+        drop-shadow(0 0 2px var(--icon-gradient-start)) 
+        drop-shadow(0 0 5px var(--icon-gradient-end));
 }
-.control-btn:hover svg path,
-.control-btn.active svg path { fill: var(--theme-color); }
-.control-btn:active { transform: scale(0.95); }
-/* === আইকন গ্রেডিয়েন্ট স্টাইল শেষ === */
+.control-btn:active { 
+    transform: scale(0.95); 
+}
+/* === কন্ট্রোল আইকন স্টাইল শেষ === */
+
 
 /* আইকন সাইজ */
 #play-pause-btn svg { width: 30px; height: 30px; }
