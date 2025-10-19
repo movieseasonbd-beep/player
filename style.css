@@ -85,15 +85,15 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 
 
-/* === চূড়ান্ত সমাধান: সূঁচালো এবং মিলিয়ে যাওয়া প্রান্তের জন্য === */
+/* === চূড়ান্ত এবং নিখুঁত সমাধান: মিলিয়ে যাওয়া শাইন এফেক্টের জন্য === */
 .loading-bar {
     width: 100%;
     height: 100%;
     
-    /* উপরের স্তর: আলোর ঝলকানি (Shine) */
-    /* নিচের স্তর: নতুন গ্রেডিয়েন্ট যা দুই পাশে স্বচ্ছ হয়ে মিলিয়ে যায় */
+    /* উপরের স্তর: আলোর ঝলকানি (Shine) - এটিকে সহজ করা হয়েছে */
+    /* নিচের স্তর: আপনার মূল মিলিয়ে যাওয়া লাল বার */
     background-image: 
-        linear-gradient(to right, transparent 0%, white 50%, transparent 100%),
+        linear-gradient(to right, transparent, white, transparent), /* সহজ শাইন */
         linear-gradient(to right, 
             transparent, 
             var(--gradient-start-color) 20%, 
@@ -101,11 +101,14 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
             transparent
         );
 
-    background-size: 60% 100%, 100% 100%;
+    /* শাইনটিকে আরও ছোট এবং ফোকাসড করা হয়েছে */
+    background-size: 40% 100%, 100% 100%;
     background-repeat: no-repeat;
-    animation: loading-scan-final 2.5s infinite linear;
     
-    /* === মূল কৌশল: আকৃতি তৈরির জন্য clip-path আবার যোগ করা হলো === */
+    /* === মূল কৌশল: এই প্রোপার্টিটি শাইনকে নিচের বারের সাথে মিশিয়ে দেয় === */
+    background-blend-mode: screen;
+
+    animation: loading-scan-final 2.5s infinite linear;
     clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%);
 }
 
@@ -118,7 +121,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
         background-position: 250% 0, 0 0;
     }
 }
-
 
 
 
