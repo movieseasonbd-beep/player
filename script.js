@@ -28,12 +28,12 @@ const backBtns = document.querySelectorAll('.back-btn');
 const speedCurrentValue = speedMenuBtn.querySelector('.current-value');
 const speedOptions = speedOptionsList.querySelectorAll('li');
 
-let hls = new Hls({ enableWorker: false }); // <-- ভিডিও আটকে যাওয়া রোধ করার জন্য
+let hls = new Hls({ enableWorker: false });
 let controlsTimeout;
 let isScrubbing = false;
 let wasPlaying = false;
 let isExternalQualityActive = false;
-let qualityMenuInitialized = false; // <-- মেন্যু একাধিকবার লোড হওয়া বন্ধ করার জন্য ফ্ল্যাগ
+let qualityMenuInitialized = false;
 
 // ==========================================================
 // === Functions ===
@@ -154,6 +154,7 @@ function showMenuPage(pageToShow) {
     }
 }
 
+// ===== START: FINAL & MOST RELIABLE setQuality FUNCTION (মূল পরিবর্তন এখানে) =====
 function setQuality(level, url = null) {
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
     const qualityCurrentValue = qualityMenuBtn ? qualityMenuBtn.querySelector('.current-value') : null;
@@ -167,10 +168,13 @@ function setQuality(level, url = null) {
         hls = new Hls({ enableWorker: false });
         hls.loadSource(url);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+        
+        // MANIFEST_PARSED এর পরিবর্তে MEDIA_ATTACHED ইভেন্ট ব্যবহার করুন
+        hls.on(Hls.Events.MEDIA_ATTACHED, function() {
             video.currentTime = currentTime;
             video.play();
         });
+        
         if (qualityCurrentValue) qualityCurrentValue.textContent = '1080p';
         const option1080p = qualityOptionsList.querySelector(`li[data-level='${level}']`);
         if (option1080p) option1080p.classList.add('active');
@@ -190,6 +194,7 @@ function setQuality(level, url = null) {
     }
     showMenuPage(mainSettingsPage);
 }
+// ===== END: FINAL & MOST RELIABLE setQuality FUNCTION =====
 
 // ==========================================================
 // === Event Listeners ===
