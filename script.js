@@ -210,28 +210,46 @@ speedOptions.forEach(option => {
     });
 });
 
-// বিশেষ setQuality ফাংশন, যা 1080p লিঙ্ক হ্যান্ডেল করতে পারে
+// ===== START: FINAL & IMPROVED setQuality FUNCTION =====
+// এই ফাংশনটি এখন 1080p লিঙ্ক হ্যান্ডেল করার জন্য hls.js রিসেট করে
 function setQuality(level, url = null) {
     const allQualityOptions = qualityOptionsList.querySelectorAll('li');
     allQualityOptions.forEach(opt => opt.classList.remove('active'));
-    
+
+    // ১. যদি 1080p বা অন্য কোনো এক্সটার্নাল লিঙ্ক হয়
     if (url) {
-        // 1080p বা অন্য কোনো এক্সটার্নাল লিঙ্কের জন্য
+        console.log(`Switching to external URL: ${url}`);
+        
+        // hls.js ইনস্ট্যান্সটি ধ্বংস করে নতুন করে তৈরি করুন (এটিই মূল সমাধান)
+        hls.destroy();
+        hls = new Hls();
+        
+        // নতুন লিঙ্কটি লোড করুন এবং ভিডিওর সাথে যুক্ত করুন
         hls.loadSource(url);
+        hls.attachMedia(video);
+        
+        // ভিডিও প্লে করার জন্য প্রস্তুত হলে প্লে করুন
+        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+            video.play();
+        });
+        
         const option1080p = qualityOptionsList.querySelector(`li[data-level='${level}']`);
         if (option1080p) option1080p.classList.add('active');
+
+    // ২. যদি hls-এর বিল্ট-ইন কোয়ালিটি হয়
     } else {
-        // hls-এর বিল্ট-ইন কোয়ালিটির জন্য
+        console.log(`Switching to HLS level: ${level}`);
         hls.currentLevel = parseInt(level);
         const option = qualityOptionsList.querySelector(`li[data-level='${level}']`);
         if (option) option.classList.add('active');
     }
+    
     showMenuPage(mainSettingsPage);
 }
+// ===== END: FINAL & IMPROVED setQuality FUNCTION =====
 
 
 // ===== START: FINAL HLS QUALITY MANAGEMENT CODE =====
-
 hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
@@ -309,7 +327,6 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         setTimeout(() => menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`, 0);
     }
 });
-
 // ===== END: FINAL HLS QUALITY MANAGEMENT CODE =====
 
 
@@ -319,18 +336,11 @@ hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
     const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
     const allQualityOptions = qualityOptionsList.querySelectorAll('li');
 
-    allQualityOptions.forEach(opt => {
-        const level = parseInt(opt.dataset.level);
-        if (level === data.level) {
-            opt.classList.add('active');
-            if(qualityCurrentValue) {
-                qualityCurrentValue.textContent = hls.autoLevelEnabled ? `${opt.textContent.replace(' (Auto)', '')} (Auto)` : opt.textContent;
-            }
-        } else {
-             opt.classList.remove('active');
-        }
-    });
+    allQualityOptions.forEach(opt => opt.classList.remove('active'));
 
+    const activeOption = qualityOptionsList.querySelector(`li[data-level='${hls.currentLevel}']`);
+    if(activeOption) activeOption.classList.add('active');
+    
     if (hls.autoLevelEnabled) {
          const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
          if (autoOpt) autoOpt.classList.add('active');
@@ -343,10 +353,9 @@ hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
              }
          }
     } else {
-        // যদি 1080p তে ম্যানুয়ালি সুইচ করা হয়
-        const active1080p = qualityOptionsList.querySelector('li[data-level="1080"].active');
-        if (active1080p && qualityCurrentValue) {
-            qualityCurrentValue.textContent = '1080p';
+        const activeLevel = hls.levels[data.level];
+        if (activeLevel && qualityCurrentValue) {
+            qualityCurrentValue.textContent = `${activeLevel.height}p`;
         }
     }
 });
