@@ -24,7 +24,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .loading-content { text-align: center; }
 .loading-logo { font-family: 'Arial', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.5px; background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .loading-bar-container { width: 220px; height: 2.5px; margin: 0 auto 18px auto; position: relative; }
-.loading-bar { width: 100%; height: 100%; background-image: linear-gradient(to right, transparent, white, transparent), linear-gradient(to right, transparent, var(--gradient-start-color) 45%, var(--gradient-end-color) 55%, transparent ); background-size: 40% 100%, 100% 100%; background-repeat: no-repeat; background-blend-mode: screen; animation: loading-scan-final 3s infinite linear; clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%); }
+.loading-bar { width: 100%; height: 100%; background-image: linear-gradient(to right, transparent, white, transparent), linear-gradient(to right, transparent, var(--gradient-start-color) 45%, var(--gradient-end-color) 55%, transparent ); background-size: 40% 100%, 100% 100%; background-repeat: no-repeat; background-blend-mode: screen; animation: loading-scan-final 2.8s infinite linear; clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%); }
 @keyframes loading-scan-final { 0% { background-position: 10% 0, 0 0; } 100% { background-position: 90% 0, 0 0; } }
 .loading-text { font-size: 10px; letter-spacing: 0.5px; }
 .loading-maintext { color: white; }
@@ -110,7 +110,21 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .menu-page .back-btn { background: none; border: none; color: white; cursor: pointer; padding: 0 10px 0 0; margin-left: -5px; }
 .menu-page .back-btn svg { width: 24px; height: 24px; fill: white; }
 .menu-speed ul, .menu-quality ul { list-style: none; margin: 0; padding: 0; }
-.menu-speed li, .menu-quality li { padding: 10px 12px; cursor: pointer; border-radius: 8px; transition: background-color 0.2s ease; font-size: 14px; color: #f1f1f1; }
+
+/* ===== START: FINAL ALIGNMENT FIX (মূল পরিবর্তন এখানে) ===== */
+.menu-speed li, 
+.menu-quality li {
+    display: flex !important; /* নিশ্চিত করে যে এটি একটি ফ্লেক্স কন্টেইনার */
+    justify-content: flex-start !important; /* লেখাটিকে জোর করে বাম দিকে রাখে */
+    padding: 10px 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+    font-size: 14px;
+    color: #f1f1f1;
+}
+/* ===== END: FINAL ALIGNMENT FIX ===== */
+
 .menu-speed li:hover, .menu-quality li:hover { background-color: rgba(255, 255, 255, 0.1); }
 .menu-speed li.active, .menu-quality li.active { color: var(--theme-color); font-weight: bold; }
 
@@ -124,29 +138,3 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 /* === ব্যবহারকারীর সিলেকশন বন্ধ করা === */
 .player-container, .player-container * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .player-container input[type="range"] { -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; }
-
-/* ===== START: 1080p ALIGNMENT FIX (মূল পরিবর্তন এখানে) ===== */
-/* এই কোডটি নিশ্চিত করে যে সব কোয়ালিটি অপশনের স্টাইল একই থাকবে */
-#quality-options-list li {
-    padding: 10px 12px;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: background-color 0.2s ease;
-    font-size: 14px;
-    color: #f1f1f1;
-}
-#quality-options-list li:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-#quality-options-list li.active {
-    color: var(--theme-color);
-    font-weight: bold;
-}
-/* ===== END: 1080p ALIGNMENT FIX ===== */
-
-/* ===== START: 1080p FINAL ALIGNMENT FIX (মূল পরিবর্তন এখানে) ===== */
-#quality-options-list li {
-    display: flex;
-    justify-content: flex-start; /* লেখাটিকে বাম দিকে সারিবদ্ধ করার জন্য */
-}
-/* ===== END: 1080p FINAL ALIGNMENT FIX ===== */
