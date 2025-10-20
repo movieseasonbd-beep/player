@@ -42,8 +42,22 @@ function loadVideo(videoUrl) {
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
+        
+        // ===== START: OPTIMIZATION (মূল পরিবর্তন এখানে) =====
+        // hls.js যখন ভিডিওর প্রথম অংশ লোড করতে পারবে, তখন লোডিং স্ক্রিন সরান
+        hls.on(Hls.Events.FRAG_BUFFERED, function(event, data) {
+            // এই ইভেন্টটি শুধুমাত্র একবারই দরকার, তাই এটি সরিয়ে দিন
+            hls.off(Hls.Events.FRAG_BUFFERED);
+            loadingOverlay.classList.add('hidden');
+        });
+        // ===== END: OPTIMIZATION =====
+
     } else {
         video.src = videoUrl;
+        // সাধারণ MP4 ফাইলের জন্য, যখন এটি চলতে পারবে, তখন লোডিং স্ক্রিন সরান
+        video.addEventListener('canplay', () => {
+            loadingOverlay.classList.add('hidden');
+        }, { once: true }); // { once: true } মানে ইভেন্টটি একবার শোনার পর রিমুভ হয়ে যাবে
     }
 }
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
@@ -211,32 +225,21 @@ speedOptions.forEach(option => {
 });
 
 // ===== START: FINAL & IMPROVED setQuality FUNCTION =====
-// এই ফাংশনটি এখন 1080p লিঙ্ক হ্যান্ডেল করার জন্য hls.js রিসেট করে
 function setQuality(level, url = null) {
     const allQualityOptions = qualityOptionsList.querySelectorAll('li');
     allQualityOptions.forEach(opt => opt.classList.remove('active'));
 
-    // ১. যদি 1080p বা অন্য কোনো এক্সটার্নাল লিঙ্ক হয়
     if (url) {
         console.log(`Switching to external URL: ${url}`);
-        
-        // hls.js ইনস্ট্যান্সটি ধ্বংস করে নতুন করে তৈরি করুন (এটিই মূল সমাধান)
         hls.destroy();
         hls = new Hls();
-        
-        // নতুন লিঙ্কটি লোড করুন এবং ভিডিওর সাথে যুক্ত করুন
         hls.loadSource(url);
         hls.attachMedia(video);
-        
-        // ভিডিও প্লে করার জন্য প্রস্তুত হলে প্লে করুন
         hls.on(Hls.Events.MANIFEST_PARSED, function() {
             video.play();
         });
-        
         const option1080p = qualityOptionsList.querySelector(`li[data-level='${level}']`);
         if (option1080p) option1080p.classList.add('active');
-
-    // ২. যদি hls-এর বিল্ট-ইন কোয়ালিটি হয়
     } else {
         console.log(`Switching to HLS level: ${level}`);
         hls.currentLevel = parseInt(level);
@@ -253,10 +256,7 @@ function setQuality(level, url = null) {
 hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
-
-    // ১. প্রথমে সাধারণ কোয়ালিটিগুলো যোগ করুন
     if (data.levels.length > 0) {
-        // কোয়ালিটি মেনু বাটন তৈরি (যদি না থাকে)
         if (!document.getElementById('quality-menu-btn')) {
             const qualityMenuBtn = document.createElement('li');
             qualityMenuBtn.id = 'quality-menu-btn';
@@ -272,18 +272,13 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
             qualityMenuBtn.addEventListener('click', () => showMenuPage(qualitySettingsPage));
             playerSettingsGroup.prepend(qualityMenuBtn);
         }
-
         qualityOptionsList.innerHTML = '';
-        
-        // "Auto" অপশন যোগ
         const autoOption = document.createElement('li');
         autoOption.textContent = 'Auto';
         autoOption.dataset.level = -1;
         autoOption.classList.add('active');
         autoOption.addEventListener('click', () => setQuality(-1));
         qualityOptionsList.appendChild(autoOption);
-        
-        // সাধারণ কোয়ালিটি যোগ
         data.levels.forEach((level, index) => {
             const option = document.createElement('li');
             option.textContent = `${level.height}p`;
@@ -293,18 +288,15 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         });
     }
 
-    // ২. এখন 1080p লিঙ্ক চেক ও যোগ করার চেষ্টা
     try {
         const currentUrl = new URL(videoUrl);
         const pathSegments = currentUrl.pathname.split('/');
-        
         if (!pathSegments.includes('1080')) {
             const lastSegmentIndex = pathSegments.findLastIndex(seg => seg.includes('.m3u8'));
             if (lastSegmentIndex > -1) {
                 let segments1080 = [...pathSegments];
                 segments1080.splice(lastSegmentIndex, 0, '1080');
                 const potential1080pUrl = currentUrl.origin + segments1080.join('/') + currentUrl.search;
-                
                 fetch(potential1080pUrl, { method: 'HEAD' })
                     .then(response => {
                         if (response.ok) {
@@ -321,34 +313,26 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
     } catch(e) {
         console.error("Error creating URL for 1080p check:", e);
     }
-    
-    // মেনু উচ্চতা অ্যাডজাস্ট
     if (settingsMenu.classList.contains('active')) {
         setTimeout(() => menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`, 0);
     }
 });
+// ===== END: FINAL HLS QUALITY MANAGEMENT CODE =====
+
 // ===== START: FINAL & CORRECTED LEVEL_SWITCHED FUNCTION =====
 hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
     if (!qualityMenuBtn) return;
     const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
-    
-    // ১. প্রথমে চেক করুন 1080p অপশনটি বর্তমানে অ্যাক্টিভ কিনা
     const is1080pActive = qualityOptionsList.querySelector('li[data-level="1080"].active');
-
     if (is1080pActive) {
-        // যদি 1080p অ্যাক্টিভ থাকে, তাহলে মেন্যুতে "1080p" দেখান
         qualityCurrentValue.textContent = '1080p';
-        return; // ফাংশনের বাকি অংশ আর চালানোর দরকার নেই
+        return;
     }
-
-    // ২. যদি 1080p অ্যাক্টিভ না থাকে, তাহলে আগের মতোই কাজ করুন
     const allQualityOptions = qualityOptionsList.querySelectorAll('li');
     allQualityOptions.forEach(opt => opt.classList.remove('active'));
-
     const activeOption = qualityOptionsList.querySelector(`li[data-level='${hls.currentLevel}']`);
     if(activeOption) activeOption.classList.add('active');
-    
     if (hls.autoLevelEnabled) {
          const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
          if (autoOpt) autoOpt.classList.add('active');
@@ -367,19 +351,26 @@ hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
         }
     }
 });
+// ===== END: FINAL & CORRECTED LEVEL_SWITCHED FUNCTION =====
 
-// === পেজ লোড হলে যা যা ঘটবে ===
+
+// ===== START: FINAL & OPTIMIZED PAGE LOAD LOGIC (মূল পরিবর্তন এখানে) =====
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
+
+    // পেজ লোড হওয়ার সাথে সাথেই ভিডিও লোড করা শুরু করুন
     if (videoUrl) {
         loadVideo(videoUrl);
-        setTimeout(() => loadingOverlay.classList.add('hidden'), 2500);
     } else {
+        // যদি কোনো ভিডিও লিঙ্ক না থাকে, তাহলে লোডিং স্ক্রিন সরান
         loadingOverlay.classList.add('hidden');
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
+
+    // বাকি UI এলিমেন্টগুলো আপডেট করুন
     updatePlayState();
     updateVolumeIcon();
     updateFullscreenState();
 });
+// ===== END: FINAL & OPTIMIZED PAGE LOAD LOGIC =====
