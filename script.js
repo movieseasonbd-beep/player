@@ -46,7 +46,6 @@ function loadVideo(videoUrl) {
     };
 
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
-        // hls.js এর জন্য এরর হ্যান্ডলিং যোগ করা হয়েছে
         setupHls(videoUrl);
         hls.on(Hls.Events.FRAG_BUFFERED, function(event, data) {
             hls.off(Hls.Events.FRAG_BUFFERED);
@@ -60,19 +59,25 @@ function loadVideo(videoUrl) {
 }
 
 // ==========================================================
-// === HLS.js এরর হ্যান্ডলিং (নতুন যোগ করা হয়েছে) ===
+// === HLS.js সেটআপ এবং এরর হ্যান্ডলিং (চূড়ান্ত সংস্করণ) ===
 // ==========================================================
 function setupHls(videoUrl) {
     if (hls) {
         hls.destroy();
     }
     
-    // রিকভারির জন্য কনফিগারেশন
+    // রিডাইরেক্ট এবং এরর হ্যান্ডলিং এর জন্য নতুন কনফিগারেশন
     const hlsConfig = {
         // এরর হলে সর্বোচ্চ ৫ বার রিকভার করার চেষ্টা করবে
         fragLoadRetry: 5, 
         // প্রতিবার চেষ্টার মধ্যে ১ সেকেন্ড দেরি করবে
-        fragLoadRetryDelay: 1000, 
+        fragLoadRetryDelay: 1000,
+        // (*** নতুন এবং সবচেয়ে গুরুত্বপূর্ণ পরিবর্তন ***)
+        // XHR অনুরোধ সেটআপ করার জন্য
+        xhrSetup: function (xhr, url) {
+            // সার্ভার যদি কুকি বা সেশন-ভিত্তিক প্রমাণীকরণ ব্যবহার করে, তবে এটি প্রয়োজন
+            xhr.withCredentials = true; 
+        }
     };
 
     hls = new Hls(hlsConfig);
@@ -92,7 +97,6 @@ function setupHls(videoUrl) {
                     hls.recoverMediaError(); // মিডিয়া এরর থেকে রিকভার করার চেষ্টা
                     break;
                 default:
-                    // যদি রিকভার করা সম্ভব না হয়, hls destroy করে দিন
                     console.log('Unrecoverable HLS error. Destroying HLS instance.');
                     hls.destroy();
                     break;
@@ -264,7 +268,6 @@ speedOptions.forEach(option => {
     });
 });
 
-// ===== START: FINAL & MOST RELIABLE setQuality FUNCTION (মূল পরিবর্তন এখানে) =====
 function setQuality(level, url = null) {
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
     const qualityCurrentValue = qualityMenuBtn ? qualityMenuBtn.querySelector('.current-value') : null;
@@ -273,19 +276,18 @@ function setQuality(level, url = null) {
     allQualityOptions.forEach(opt => opt.classList.remove('active'));
 
     if (url) {
-        // নতুন URL লোড করার জন্য hls সেটআপ ফাংশন ব্যবহার করুন
         setupHls(url); 
         hls.on(Hls.Events.MANIFEST_PARSED, function() {
             video.play();
         });
         
-        if (qualityCurrentValue) qualityCurrentValue.textContent = '1080p'; // সরাসরি মেনু টেক্সট আপডেট
+        if (qualityCurrentValue) qualityCurrentValue.textContent = '1080p';
         const option1080p = qualityOptionsList.querySelector(`li[data-level='${level}']`);
         if (option1080p) option1080p.classList.add('active');
     } else {
         hls.currentLevel = parseInt(level);
         
-        if (level === -1) { // যদি Auto সিলেক্ট করা হয়
+        if (level === -1) {
             if (qualityCurrentValue) qualityCurrentValue.textContent = 'Auto';
         }
         
@@ -294,7 +296,6 @@ function setQuality(level, url = null) {
     }
     showMenuPage(mainSettingsPage);
 }
-// ===== END: FINAL & MOST RELIABLE setQuality FUNCTION =====
 
 hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -358,35 +359,24 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
     }
 });
 
-// ===== START: FINAL & MOST RELIABLE LEVEL_SWITCHED FUNCTION =====
 hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
     if (!qualityMenuBtn) return;
     const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
     
-    // Auto মোডে থাকলেই এই ফাংশনটি কাজ করবে
     if (hls.autoLevelEnabled) {
         const activeLevel = hls.levels[data.level];
         if (activeLevel) {
-            // ১. মেন্যুর বাইরের টেক্সট আপডেট করুন
             qualityCurrentValue.textContent = `${activeLevel.height}p (Auto)`;
-
-            // ২. লিস্টের ভেতরের সব আইটেম থেকে .active ক্লাস সরিয়ে দিন
             const allQualityOptions = qualityOptionsList.querySelectorAll('li');
             allQualityOptions.forEach(opt => opt.classList.remove('active'));
-
-            // ৩. "Auto" অপশনটিকে এবং বর্তমান কোয়ালিটির অপশনটিকে .active করুন
             const autoOption = qualityOptionsList.querySelector('li[data-level="-1"]');
             if(autoOption) autoOption.classList.add('active');
-            
             const currentQualityOption = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
             if(currentQualityOption) currentQualityOption.classList.add('active');
         }
     } 
-    // ম্যানুয়াল মোডে থাকলে setQuality ফাংশন নিজেই সবকিছু হ্যান্ডেল করে, তাই এখানে কিছু করার দরকার নেই
 });
-// ===== END: FINAL & MOST RELIABLE LEVEL_SWITCHED FUNCTION =====
-// ===== END: SIMPLIFIED LEVEL_SWITCHED FUNCTION =====
 
 // === পেজ লোড হলে যা যা ঘটবে ===
 document.addEventListener('DOMContentLoaded', () => {
