@@ -156,6 +156,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 /* ===== START: QUALITY LIST HEIGHT FIX ===== */
 #quality-options-list {
     min-height: 110px;
-    max-height: 220px;
+    max-height: 150px;
 }
 /* ===== END: QUALITY LIST HEIGHT FIX ===== */
