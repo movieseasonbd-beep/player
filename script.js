@@ -35,30 +35,30 @@ let controlsTimeout;
 let isScrubbing = false;
 let wasPlaying = false;
 
-// ===== START: NEW VARIABLE (মূল পরিবর্তন এখানে) =====
-// এই ভ্যারিয়েবলটি ট্র্যাক করবে যে 1080p চলছে কিনা
-let isExternalQualityActive = false;
-// ===== END: NEW VARIABLE =====
-
-
 // ==========================================================
 // === ফাংশনসমূহ ===
 // ==========================================================
 function loadVideo(videoUrl) {
+    const hideLoadingScreen = () => {
+        if (!loadingOverlay.classList.contains('hidden')) {
+            loadingOverlay.classList.add('hidden');
+        }
+    };
+
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
         hls.on(Hls.Events.FRAG_BUFFERED, function(event, data) {
             hls.off(Hls.Events.FRAG_BUFFERED);
-            loadingOverlay.classList.add('hidden');
+            hideLoadingScreen();
         });
     } else {
         video.src = videoUrl;
-        video.addEventListener('canplay', () => {
-            loadingOverlay.classList.add('hidden');
-        }, { once: true });
+        video.addEventListener('canplay', hideLoadingScreen, { once: true });
     }
+    setTimeout(hideLoadingScreen, 2500);
 }
+
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
 function handleScreenTap() {
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
@@ -156,7 +156,7 @@ function showMenuPage(pageToShow) {
 }
 
 // ==========================================================
-// === Event Listeners (ইভেন্ট লিসেনার) ===
+// === Event Listeners ===
 // ==========================================================
 video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
@@ -221,13 +221,15 @@ speedOptions.forEach(option => {
     });
 });
 
-// ===== START: FINAL & IMPROVED setQuality FUNCTION (মূল পরিবর্তন এখানে) =====
+// ===== START: FINAL & MOST RELIABLE setQuality FUNCTION (মূল পরিবর্তন এখানে) =====
 function setQuality(level, url = null) {
+    const qualityMenuBtn = document.getElementById('quality-menu-btn');
+    const qualityCurrentValue = qualityMenuBtn ? qualityMenuBtn.querySelector('.current-value') : null;
+
     const allQualityOptions = qualityOptionsList.querySelectorAll('li');
     allQualityOptions.forEach(opt => opt.classList.remove('active'));
 
     if (url) {
-        isExternalQualityActive = true; // ফ্ল্যাগ সেট করুন
         hls.destroy();
         hls = new Hls();
         hls.loadSource(url);
@@ -235,19 +237,24 @@ function setQuality(level, url = null) {
         hls.on(Hls.Events.MANIFEST_PARSED, function() {
             video.play();
         });
+        
+        if (qualityCurrentValue) qualityCurrentValue.textContent = '1080p'; // সরাসরি মেনু টেক্সট আপডেট
         const option1080p = qualityOptionsList.querySelector(`li[data-level='${level}']`);
         if (option1080p) option1080p.classList.add('active');
     } else {
-        isExternalQualityActive = false; // ফ্ল্যাগ রিসেট করুন
         hls.currentLevel = parseInt(level);
+        
+        if (level === -1) { // যদি Auto সিলেক্ট করা হয়
+            if (qualityCurrentValue) qualityCurrentValue.textContent = 'Auto';
+        }
+        
         const option = qualityOptionsList.querySelector(`li[data-level='${level}']`);
         if (option) option.classList.add('active');
     }
     showMenuPage(mainSettingsPage);
 }
-// ===== END: FINAL & IMPROVED setQuality FUNCTION =====
+// ===== END: FINAL & MOST RELIABLE setQuality FUNCTION =====
 
-// ===== START: FINAL HLS QUALITY MANAGEMENT CODE =====
 hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
@@ -309,38 +316,27 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         setTimeout(() => menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`, 0);
     }
 });
-// ===== END: FINAL HLS QUALITY MANAGEMENT CODE =====
 
-// ===== START: FINAL & CORRECTED LEVEL_SWITCHED FUNCTION (মূল পরিবর্তন এখানে) =====
+// ===== START: SIMPLIFIED LEVEL_SWITCHED FUNCTION (মূল পরিবর্তন এখানে) =====
 hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
     if (!qualityMenuBtn) return;
     const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
-
-    // ১. ফ্ল্যাগ চেক করুন: 1080p কি চলছে?
-    if (isExternalQualityActive) {
-        qualityCurrentValue.textContent = '1080p';
-    } 
-    // ২. যদি 1080p না চলে, তাহলে hls-এর অটো মোড চেক করুন
-    else if (hls.autoLevelEnabled) {
+    
+    // শুধুমাত্র Auto মোডে থাকলেই এই ফাংশনটি মেনু টেক্সট আপডেট করবে
+    if (hls.autoLevelEnabled) {
         const activeLevel = hls.levels[data.level];
         if (activeLevel) {
             qualityCurrentValue.textContent = `${activeLevel.height}p (Auto)`;
-        } else {
-            qualityCurrentValue.textContent = 'Auto';
         }
-    } 
-    // ৩. যদি ম্যানুয়ালি অন্য কোনো কোয়ালিটি চলে
-    else {
-        const activeLevel = hls.levels[data.level];
-        if (activeLevel) {
-            qualityCurrentValue.textContent = `${activeLevel.height}p`;
-        }
+    } else {
+        // ম্যানুয়াল মোডে থাকলে, setQuality ফাংশন নিজেই টেক্সট আপডেট করে দেবে
+        // তাই এখানে কিছু করার দরকার নেই
     }
 });
-// ===== END: FINAL & CORRECTED LEVEL_SWITCHED FUNCTION =====
+// ===== END: SIMPLIFIED LEVEL_SWITCHED FUNCTION =====
 
-// ===== START: FINAL & OPTIMIZED PAGE LOAD LOGIC =====
+// === পেজ লোড হলে যা যা ঘটবে ===
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
