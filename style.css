@@ -22,9 +22,9 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s ease; }
 .loading-overlay.hidden { opacity: 0; visibility: hidden; }
 .loading-content { text-align: center; }
-.loading-logo { font-family: 'Arial', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 7px; letter-spacing: 0.5px; background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.loading-bar-container { width: 220px; height: 2.5px; margin: 0 auto 15px auto; position: relative; }
-.loading-bar { width: 100%; height: 100%; background-image: linear-gradient(to right, transparent, white, transparent), linear-gradient(to right, transparent, var(--gradient-start-color) 25%, var(--gradient-end-color) 70%, transparent ); background-size: 40% 100%, 100% 100%; background-repeat: no-repeat; background-blend-mode: screen; animation: loading-scan-final 3.1s infinite linear; clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%); }
+.loading-logo { font-family: 'Arial', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.5px; background: linear-gradient(to right, var(--loading-gradient-start), var(--loading-gradient-end)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.loading-bar-container { width: 220px; height: 2.5px; margin: 0 auto 18px auto; position: relative; }
+.loading-bar { width: 100%; height: 100%; background-image: linear-gradient(to right, transparent, white, transparent), linear-gradient(to right, transparent, var(--gradient-start-color) 25%, var(--gradient-end-color) 70%, transparent ); background-size: 40% 100%, 100% 100%; background-repeat: no-repeat; background-blend-mode: screen; animation: loading-scan-final 3.3s infinite linear; clip-path: polygon(0% 50%, 5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%); }
 @keyframes loading-scan-final { 0% { background-position: 10% 0, 0 0; } 100% { background-position: 90% 0, 0 0; } }
 .loading-text { font-size: 10px; letter-spacing: 0.5px; }
 .loading-maintext { color: white; }
@@ -53,7 +53,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .controls-left, .controls-right { display: flex; align-items: center; gap: 20px; }
 .control-btn { background: none; border: none; color: white; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; display: flex; align-items: center; justify-content: center; }
 .control-btn:hover { color: var(--theme-color); }
-.control-btn:active { transform: scale(0.95); }
+.control-btn:active { transform: scale(1); }
 .control-btn.active { color: var(--theme-color); }
 
 /* ========== START: FINAL & SAFE ICON STYLES (মূল পরিবর্তন এখানে) ========== */
