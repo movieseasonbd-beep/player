@@ -143,3 +143,10 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     font-weight: bold;
 }
 /* ===== END: 1080p ALIGNMENT FIX ===== */
+
+/* ===== START: 1080p FINAL ALIGNMENT FIX (মূল পরিবর্তন এখানে) ===== */
+#quality-options-list li {
+    display: flex;
+    justify-content: flex-start; /* লেখাটিকে বাম দিকে সারিবদ্ধ করার জন্য */
+}
+/* ===== END: 1080p FINAL ALIGNMENT FIX ===== */
