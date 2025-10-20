@@ -131,7 +131,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .menu-quality li {
     display: flex !important;
     justify-content: flex-start !important;
-    padding: 8px 11px;
+    padding: 10px 12px;
     cursor: pointer;
     border-radius: 8px;
     transition: background-color 0.2s ease;
