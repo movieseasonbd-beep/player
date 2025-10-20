@@ -116,7 +116,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .menu-quality li {
     display: flex !important; /* নিশ্চিত করে যে এটি একটি ফ্লেক্স কন্টেইনার */
     justify-content: flex-start !important; /* লেখাটিকে জোর করে বাম দিকে রাখে */
-    padding: 10px 12px;
+    padding: 6px 7px;
     cursor: pointer;
     border-radius: 8px;
     transition: background-color 0.2s ease;
