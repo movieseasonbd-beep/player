@@ -130,3 +130,22 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 /* === ব্যবহারকারীর সিলেকশন বন্ধ করা === */
 .player-container, .player-container * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .player-container input[type="range"] { -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; }
+
+/* --- Quality লিস্টে 1080p অপশনের স্টাইল ঠিক করার জন্য নতুন কোড --- */
+#quality-options-list li[data-level="1080"] {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+    font-size: 14px;
+    color: #f1f1f1;
+}
+
+#quality-options-list li[data-level="1080"]:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#quality-options-list li[data-level="1080"].active {
+    color: var(--theme-color);
+    font-weight: bold;
+}
