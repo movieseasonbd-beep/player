@@ -56,9 +56,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-btn:active { transform: scale(1); }
 .control-btn.active { color: var(--theme-color); }
 
-/* ========== START: FINAL & SAFE ICON STYLES (মূল পরিবর্তন এখানে) ========== */
-
-/* ১. সব আইকনের জন্য সাধারণ নিয়ম (এটি আগের মতোই আছে) */
+/* ========== START: FINAL & SAFE ICON STYLES ========== */
 .control-btn svg path { 
     fill: white; 
 }
@@ -71,17 +69,13 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-btn svg { 
     transition: fill 0.1s ease; 
 }
-
-/* ২. শুধুমাত্র fullscreen-on (আউটলাইন) আইকনের জন্য একটি বিশেষ নিয়ম যোগ করা হয়েছে */
-/* এই নিয়মটি উপরের নিয়মকে অগ্রাহ্য করে শুধুমাত্র এই আইকনটিকে ঠিক করবে */
 #fullscreen-btn .fullscreen-on-icon path {
-    stroke: white;      /* লাইনকে সাদা রঙ দেওয়া হয়েছে */
-    fill: none;         /* এবং fill সম্পূর্ণ বন্ধ করা হয়েছে */
+    stroke: white;
+    fill: none;
 }
 #fullscreen-btn:hover .fullscreen-on-icon path {
-    stroke: var(--theme-color); /* হোভার করলে লাইনকে থিম-কালার দেওয়া হয়েছে */
+    stroke: var(--theme-color);
 }
-
 /* ========== END: FINAL & SAFE ICON STYLES ========== */
 
 #play-pause-btn svg { width: 30px; height: 30px; }
@@ -96,7 +90,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
 
-/* === সেটিংস মেনু (অপরিবর্তিত) === */
+/* === সেটিংস মেনু === */
 .settings-menu { position: absolute; top: 50%; left: 50%; width: 280px; background-color: #1f1f1f; border-radius: 16px; border: 1px solid #3a3a3a; opacity: 0; visibility: hidden; transform: translate(-50%, -45%) scale(0.95); transition: opacity 0.2s ease, transform 0.2s ease; padding: 8px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); z-index: 5; }
 .settings-menu.active { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
 .menu-handle-container { width: 100%; padding: 4px 0 10px 0; display: flex; justify-content: center; }
@@ -131,8 +125,9 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container, .player-container * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .player-container input[type="range"] { -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; }
 
-/* --- Quality লিস্টে 1080p অপশনের স্টাইল ঠিক করার জন্য নতুন কোড --- */
-#quality-options-list li[data-level="1080"] {
+/* ===== START: 1080p ALIGNMENT FIX (মূল পরিবর্তন এখানে) ===== */
+/* এই কোডটি নিশ্চিত করে যে সব কোয়ালিটি অপশনের স্টাইল একই থাকবে */
+#quality-options-list li {
     padding: 10px 12px;
     cursor: pointer;
     border-radius: 8px;
@@ -140,12 +135,11 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     font-size: 14px;
     color: #f1f1f1;
 }
-
-#quality-options-list li[data-level="1080"]:hover {
+#quality-options-list li:hover {
     background-color: rgba(255, 255, 255, 0.1);
 }
-
-#quality-options-list li[data-level="1080"].active {
+#quality-options-list li.active {
     color: var(--theme-color);
     font-weight: bold;
 }
+/* ===== END: 1080p ALIGNMENT FIX ===== */
