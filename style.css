@@ -36,7 +36,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     width: 80px; 
     height: 80px; 
     fill: none;
-    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.9)); 
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); 
 }
 
 /* === কন্ট্রোলস === */
@@ -95,14 +95,29 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     position: absolute; 
     top: 50%; 
     left: 50%; 
+    width: 250pxছেন যা বাম দিকের নিচ থেকে শুরু হয়ে ডান দিকের উপরে গিয়ে শেষ হবে। এটি আপনার ডিজাইনকে আরও গতিশীল এবং আকর্ষণীয় করে; 
+    
+    /* ===== START: ডায়াগোনাল গ্রেডিয়েন্ট ডিজাইনের জন্য কোড ===== */
+    background: linear-gradient(to top right, #1f1f1f, #050505); /* <-- মূল পরিবর্তন এখানে */
+    border: 1px solid #3a3a3a;
+ তুলবে।
+
+এর জন্য আমরা `linear-gradient` ফাংশনের দিকটি পরিবর্তন করে দেব।
+
+**আপনার `style.css` ফাইলের `.settings-menu` ক্লাসের সম্পূর্ণ কোডটি নিচের এই নতুন কোডটি দিয়ে প্রতিস্থাপন করুন।**
+
+---
+
+### আপনার জন্য চূড়ান্ত CSS কোড (কৌণিক গ্রেডিয়েন্ট মেনুর জন্য)
+
+```css
+.settings-menu { 
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
     width: 250px; 
     
-    /* ===== START: কালো ট্রান্সপারেন্ট ডিজাইনের জন্য কোড ===== */
-    background-color: rgba(0, 0, 0, 0.9); /* <-- মূল পরিবর্তন এখানে (খাঁটি কালো রঙকে ৭০% অস্বচ্ছ করা হয়েছে) */
-    backdrop-filter: blur(15px);          /* পেছনের অংশকে ঝাপসা করার জন্য */
-    -webkit-backdrop-filter: blur(15px);  /* Safari ব্রাউজারের জন্য */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* বর্ডারটিকে হালকা স্বচ্ছ রাখা হয়েছে */
-    /* ===== END: কালো ট্রান্সপারেন্ট ডিজাইনের জন্য কোড ===== */
+    /* =====    /* ===== END: ডায়াগোনাল গ্রেডিয়েন্ট ডিজাইনের জন্য কোড ===== */
 
     border-radius: 16px; 
     opacity: 0; 
@@ -110,7 +125,15 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     transform: translate(-50%, -45%) scale(0.95); 
     transition: opacity 0.2s ease, transform 0.2s ease; 
     padding: 8px; 
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); 
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5 START: কৌণিক গ্রেডিয়েন্ট ডিজাইনের জন্য কোড ===== */
+    background: linear-gradient(to top right, #1f1f1f, #050505); /* <-- মূল পরিবর্তন এখানে */
+    border: 1px solid #3a3a3a;
+    /* ===== END: কৌণিক গ্রেডিয়েন্ট ডিজাইনের জন্য কোড ===== */
+
+    border-radius: 16px; 
+    opacity: 0; 
+    visibility: hidden; 
+    transform: translate(-50%, -45%) scale(); 
     z-index: 5; 
 }
 .settings-menu.active { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
