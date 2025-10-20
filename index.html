@@ -121,9 +121,13 @@
   <button class="control-btn" id="fullscreen-btn">
     
     <!-- নতুন এবং সঠিক Fullscreen On আইকন -->
-    <svg class="fullscreen-on-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-    </svg>
+    <!-- ছবির মতো রাউন্ডেড কোণার জন্য Fullscreen On আইকন -->
+<svg class="fullscreen-on-icon" stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
+    <path d="M21 8V5a2 2 0 0 0-2-2h-3"></path>
+    <path d="M3 16v3a2 2 0 0 0 2 2h3"></path>
+    <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
+</svg>
     
     <!-- আপনার পুরোনো এবং সঠিক Fullscreen Off আইকন (এটি অপরিবর্তিত থাকবে) -->
     <svg class="fullscreen-off-icon" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display:none;">
