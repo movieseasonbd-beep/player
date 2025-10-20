@@ -1,24 +1,24 @@
 :root {
---theme-color: #f21111;
---theme-color-darker: #e33939;
---progress-bar-height: 5px;
---thumb-size: 16px;
---central-play-btn-color: #fa0505;
---gradient-start-color: #cf0000;
---gradient-end-color: #f16d0f;
---loading-theme-color: #ff0000;
---loading-gradient-start: #ff0000;
---loading-gradient-end: #ff7e7e;
+    --theme-color: #f21111;
+    --theme-color-darker: #e33939;
+    --progress-bar-height: 5px;
+    --thumb-size: 16px;
+    --central-play-btn-color: #fa0505;
+    --gradient-start-color: #cf0000;
+    --gradient-end-color: #f16d0f;
+    --loading-theme-color: #ff0000;
+    --loading-gradient-start: #ff0000;
+    --loading-gradient-end: #ff7e7e;
 }
 
 body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; color: white; overflow: hidden; }
 .player-container { width: 100vw; height: 100vh; position: relative; background-color: #000; display: flex; justify-content: center; align-items: center; }
 .player-container.playing .central-play-btn { opacity: 0; visibility: hidden; }
-.player-container.paused .controls-container,
+.player-container.paused .controls-container, 
 .player-container.show-controls .controls-container { opacity: 1; transform: translateY(0); }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
-/* === লোডিং ও সেন্ট্রাল বাটন (অপরিবর্তিত) === /
+/* === লোডিং ও সেন্ট্রাল বাটন (অপরিবর্তিত) === */
 .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s ease; }
 .loading-overlay.hidden { opacity: 0; visibility: hidden; }
 .loading-content { text-align: center; }
@@ -32,15 +32,9 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .central-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; cursor: pointer; transition: all 0.2s ease; background: none; width: auto; height: auto; }
 .central-play-btn:hover { transform: translate(-50%, -50%) scale(1.1); }
 .central-play-btn:active { transform: translate(-50%, -50%) scale(1.0); }
-/ === সেন্ট্রাল প্লে বাটন === /
-/ ... অন্যান্য স্টাইল ... /
-.central-play-btn svg {
-width: 80px;
-height: 80px;
-fill: none; / আগের fill কালারটি তুলে দেওয়া হলো /
-filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7));
-}
-/ === কন্ট্রোলস (অপরিবর্তিত) === */
+.central-play-btn svg { width: 80px; height: 80px; fill: var(--central-play-btn-color); filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); }
+
+/* === কন্ট্রোলস (অপরিবর্তিত) === */
 .controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
 .progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 2px 0; cursor: pointer; position: relative; }
 .progress-background, .buffer-bar, .progress-filled, .progress-bar { grid-column: 1; grid-row: 1; }
@@ -54,7 +48,7 @@ filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7));
 .controls-left, .controls-right { display: flex; align-items: center; gap: 20px; }
 .control-btn { background: none; border: none; color: white; cursor: pointer; padding: 0; transition: transform 0.1s ease, color 0.1s ease; position: relative; display: flex; align-items: center; justify-content: center; }
 .control-btn:hover { color: var(--theme-color); }
-.control-btn:active { transform: scale(1); }
+.control-btn:active { transform: scale(0.95); }
 .control-btn.active { color: var(--theme-color); }
 .control-btn svg path { fill: white; }
 .control-btn:hover svg path { fill: var(--theme-color); }
@@ -66,7 +60,7 @@ filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7));
 #forward-btn { transform: translateX(-8px); }
 #rewind-btn { transform: translateX(-8px); }
 #settings-btn { transform: translateX(+8px); }
-#fullscreen-btn svg { width: 24px; height: 24px; }
+#fullscreen-btn svg { width: 30px; height: 30px; }
 #fullscreen-btn { transform: translateX(+4px); }
 .time-display { font-size: 11px; user-select: none; margin-left: -11px; white-space: nowrap; }
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
@@ -77,29 +71,10 @@ filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7));
 .settings-menu.active { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
 .menu-handle-container { width: 100%; padding: 4px 0 10px 0; display: flex; justify-content: center; }
 .menu-handle { width: 35px; height: 4px; background-color: #4d4d4d; border-radius: 10px; }
-
-/* === স্লাইডিং অ্যানিমেশনের মূল কোড === /
-.menu-content-wrapper {
-position: relative;
-overflow: hidden;
-transition: height 0.2s ease-in-out; / উচ্চতা পরিবর্তনের জন্য অ্যানিমেশন /
-}
-.menu-page {
-position: absolute;
-top: 0;
-left: 0;
-width: 100%;
-background-color: transparent;
-transform: translateX(100%); / ডিফল্টভাবে ডানে থাকবে /
-transition: transform 0.2s ease-in-out;
-}
-.menu-page.active {
-position: relative; / অ্যাক্টিভ পেজকে স্বাভাবিক ফ্লো-তে আনা হয় /
-transform: translateX(0); / অ্যাক্টিভ পেজকে দৃশ্যমান করা হয় /
-}
-.menu-page.slide-out-left {
-transform: translateX(-100%); / বাম দিকে স্লাইড করে বেরিয়ে যাবে */
-}
+.menu-content-wrapper { position: relative; overflow: hidden; transition: height 0.2s ease-in-out; }
+.menu-page { position: absolute; top: 0; left: 0; width: 100%; background-color: transparent; transform: translateX(100%); transition: transform 0.2s ease-in-out; }
+.menu-page.active { position: relative; transform: translateX(0); }
+.menu-page.slide-out-left { transform: translateX(-100%); }
 
 /* প্রধান মেনুর বাটন ডিজাইন */
 .menu-main ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
