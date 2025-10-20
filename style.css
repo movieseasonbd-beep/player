@@ -97,12 +97,12 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     left: 50%; 
     width: 250px; 
     
-    /* ===== START: মূল পরিবর্তন এখানে ===== */
-    background-color: rgba(31, 31, 31, 0.7); /* পুরোনো #1f1f1f রঙটিকে ৭০% স্বচ্ছ করা হয়েছে */
-    backdrop-filter: blur(15px); /* পেছনের অংশকে ঝাপসা করার জন্য */
-    -webkit-backdrop-filter: blur(15px); /* Safari ব্রাউজারের জন্য */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* বর্ডারটিকেও কিছুটা স্বচ্ছ করা হয়েছে */
-    /* ===== END: মূল পরিবর্তন এখানে ===== */
+    /* ===== START: কালো ট্রান্সপারেন্ট ডিজাইনের জন্য কোড ===== */
+    background-color: rgba(0, 0, 0, 0.7); /* <-- মূল পরিবর্তন এখানে (খাঁটি কালো রঙকে ৭০% অস্বচ্ছ করা হয়েছে) */
+    backdrop-filter: blur(15px);          /* পেছনের অংশকে ঝাপসা করার জন্য */
+    -webkit-backdrop-filter: blur(15px);  /* Safari ব্রাউজারের জন্য */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* বর্ডারটিকে হালকা স্বচ্ছ রাখা হয়েছে */
+    /* ===== END: কালো ট্রান্সপারেন্ট ডিজাইনের জন্য কোড ===== */
 
     border-radius: 16px; 
     opacity: 0; 
