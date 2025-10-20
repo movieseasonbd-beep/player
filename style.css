@@ -95,49 +95,20 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     position: absolute; 
     top: 50%; 
     left: 50%; 
-    width: 250pxছেন যা বাম দিকের নিচ থেকে শুরু হয়ে ডান দিকের উপরে গিয়ে শেষ হবে। এটি আপনার ডিজাইনকে আরও গতিশীল এবং আকর্ষণীয় করে; 
-    
-    /* ===== START: ডায়াগোনাল গ্রেডিয়েন্ট ডিজাইনের জন্য কোড ===== */
-    background: linear-gradient(to top right, #1f1f1f, #050505); /* <-- মূল পরিবর্তন এখানে */
-    border: 1px solid #3a3a3a;
- তুলবে।
-
-এর জন্য আমরা `linear-gradient` ফাংশনের দিকটি পরিবর্তন করে দেব।
-
-**আপনার `style.css` ফাইলের `.settings-menu` ক্লাসের সম্পূর্ণ কোডটি নিচের এই নতুন কোডটি দিয়ে প্রতিস্থাপন করুন।**
-
----
-
-### আপনার জন্য চূড়ান্ত CSS কোড (কৌণিক গ্রেডিয়েন্ট মেনুর জন্য)
-
-```css
-.settings-menu { 
-    position: absolute; 
-    top: 50%; 
-    left: 50%; 
     width: 250px; 
-    
-    /* =====    /* ===== END: ডায়াগোনাল গ্রেডিয়েন্ট ডিজাইনের জন্য কোড ===== */
-
+    background: linear-gradient(to top right, #1f1f1f, #050505); /* ডায়াগোনাল গ্রেডিয়েন্ট */
+    border: 1px solid #3a3a3a;
     border-radius: 16px; 
     opacity: 0; 
     visibility: hidden; 
     transform: translate(-50%, -45%) scale(0.95); 
     transition: opacity 0.2s ease, transform 0.2s ease; 
     padding: 8px; 
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5 START: কৌণিক গ্রেডিয়েন্ট ডিজাইনের জন্য কোড ===== */
-    background: linear-gradient(to top right, #1f1f1f, #050505); /* <-- মূল পরিবর্তন এখানে */
-    border: 1px solid #3a3a3a;
-    /* ===== END: কৌণিক গ্রেডিয়েন্ট ডিজাইনের জন্য কোড ===== */
-
-    border-radius: 16px; 
-    opacity: 0; 
-    visibility: hidden; 
-    transform: translate(-50%, -45%) scale(); 
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); 
     z-index: 5; 
 }
 .settings-menu.active { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
-.menu-handle-container { width: 100%; padding: 3px 0 8px 0; display: flex; justify-content: center; }
+.menu-handle-container { width: 100%; padding: 4px 0 10px 0; display: flex; justify-content: center; }
 .menu-handle { width: 35px; height: 4px; background-color: #4d4d4d; border-radius: 10px; }
 .menu-content-wrapper { position: relative; overflow: hidden; transition: height 0.2s ease-in-out; }
 .menu-page { position: absolute; top: 0; left: 0; width: 100%; background-color: transparent; transform: translateX(100%); transition: transform 0.2s ease-in-out; }
@@ -150,27 +121,26 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .menu-item-label svg { width: 20px; height: 20px; fill: #e0e0e0; }
 .menu-item-value .current-value { color: #a0a0a0; font-size: 13px; }
 .menu-item-value .arrow-right { width: 20px; height: 20px; fill: #a0a0a0; }
-.menu-page .menu-header { display: flex; align-items: center; margin-bottom: -1px; font-size: 12px; font-weight: bold; padding: -1px 0; color: #f1f1f1; }
+.menu-page .menu-header { display: flex; align-items: center; margin-bottom: 5px; font-size: 16px; font-weight: bold; padding: 10px 0; color: #f1f1f1; }
 .menu-page .back-btn { background: none; border: none; color: white; cursor: pointer; padding: 0 10px 0 0; margin-left: -5px; }
 .menu-page .back-btn svg { width: 24px; height: 24px; fill: white; }
 .menu-speed ul, .menu-quality ul { list-style: none; margin: 0; padding: 0; }
 
-/* ===== START: FINAL ALIGNMENT FIX (মূল পরিবর্তন এখানে) ===== */
+/* ===== START: FINAL ALIGNMENT & STYLE FIX ===== */
 .menu-speed li, 
 .menu-quality li {
-    display: flex !important; /* নিশ্চিত করে যে এটি একটি ফ্লেক্স কন্টেইনার */
-    justify-content: flex-start !important; /* লেখাটিকে জোর করে বাম দিকে রাখে */
-    padding: 6px 7px;
+    display: flex !important;
+    justify-content: flex-start !important;
+    padding: 10px 12px;
     cursor: pointer;
     border-radius: 8px;
     transition: background-color 0.2s ease;
     font-size: 14px;
     color: #f1f1f1;
 }
-/* ===== END: FINAL ALIGNMENT FIX ===== */
-
 .menu-speed li:hover, .menu-quality li:hover { background-color: rgba(255, 255, 255, 0.1); }
 .menu-speed li.active, .menu-quality li.active { color: var(--theme-color); font-weight: bold; }
+/* ===== END: FINAL ALIGNMENT & STYLE FIX ===== */
 
 /* === স্ক্রলবার === */
 .menu-main ul, .menu-speed ul, .menu-quality ul { max-height: 40vh; overflow-y: auto; }
@@ -182,3 +152,10 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 /* === ব্যবহারকারীর সিলেকশন বন্ধ করা === */
 .player-container, .player-container * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .player-container input[type="range"] { -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; }
+
+/* ===== START: QUALITY LIST HEIGHT FIX ===== */
+#quality-options-list {
+    min-height: 110px;
+    max-height: 220px;
+}
+/* ===== END: QUALITY LIST HEIGHT FIX ===== */
