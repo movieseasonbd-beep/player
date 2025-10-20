@@ -18,7 +18,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container.show-controls .controls-container { opacity: 1; transform: translateY(0); }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
-/* === লোডিং ও সেন্ট্রাল বাটন === */
+/* === লোডিং ও সেন্ট্রাল বাটন (অপরিবর্তিত) === */
 .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s ease; }
 .loading-overlay.hidden { opacity: 0; visibility: hidden; }
 .loading-content { text-align: center; }
@@ -57,23 +57,32 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-btn.active { color: var(--theme-color); }
 
 
-/* ========== START: FINAL CORRECTED ICON STYLES (মূল পরিবর্তন এখানে) ========== */
+/* ========== START: CORRECTED ICON STYLES (মূল পরিবর্তন এখানে) ========== */
 
-/* ১. সব ভরাট আইকনগুলোর জন্য (fullscreen-btn ছাড়া) */
+/* ১. সব SVG আইকনের জন্য সাধারণ রঙ এবং ট্রানজিশন */
+.control-btn svg {
+    color: white; /* আইকনের সাধারণ রঙ */
+    transition: color 0.1s ease;
+}
+
+/* ২. হোভার বা অ্যাক্টিভ হলে রঙ পরিবর্তন */
+.control-btn:hover svg,
+.control-btn.active svg {
+    color: var(--theme-color);
+}
+
+/* ৩. শুধুমাত্র ভরাট আইকনগুলোর জন্য fill ব্যবহার */
 .control-btn:not(#fullscreen-btn) svg path {
     fill: currentColor;
 }
 
-/* ২. শুধুমাত্র fullscreen-on (আউটলাইন) আইকনের জন্য stroke ব্যবহার */
-#fullscreen-btn .fullscreen-on-icon path {
-    stroke: currentColor;
-    fill: none;
+/* ৪. শুধুমাত্র ফুলস্ক্রিন বাটনের আইকনের জন্য stroke ব্যবহার */
+#fullscreen-btn svg path {
+    stroke: currentColor; /* fill-এর বদলে stroke-এর রঙ পরিবর্তন হবে */
+    fill: none;           /* fill সম্পূর্ণ বন্ধ থাকবে */
 }
 
-/* ৩. fullscreen-off (ভরাট) আইকনের স্টাইল HTML থেকে আসবে, তাই এখানে কিছু করার প্রয়োজন নেই */
-/* এর ফলে আগের মতো এটি আর ফাঁকা দেখাবে না */
-
-/* ========== END: FINAL CORRECTED ICON STYLES ========== */
+/* ========== END: CORRECTED ICON STYLES ========== */
 
 
 #play-pause-btn svg { width: 30px; height: 30px; }
