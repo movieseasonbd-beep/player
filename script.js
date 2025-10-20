@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
         loadVideo(videoUrl);
-        setTimeout(() => loadingOverlay.classList.add('hidden'), 3000);
+        setTimeout(() => loadingOverlay.classList.add('hidden'), 2500);
     } else {
         loadingOverlay.classList.add('hidden');
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
