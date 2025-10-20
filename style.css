@@ -106,7 +106,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .menu-item-label svg { width: 20px; height: 20px; fill: #e0e0e0; }
 .menu-item-value .current-value { color: #a0a0a0; font-size: 13px; }
 .menu-item-value .arrow-right { width: 20px; height: 20px; fill: #a0a0a0; }
-.menu-page .menu-header { display: flex; align-items: center; margin-bottom: 1px; font-size: 15px; font-weight: bold; padding: 2px 0; color: #f1f1f1; }
+.menu-page .menu-header { display: flex; align-items: center; margin-bottom: -1px; font-size: 12px; font-weight: bold; padding: -1px 0; color: #f1f1f1; }
 .menu-page .back-btn { background: none; border: none; color: white; cursor: pointer; padding: 0 10px 0 0; margin-left: -5px; }
 .menu-page .back-btn svg { width: 24px; height: 24px; fill: white; }
 .menu-speed ul, .menu-quality ul { list-style: none; margin: 0; padding: 0; }
