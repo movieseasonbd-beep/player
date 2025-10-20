@@ -33,7 +33,6 @@ let controlsTimeout;
 let isScrubbing = false;
 let wasPlaying = false;
 let isExternalQualityActive = false;
-let qualityMenuInitialized = false;
 
 // ==========================================================
 // === Functions ===
@@ -154,7 +153,6 @@ function showMenuPage(pageToShow) {
     }
 }
 
-// ===== START: FINAL & MOST RELIABLE setQuality FUNCTION (মূল পরিবর্তন এখানে) =====
 function setQuality(level, url = null) {
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
     const qualityCurrentValue = qualityMenuBtn ? qualityMenuBtn.querySelector('.current-value') : null;
@@ -166,14 +164,16 @@ function setQuality(level, url = null) {
         const currentTime = video.currentTime;
         hls.destroy();
         hls = new Hls({ enableWorker: false });
-        hls.loadSource(url);
-        hls.attachMedia(video);
         
-        // MANIFEST_PARSED এর পরিবর্তে MEDIA_ATTACHED ইভেন্ট ব্যবহার করুন
-        hls.on(Hls.Events.MEDIA_ATTACHED, function() {
-            video.currentTime = currentTime;
-            video.play();
+        // When switching to an external URL, we listen for MEDIA_ATTACHED
+        hls.on(Hls.Events.MEDIA_ATTACHED, function () {
+            hls.loadSource(url);
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                video.currentTime = currentTime;
+                video.play();
+            });
         });
+        hls.attachMedia(video);
         
         if (qualityCurrentValue) qualityCurrentValue.textContent = '1080p';
         const option1080p = qualityOptionsList.querySelector(`li[data-level='${level}']`);
@@ -194,7 +194,6 @@ function setQuality(level, url = null) {
     }
     showMenuPage(mainSettingsPage);
 }
-// ===== END: FINAL & MOST RELIABLE setQuality FUNCTION =====
 
 // ==========================================================
 // === Event Listeners ===
@@ -262,12 +261,13 @@ speedOptions.forEach(option => {
     });
 });
 
-hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-    if (qualityMenuInitialized) {
-        return;
-    }
+// ===== START: SIMPLIFIED & SAFE HLS QUALITY SETUP =====
+// This event runs ONLY ONCE when the very first video link is loaded.
+hls.once(Hls.Events.MANIFEST_PARSED, (event, data) => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
+
+    // Build the initial quality menu from the main m3u8 file
     if (data.levels.length > 0) {
         if (!document.getElementById('quality-menu-btn')) {
             const qualityMenuBtn = document.createElement('li');
@@ -276,6 +276,7 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
             qualityMenuBtn.addEventListener('click', () => showMenuPage(qualitySettingsPage));
             playerSettingsGroup.prepend(qualityMenuBtn);
         }
+        
         qualityOptionsList.innerHTML = '';
         const autoOption = document.createElement('li');
         autoOption.textContent = 'Auto';
@@ -283,6 +284,7 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         autoOption.classList.add('active');
         autoOption.addEventListener('click', () => setQuality(-1));
         qualityOptionsList.appendChild(autoOption);
+        
         data.levels.forEach((level, index) => {
             const option = document.createElement('li');
             option.textContent = `${level.height}p`;
@@ -291,6 +293,8 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
             qualityOptionsList.appendChild(option);
         });
     }
+
+    // After building the menu, check for a potential 1080p link
     try {
         const currentUrl = new URL(videoUrl);
         const pathSegments = currentUrl.pathname.split('/');
@@ -314,11 +318,8 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
             }
         }
     } catch(e) { console.error("Error creating URL for 1080p check:", e); }
-    if (settingsMenu.classList.contains('active')) {
-        setTimeout(() => menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`, 0);
-    }
-    qualityMenuInitialized = true;
 });
+// ===== END: SIMPLIFIED & SAFE HLS QUALITY SETUP =====
 
 hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
