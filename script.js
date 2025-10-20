@@ -317,23 +317,34 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
     }
 });
 
-// ===== START: SIMPLIFIED LEVEL_SWITCHED FUNCTION (মূল পরিবর্তন এখানে) =====
+// ===== START: FINAL & MOST RELIABLE LEVEL_SWITCHED FUNCTION =====
 hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
     if (!qualityMenuBtn) return;
     const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
     
-    // শুধুমাত্র Auto মোডে থাকলেই এই ফাংশনটি মেনু টেক্সট আপডেট করবে
+    // Auto মোডে থাকলেই এই ফাংশনটি কাজ করবে
     if (hls.autoLevelEnabled) {
         const activeLevel = hls.levels[data.level];
         if (activeLevel) {
+            // ১. মেন্যুর বাইরের টেক্সট আপডেট করুন
             qualityCurrentValue.textContent = `${activeLevel.height}p (Auto)`;
+
+            // ২. লিস্টের ভেতরের সব আইটেম থেকে .active ক্লাস সরিয়ে দিন
+            const allQualityOptions = qualityOptionsList.querySelectorAll('li');
+            allQualityOptions.forEach(opt => opt.classList.remove('active'));
+
+            // ৩. "Auto" অপশনটিকে এবং বর্তমান কোয়ালিটির অপশনটিকে .active করুন
+            const autoOption = qualityOptionsList.querySelector('li[data-level="-1"]');
+            if(autoOption) autoOption.classList.add('active');
+            
+            const currentQualityOption = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
+            if(currentQualityOption) currentQualityOption.classList.add('active');
         }
-    } else {
-        // ম্যানুয়াল মোডে থাকলে, setQuality ফাংশন নিজেই টেক্সট আপডেট করে দেবে
-        // তাই এখানে কিছু করার দরকার নেই
-    }
+    } 
+    // ম্যানুয়াল মোডে থাকলে setQuality ফাংশন নিজেই সবকিছু হ্যান্ডেল করে, তাই এখানে কিছু করার দরকার নেই
 });
+// ===== END: FINAL & MOST RELIABLE LEVEL_SWITCHED FUNCTION =====
 // ===== END: SIMPLIFIED LEVEL_SWITCHED FUNCTION =====
 
 // === পেজ লোড হলে যা যা ঘটবে ===
