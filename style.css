@@ -18,7 +18,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container.show-controls .controls-container { opacity: 1; transform: translateY(0); }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
-/* === লোডিং ও সেন্ট্রাল বাটন (অপরিবর্তিত) === */
+/* === লোডিং ও সেন্ট্রাল বাটন === */
 .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s ease; }
 .loading-overlay.hidden { opacity: 0; visibility: hidden; }
 .loading-content { text-align: center; }
@@ -56,34 +56,33 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-btn:active { transform: scale(0.95); }
 .control-btn.active { color: var(--theme-color); }
 
+/* ========== START: FINAL & SAFE ICON STYLES (মূল পরিবর্তন এখানে) ========== */
 
-/* ========== START: CORRECTED ICON STYLES (মূল পরিবর্তন এখানে) ========== */
-
-/* ১. সব SVG আইকনের জন্য সাধারণ রঙ এবং ট্রানজিশন */
-.control-btn svg {
-    color: white; /* আইকনের সাধারণ রঙ */
-    transition: color 0.1s ease;
+/* ১. সব আইকনের জন্য সাধারণ নিয়ম (এটি আগের মতোই আছে) */
+.control-btn svg path { 
+    fill: white; 
+}
+.control-btn:hover svg path { 
+    fill: var(--theme-color); 
+}
+.control-btn.active svg path { 
+    fill: var(--theme-color); 
+}
+.control-btn svg { 
+    transition: fill 0.1s ease; 
 }
 
-/* ২. হোভার বা অ্যাক্টিভ হলে রঙ পরিবর্তন */
-.control-btn:hover svg,
-.control-btn.active svg {
-    color: var(--theme-color);
+/* ২. শুধুমাত্র fullscreen-on (আউটলাইন) আইকনের জন্য একটি বিশেষ নিয়ম যোগ করা হয়েছে */
+/* এই নিয়মটি উপরের নিয়মকে অগ্রাহ্য করে শুধুমাত্র এই আইকনটিকে ঠিক করবে */
+#fullscreen-btn .fullscreen-on-icon path {
+    stroke: white;      /* লাইনকে সাদা রঙ দেওয়া হয়েছে */
+    fill: none;         /* এবং fill সম্পূর্ণ বন্ধ করা হয়েছে */
+}
+#fullscreen-btn:hover .fullscreen-on-icon path {
+    stroke: var(--theme-color); /* হোভার করলে লাইনকে থিম-কালার দেওয়া হয়েছে */
 }
 
-/* ৩. শুধুমাত্র ভরাট আইকনগুলোর জন্য fill ব্যবহার */
-.control-btn:not(#fullscreen-btn) svg path {
-    fill: currentColor;
-}
-
-/* ৪. শুধুমাত্র ফুলস্ক্রিন বাটনের আইকনের জন্য stroke ব্যবহার */
-#fullscreen-btn svg path {
-    stroke: currentColor; /* fill-এর বদলে stroke-এর রঙ পরিবর্তন হবে */
-    fill: none;           /* fill সম্পূর্ণ বন্ধ থাকবে */
-}
-
-/* ========== END: CORRECTED ICON STYLES ========== */
-
+/* ========== END: FINAL & SAFE ICON STYLES ========== */
 
 #play-pause-btn svg { width: 30px; height: 30px; }
 #play-pause-btn { transform: translateX(-9px); }
