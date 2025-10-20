@@ -46,8 +46,8 @@ function loadVideo(videoUrl) {
     };
 
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
-        hls.loadSource(videoUrl);
-        hls.attachMedia(video);
+        // hls.js এর জন্য এরর হ্যান্ডলিং যোগ করা হয়েছে
+        setupHls(videoUrl);
         hls.on(Hls.Events.FRAG_BUFFERED, function(event, data) {
             hls.off(Hls.Events.FRAG_BUFFERED);
             hideLoadingScreen();
@@ -58,6 +58,49 @@ function loadVideo(videoUrl) {
     }
     setTimeout(hideLoadingScreen, 2500);
 }
+
+// ==========================================================
+// === HLS.js এরর হ্যান্ডলিং (নতুন যোগ করা হয়েছে) ===
+// ==========================================================
+function setupHls(videoUrl) {
+    if (hls) {
+        hls.destroy();
+    }
+    
+    // রিকভারির জন্য কনফিগারেশন
+    const hlsConfig = {
+        // এরর হলে সর্বোচ্চ ৫ বার রিকভার করার চেষ্টা করবে
+        fragLoadRetry: 5, 
+        // প্রতিবার চেষ্টার মধ্যে ১ সেকেন্ড দেরি করবে
+        fragLoadRetryDelay: 1000, 
+    };
+
+    hls = new Hls(hlsConfig);
+    hls.loadSource(videoUrl);
+    hls.attachMedia(video);
+
+    hls.on(Hls.Events.ERROR, function (event, data) {
+        if (data.fatal) {
+            console.error('Fatal HLS error occurred:', data.type, data.details);
+            switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                    console.log('A network error occurred. Trying to recover...');
+                    hls.startLoad(); // লোড আবার শুরু করার চেষ্টা
+                    break;
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                    console.log('A media error occurred. Trying to recover...');
+                    hls.recoverMediaError(); // মিডিয়া এরর থেকে রিকভার করার চেষ্টা
+                    break;
+                default:
+                    // যদি রিকভার করা সম্ভব না হয়, hls destroy করে দিন
+                    console.log('Unrecoverable HLS error. Destroying HLS instance.');
+                    hls.destroy();
+                    break;
+            }
+        }
+    });
+}
+// ==========================================================
 
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
 function handleScreenTap() {
@@ -230,10 +273,8 @@ function setQuality(level, url = null) {
     allQualityOptions.forEach(opt => opt.classList.remove('active'));
 
     if (url) {
-        hls.destroy();
-        hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
+        // নতুন URL লোড করার জন্য hls সেটআপ ফাংশন ব্যবহার করুন
+        setupHls(url); 
         hls.on(Hls.Events.MANIFEST_PARSED, function() {
             video.play();
         });
