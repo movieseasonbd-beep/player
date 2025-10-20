@@ -36,7 +36,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     width: 80px; 
     height: 80px; 
     fill: none;
-    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.81)); 
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.9)); 
 }
 
 /* === কন্ট্রোলস === */
@@ -98,7 +98,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     width: 250px; 
     
     /* ===== START: কালো ট্রান্সপারেন্ট ডিজাইনের জন্য কোড ===== */
-    background-color: rgba(0, 0, 0, 0.81); /* <-- মূল পরিবর্তন এখানে (খাঁটি কালো রঙকে ৭০% অস্বচ্ছ করা হয়েছে) */
+    background-color: rgba(0, 0, 0, 0.9); /* <-- মূল পরিবর্তন এখানে (খাঁটি কালো রঙকে ৭০% অস্বচ্ছ করা হয়েছে) */
     backdrop-filter: blur(15px);          /* পেছনের অংশকে ঝাপসা করার জন্য */
     -webkit-backdrop-filter: blur(15px);  /* Safari ব্রাউজারের জন্য */
     border: 1px solid rgba(255, 255, 255, 0.1); /* বর্ডারটিকে হালকা স্বচ্ছ রাখা হয়েছে */
