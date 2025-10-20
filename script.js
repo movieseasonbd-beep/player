@@ -327,15 +327,23 @@ hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         setTimeout(() => menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`, 0);
     }
 });
-// ===== END: FINAL HLS QUALITY MANAGEMENT CODE =====
-
-
+// ===== START: FINAL & CORRECTED LEVEL_SWITCHED FUNCTION =====
 hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
     if (!qualityMenuBtn) return;
     const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
-    const allQualityOptions = qualityOptionsList.querySelectorAll('li');
+    
+    // ১. প্রথমে চেক করুন 1080p অপশনটি বর্তমানে অ্যাক্টিভ কিনা
+    const is1080pActive = qualityOptionsList.querySelector('li[data-level="1080"].active');
 
+    if (is1080pActive) {
+        // যদি 1080p অ্যাক্টিভ থাকে, তাহলে মেন্যুতে "1080p" দেখান
+        qualityCurrentValue.textContent = '1080p';
+        return; // ফাংশনের বাকি অংশ আর চালানোর দরকার নেই
+    }
+
+    // ২. যদি 1080p অ্যাক্টিভ না থাকে, তাহলে আগের মতোই কাজ করুন
+    const allQualityOptions = qualityOptionsList.querySelectorAll('li');
     allQualityOptions.forEach(opt => opt.classList.remove('active'));
 
     const activeOption = qualityOptionsList.querySelector(`li[data-level='${hls.currentLevel}']`);
