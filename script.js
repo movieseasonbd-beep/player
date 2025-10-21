@@ -56,9 +56,7 @@ const acquireWakeLock = async () => {
     if ('wakeLock' in navigator) {
         try {
             wakeLock = await navigator.wakeLock.request('screen');
-        } catch (err) {
-            console.error(`Wake Lock request failed: ${err.name}, ${err.message}`);
-        }
+        } catch (err) { console.error(`Wake Lock request failed: ${err.name}, ${err.message}`); }
     }
 };
 const releaseWakeLock = () => {
@@ -78,6 +76,7 @@ function initializeHls() {
 
 function loadVideo(videoUrl) {
     originalVideoUrl = videoUrl; // মূল লিঙ্কটি সংরক্ষণ করুন
+    isPlayingGuessedQuality = false; // শুরু করার সময় রিসেট করুন
     const hideLoadingScreen = () => {
         if (!loadingOverlay.classList.contains('hidden')) {
             loadingOverlay.classList.add('hidden');
@@ -106,7 +105,7 @@ function setQuality(level, url = null) {
     if (url) {
         // --- অনুমান করা 1080p সিলেক্ট করা হলে ---
         isPlayingGuessedQuality = true;
-        qualityMenuInitialized = false; // UI রিসেট করার জন্য প্রস্তুত করুন
+        qualityMenuInitialized = false;
         initializeHls();
         hls.loadSource(url);
         hls.attachMedia(video);
@@ -117,21 +116,20 @@ function setQuality(level, url = null) {
     } else {
         // --- সাধারণ কোয়ালিটি সিলেক্ট করা হলে ---
         if (isPlayingGuessedQuality) {
-            // যদি প্লেয়ারটি 1080p-এর জগতে থাকে, তবে তাকে মূল জগতে ফিরিয়ে আনুন
+            // যদি প্লেয়ার 1080p জগতে থাকে, তবে তাকে মূল জগতে ফিরিয়ে আনুন
             isPlayingGuessedQuality = false;
             qualityMenuInitialized = false;
             initializeHls();
             hls.loadSource(originalVideoUrl); // সংরক্ষিত মূল লিঙ্কটি ব্যবহার করুন
             hls.attachMedia(video);
             
-            // মূল লিঙ্কটি লোড হওয়ার পর সিলেক্ট করা কোয়ালিটিতে যান
             hls.once(Hls.Events.LEVEL_LOADED, () => {
                 video.currentTime = currentTime;
                 if (isPlaying) video.play();
                 hls.currentLevel = parseInt(level, 10);
             });
         } else {
-            // যদি প্লেয়ারটি এমনিতেই মূল জগতে থাকে
+            // যদি প্লেয়ার এমনিতেই মূল জগতে থাকে
             hls.currentLevel = parseInt(level, 10);
         }
     }
@@ -241,19 +239,44 @@ function showMenuPage(pageToShow) {
 function addHlsEvents() {
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         if (qualityMenuInitialized) return;
-        
-        // 0p লেভেল বাদ দিন
-        const videoLevels = data.levels.filter(level => level.height > 0);
 
-        if (videoLevels.length > 0 || isPlayingGuessedQuality) {
+        // এই বিশেষ কেসটি সামলানোর জন্য
+        if (isPlayingGuessedQuality && data.levels.filter(l => l.height > 0).length === 0) {
             let qualityMenuBtn = document.getElementById('quality-menu-btn');
             if (!qualityMenuBtn) {
                 qualityMenuBtn = document.createElement('li');
                 qualityMenuBtn.id = 'quality-menu-btn';
                 playerSettingsGroup.prepend(qualityMenuBtn);
             }
+            qualityMenuBtn.innerHTML = `<div class="menu-item-label"> ... </div> <div class="menu-item-value"> <span class="current-value">HD 1080p</span> ... </div>`;
+            qualityMenuBtn.addEventListener('click', () => { showMenuPage(qualitySettingsPage); });
             
-            qualityMenuBtn.innerHTML = `<div class="menu-item-label"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M216,104H102.09L210,75.51a8,8,0,0,0,5.68-9.84l-8.16-30a15.93,15.93,0,0,0-19.42-11.13L35.81,64.74a15.75,15.75,0,0,0-9.7,7.4,15.51,15.51,0,0,0-1.55,12L32,111.56c0,.14,0,.29,0,.44v88a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V112A8,8,0,0,0,216,104ZM192.16,40l6,22.07L164.57,71,136.44,54.72ZM77.55,70.27l28.12,16.24-59.6,15.73-6-22.08Z"></path></svg> <span>Quality</span> </div> <div class="menu-item-value"> <span class="current-value">Auto</span> <svg class="arrow-right" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg> </div>`;
+            qualityOptionsList.innerHTML = '';
+            const autoOption = document.createElement('li');
+            autoOption.textContent = 'Auto';
+            autoOption.dataset.level = -1;
+            autoOption.addEventListener('click', () => setQuality(-1));
+            qualityOptionsList.appendChild(autoOption);
+            
+            const option1080p = document.createElement('li');
+            option1080p.textContent = 'HD 1080p';
+            option1080p.dataset.level = '1080';
+            option1080p.classList.add('active');
+            qualityOptionsList.appendChild(option1080p);
+            
+            qualityMenuInitialized = true;
+            return;
+        }
+
+        const videoLevels = data.levels.filter(level => level.height > 0);
+        if (videoLevels.length > 0) {
+            let qualityMenuBtn = document.getElementById('quality-menu-btn');
+            if (!qualityMenuBtn) {
+                qualityMenuBtn = document.createElement('li');
+                qualityMenuBtn.id = 'quality-menu-btn';
+                playerSettingsGroup.prepend(qualityMenuBtn);
+            }
+            qualityMenuBtn.innerHTML = `<div class="menu-item-label"> ... </div> <div class="menu-item-value"> <span class="current-value">Auto</span> ... </div>`;
             qualityMenuBtn.addEventListener('click', () => { showMenuPage(qualitySettingsPage); });
             
             qualityOptionsList.innerHTML = '';
@@ -274,8 +297,6 @@ function addHlsEvents() {
             });
             
             const manifestHas1080p = videoLevels.some(level => level.height === 1080);
-            
-            // শুধুমাত্র মূল ভিডিওর ক্ষেত্রে 1080p অনুমান করুন
             if (!manifestHas1080p && !isPlayingGuessedQuality) {
                 try {
                     const currentUrl = new URL(originalVideoUrl);
@@ -285,21 +306,17 @@ function addHlsEvents() {
                         let segments1080 = [...pathSegments];
                         segments1080.splice(lastSegmentIndex, 0, '1080');
                         const potential1080pUrl = currentUrl.origin + segments1080.join('/') + currentUrl.search;
-                        
-                        fetch(potential1080pUrl, { method: 'HEAD' })
-                            .then(response => {
-                                if (response.ok) {
-                                    const option1080p = document.createElement('li');
-                                    option1080p.textContent = 'HD 1080p';
-                                    option1080p.dataset.level = '1080'; // একটি বিশেষ চিহ্ন
-                                    option1080p.addEventListener('click', () => setQuality('1080', potential1080pUrl));
-                                    qualityOptionsList.appendChild(option1080p);
-                                }
-                            });
+                        fetch(potential1080pUrl, { method: 'HEAD' }).then(response => {
+                            if (response.ok) {
+                                const option1080p = document.createElement('li');
+                                option1080p.textContent = 'HD 1080p';
+                                option1080p.dataset.level = '1080';
+                                option1080p.addEventListener('click', () => setQuality('1080', potential1080pUrl));
+                                qualityOptionsList.appendChild(option1080p);
+                            }
+                        });
                     }
-                } catch (e) {
-                    console.error("Error while trying to guess 1080p URL:", e);
-                }
+                } catch (e) { console.error("Error guessing 1080p URL:", e); }
             }
         }
         qualityMenuInitialized = true;
@@ -310,15 +327,20 @@ function addHlsEvents() {
         if (!qualityMenuBtn) return;
         const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
         const allQualityOptions = qualityOptionsList.querySelectorAll('li');
-        
         allQualityOptions.forEach(opt => {
             opt.classList.remove('active');
             opt.classList.remove('playing');
         });
 
+        if (isPlayingGuessedQuality) {
+            qualityCurrentValue.textContent = `HD 1080p`;
+            const opt1080 = qualityOptionsList.querySelector(`li[data-level="1080"]`);
+            if (opt1080) opt1080.classList.add('active');
+            return;
+        }
+
         const activeLevel = hls.levels[data.level];
         if (!activeLevel || activeLevel.height === 0) return;
-
         if (hls.autoLevelEnabled) {
             qualityCurrentValue.textContent = (activeLevel.height === 1080) ? `HD 1080p (Auto)` : `${activeLevel.height}p (Auto)`;
             const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
@@ -327,10 +349,7 @@ function addHlsEvents() {
             if (currentPlayingOpt) currentPlayingOpt.classList.add('playing');
         } else {
             qualityCurrentValue.textContent = (activeLevel.height === 1080) ? `HD 1080p` : `${activeLevel.height}p`;
-            
-            // অনুমান করা 1080p এবং সাধারণ 1080p উভয়ের জন্যই কাজ করবে
-            const levelIdentifier = isPlayingGuessedQuality ? '1080' : data.level;
-            const currentPlayingOpt = qualityOptionsList.querySelector(`li[data-level="${levelIdentifier}"]`);
+            const currentPlayingOpt = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
             if (currentPlayingOpt) currentPlayingOpt.classList.add('active');
         }
     });
@@ -339,15 +358,12 @@ function addHlsEvents() {
         if (data.fatal) {
             switch (data.type) {
                 case Hls.ErrorTypes.NETWORK_ERROR:
-                    console.error('Fatal network error encountered, trying to recover...', data);
                     hls.startLoad();
                     break;
                 case Hls.ErrorTypes.MEDIA_ERROR:
-                    console.error('Fatal media error encountered, trying to recover...', data);
                     hls.recoverMediaError();
                     break;
                 default:
-                    console.error('An unrecoverable fatal error occurred, destroying hls instance', data);
                     hls.destroy();
                     break;
             }
