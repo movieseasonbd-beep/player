@@ -272,24 +272,44 @@ function addHlsEvents() {
         qualityMenuInitialized = true;
     });
 
+    // === এই ফাংশনটি পরিবর্তন করা হয়েছে ===
     hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (!qualityMenuBtn) return;
+        
         const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
         const allQualityOptions = qualityOptionsList.querySelectorAll('li');
-        allQualityOptions.forEach(opt => opt.classList.remove('active'));
+
+        // প্রথমে সব li থেকে active এবং playing ক্লাস সরিয়ে দিন
+        allQualityOptions.forEach(opt => {
+            opt.classList.remove('active');
+            opt.classList.remove('playing');
+        });
 
         const activeLevel = hls.levels[data.level];
         if (!activeLevel) return;
 
+        // এখন বর্তমান অবস্থা অনুযায়ী ক্লাস যোগ করুন
         if (hls.autoLevelEnabled) {
+            // অটো মোডের জন্য
             qualityCurrentValue.textContent = `${activeLevel.height}p (Auto)`;
+            
             const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
             if (autoOpt) autoOpt.classList.add('active');
+            
+            const currentQualityOption = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
+            if (currentQualityOption) {
+                currentQualityOption.classList.add('playing');
+            }
+
         } else {
+            // ম্যানুয়াল মোডের জন্য
             qualityCurrentValue.textContent = `${activeLevel.height}p`;
-            const activeOption = qualityOptionsList.querySelector(`li[data-level='${data.level}']`);
-            if (activeOption) activeOption.classList.add('active');
+            
+            const activeOption = qualityOptionsList.querySelector(`li[data-level='${hls.currentLevel}']`);
+            if (activeOption) {
+                activeOption.classList.add('active');
+            }
         }
     });
 
