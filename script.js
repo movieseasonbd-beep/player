@@ -93,37 +93,29 @@ function loadVideo(videoUrl) {
     setTimeout(hideLoadingScreen, 3000);
 }
 
-// === এই ফাংশনটি সম্পূর্ণ পরিবর্তন করা হয়েছে (এটিই মূল সমাধান) ===
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
 
     if (url) {
-        // প্লেয়ার ধ্বংস না করে, শুধু নতুন ভিডিও লিঙ্ক লোড করুন
-        
-        // UI রিসেট করার জন্য এই ফ্ল্যাগটি সেট করুন
-        qualityMenuInitialized = false;
-        
-        // hls.js-কে বলুন নতুন লিঙ্কটি লোড করতে
-        hls.loadSource(url);
+        initializeHls();
+        qualityMenuInitialized = false; 
 
-        // নতুন ভিডিওটি লোড হয়ে গেলে, পুরনো সময়ে ফিরে যান
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        
         hls.once(Hls.Events.LEVEL_LOADED, () => {
             video.currentTime = currentTime;
             if (isPlaying) {
                 video.play();
             }
-            // যেহেতু এটি একটি ম্যানুয়াল সিলেকশন, Auto মোড বন্ধ করুন
-            hls.currentLevel = 0; // সাধারণত একমাত্র লেভেলটিই 0 হয়
         });
 
     } else {
-        // এটি আগের মতোই কাজ করবে
         hls.currentLevel = parseInt(level, 10);
     }
     showMenuPage(mainSettingsPage);
 }
-
 
 // === Player UI Functions (সব অপরিবর্তিত) ===
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
@@ -223,15 +215,19 @@ function showMenuPage(pageToShow) {
 }
 
 // ==========================================================
-// === HLS Event Listeners (অপরিবর্তিত) ===
+// === HLS Event Listeners ===
 // ==========================================================
 function addHlsEvents() {
+    // === এই ফাংশনটি আপডেট করা হয়েছে ===
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         if (qualityMenuInitialized) return;
         const urlParams = new URLSearchParams(window.location.search);
         const videoUrl = urlParams.get('id');
 
-        if (data.levels.length > 0) {
+        // শুধুমাত্র সেই লেভেলগুলো নিন যেগুলোর উচ্চতা (height) 0-এর বেশি
+        const videoLevels = data.levels.filter(level => level.height > 0);
+
+        if (videoLevels.length > 0) {
             let qualityMenuBtn = document.getElementById('quality-menu-btn');
             if (!qualityMenuBtn) {
                 qualityMenuBtn = document.createElement('li');
@@ -250,19 +246,20 @@ function addHlsEvents() {
             autoOption.addEventListener('click', () => setQuality(-1));
             qualityOptionsList.appendChild(autoOption);
 
-            data.levels.forEach((level, index) => {
+            videoLevels.forEach((level) => {
+                const originalIndex = data.levels.indexOf(level); // সঠিক index নিন
                 const option = document.createElement('li');
                 if (level.height === 1080) {
                     option.textContent = `HD 1080p`;
                 } else {
                     option.textContent = `${level.height}p`;
                 }
-                option.dataset.level = index;
-                option.addEventListener('click', () => setQuality(index));
+                option.dataset.level = originalIndex;
+                option.addEventListener('click', () => setQuality(originalIndex));
                 qualityOptionsList.appendChild(option);
             });
             
-            const manifestHas1080p = data.levels.some(level => level.height === 1080);
+            const manifestHas1080p = videoLevels.some(level => level.height === 1080);
 
             if (!manifestHas1080p) {
                 try {
@@ -293,17 +290,24 @@ function addHlsEvents() {
         qualityMenuInitialized = true;
     });
 
+    // === এই ফাংশনটি আপডেট করা হয়েছে ===
     hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (!qualityMenuBtn) return;
         const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
         const allQualityOptions = qualityOptionsList.querySelectorAll('li');
+        
         allQualityOptions.forEach(opt => {
             opt.classList.remove('active');
             opt.classList.remove('playing');
         });
+
         const activeLevel = hls.levels[data.level];
-        if (!activeLevel) return;
+        // নিশ্চিত করুন যে লেভেলটি একটি বৈধ ভিডিও লেভেল
+        if (!activeLevel || activeLevel.height === 0) {
+            return;
+        }
+
         if (hls.autoLevelEnabled) {
             if (activeLevel.height === 1080) {
                 qualityCurrentValue.textContent = `HD 1080p (Auto)`;
