@@ -34,14 +34,6 @@ let isScrubbing = false;
 let wasPlaying = false;
 let qualityMenuInitialized = false;
 
-// === পরিবর্তন এখানে: অনুমান করার জন্য কোয়ালিটির তালিকা ===
-const qualitiesToGuess = [
-    { height: 1080, label: '1080p', folder: '1080' },
-    { height: 1440, label: '1440p (2K)', folder: '1440' },
-    { height: 2160, label: '2160p (4K)', folder: '4k' }
-    // ভবিষ্যতে প্রয়োজন হলে এখানে আরও যোগ করতে পারবেন, যেমন: { height: 4320, label: '8K', folder: '8k' }
-];
-
 // HLS Configuration (অপরিবর্তিত)
 const hlsConfig = {
     maxBufferLength: 30,
@@ -62,7 +54,6 @@ function initializeHls() {
 }
 
 function loadVideo(videoUrl) {
-    // ... (এই ফাংশনটি অপরিবর্তিত)
     const hideLoadingScreen = () => {
         if (!loadingOverlay.classList.contains('hidden')) {
             loadingOverlay.classList.add('hidden');
@@ -84,7 +75,6 @@ function loadVideo(videoUrl) {
 }
 
 function setQuality(level, url = null) {
-    // ... (এই ফাংশনটি অপরিবর্তিত)
     const allQualityOptions = qualityOptionsList.querySelectorAll('li');
     allQualityOptions.forEach(opt => opt.classList.remove('active'));
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
@@ -100,8 +90,8 @@ function setQuality(level, url = null) {
             video.currentTime = currentTime;
             if (isPlaying) video.play();
         });
-        if (qualityCurrentValue) qualityCurrentValue.textContent = level.includes('k') ? `4K` : `${level}p`; // লেবেল ঠিক করা
-        const option = qualityOptionsList.querySelector(`li[data-level='${level}']`);
+        if (qualityCurrentValue) qualityCurrentValue.textContent = 'HD 1080p';
+        const option = qualityOptionsList.querySelector(`li[data-level='1080']`);
         if (option) option.classList.add('active');
     } else {
         hls.currentLevel = parseInt(level, 10);
@@ -208,41 +198,11 @@ function showMenuPage(pageToShow) {
     }
 }
 
-
-// === একটি নতুন Helper Function তৈরি করা হয়েছে ===
-function guessAndAddQuality(quality, baseUrl) {
-    try {
-        const currentUrl = new URL(baseUrl);
-        const pathSegments = currentUrl.pathname.split('/');
-        const lastSegmentIndex = pathSegments.findLastIndex(seg => seg.includes('.m3u8'));
-
-        if (lastSegmentIndex > -1) {
-            let newSegments = [...pathSegments];
-            newSegments.splice(lastSegmentIndex, 0, quality.folder);
-            const potentialUrl = currentUrl.origin + newSegments.join('/') + currentUrl.search;
-
-            fetch(potentialUrl, { method: 'HEAD' })
-                .then(response => {
-                    if (response.ok) {
-                        const option = document.createElement('li');
-                        option.textContent = quality.label;
-                        option.dataset.level = quality.folder;
-                        option.addEventListener('click', () => setQuality(quality.folder, potentialUrl));
-                        qualityOptionsList.appendChild(option);
-                    }
-                });
-        }
-    } catch (e) {
-        console.error(`Error guessing URL for ${quality.label}:`, e);
-    }
-}
-
-
 // ==========================================================
 // === HLS Event Listeners ===
 // ==========================================================
 function addHlsEvents() {
-    // === এই ফাংশনটি সম্পূর্ণ পরিবর্তন করা হয়েছে ===
+    // === এই ফাংশনটি আগের সহজ অবস্থায় ফিরিয়ে আনা হয়েছে ===
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         if (qualityMenuInitialized) return;
         const urlParams = new URLSearchParams(window.location.search);
@@ -262,10 +222,13 @@ function addHlsEvents() {
             autoOption.addEventListener('click', () => setQuality(-1));
             qualityOptionsList.appendChild(autoOption);
 
-            // ম্যানিফেস্ট থেকে পাওয়া কোয়ালিটিগুলো যোগ করুন
             data.levels.forEach((level, index) => {
                 const option = document.createElement('li');
-                option.textContent = `${level.height}p`;
+                if (level.height === 1080) {
+                    option.textContent = `HD 1080p`;
+                } else {
+                    option.textContent = `${level.height}p`;
+                }
                 option.dataset.level = index;
                 option.addEventListener('click', () => setQuality(index));
                 qualityOptionsList.appendChild(option);
@@ -273,19 +236,40 @@ function addHlsEvents() {
             
             playerSettingsGroup.prepend(qualityMenuBtn);
             
-            // এখন অনুমান করার প্রক্রিয়া শুরু করুন
-            const existingHeights = data.levels.map(level => level.height);
+            // ধাপ ১: ম্যানিফেস্টে 1080p আছে কিনা পরীক্ষা করা হচ্ছে
+            const manifestHas1080p = data.levels.some(level => level.height === 1080);
 
-            qualitiesToGuess.forEach(quality => {
-                if (!existingHeights.includes(quality.height)) {
-                    guessAndAddQuality(quality, videoUrl);
+            // ধাপ ২: যদি না থাকে, তবেই শুধু 1080p অনুমান করা হচ্ছে
+            if (!manifestHas1080p) {
+                try {
+                    const currentUrl = new URL(videoUrl);
+                    const pathSegments = currentUrl.pathname.split('/');
+                    const lastSegmentIndex = pathSegments.findLastIndex(seg => seg.includes('.m3u8'));
+                    if (lastSegmentIndex > -1) {
+                        let segments1080 = [...pathSegments];
+                        segments1080.splice(lastSegmentIndex, 0, '1080');
+                        const potential1080pUrl = currentUrl.origin + segments1080.join('/') + currentUrl.search;
+                        
+                        fetch(potential1080pUrl, { method: 'HEAD' })
+                            .then(response => {
+                                if (response.ok) {
+                                    const option1080p = document.createElement('li');
+                                    option1080p.textContent = 'HD 1080p';
+                                    option1080p.dataset.level = '1080';
+                                    option1080p.addEventListener('click', () => setQuality('1080', potential1080pUrl));
+                                    qualityOptionsList.appendChild(option1080p);
+                                }
+                            });
+                    }
+                } catch (e) {
+                    console.error("Error while trying to guess 1080p URL:", e);
                 }
-            });
+            }
         }
         qualityMenuInitialized = true;
     });
 
-    // ... LEVEL_SWITCHED এবং ERROR ইভেন্ট অপরিবর্তিত ...
+    // LEVEL_SWITCHED এবং ERROR ইভেন্ট অপরিবর্তিত
     hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (!qualityMenuBtn) return;
@@ -306,7 +290,11 @@ function addHlsEvents() {
                 currentQualityOption.classList.add('playing');
             }
         } else {
-            qualityCurrentValue.textContent = `${activeLevel.height}p`;
+            if (activeLevel.height === 1080) {
+                 qualityCurrentValue.textContent = `HD 1080p`;
+            } else {
+                 qualityCurrentValue.textContent = `${activeLevel.height}p`;
+            }
             const activeOption = qualityOptionsList.querySelector(`li[data-level='${hls.currentLevel}']`);
             if (activeOption) {
                 activeOption.classList.add('active');
@@ -332,7 +320,6 @@ function addHlsEvents() {
         }
     });
 }
-
 
 // ==========================================================
 // === General Event Listeners (অপরিবর্তিত) ===
