@@ -159,3 +159,12 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     max-height: 130px;
 }
 /* ===== END: QUALITY LIST HEIGHT FIX ===== */
+
+
+/* ============================================== */
+/* === নতুন যুক্ত করা স্টাইল (New Added Style) === */
+/* ============================================== */
+.menu-quality li.playing {
+    color: #f21111; /* আপনার থিম-এর রঙ ব্যবহার করা হলো */
+    font-weight: bold;
+}
