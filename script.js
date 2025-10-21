@@ -34,6 +34,9 @@ let isScrubbing = false;
 let wasPlaying = false;
 let qualityMenuInitialized = false;
 
+// === নতুন পরিবর্তন: Wake Lock এর জন্য ভ্যারিয়েবল ===
+let wakeLock = null;
+
 // HLS Configuration (উন্নত করা)
 const hlsConfig = {
     maxBufferLength: 30,
@@ -47,6 +50,26 @@ const hlsConfig = {
 // ==========================================================
 // === Functions ===
 // ==========================================================
+
+// === নতুন ফাংশন: স্ক্রিন চালু রাখার জন্য ===
+const acquireWakeLock = async () => {
+    if ('wakeLock' in navigator) {
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+            // console.log('Wake Lock is active!');
+        } catch (err) {
+            console.error(`${err.name}, ${err.message}`);
+        }
+    }
+};
+
+const releaseWakeLock = () => {
+    if (wakeLock !== null) {
+        wakeLock.release();
+        wakeLock = null;
+        // console.log('Wake Lock released.');
+    }
+};
 
 function initializeHls() {
     if (hls) {
@@ -77,38 +100,29 @@ function loadVideo(videoUrl) {
     setTimeout(hideLoadingScreen, 3000);
 }
 
-// === এই ফাংশনটি সম্পূর্ণ পরিবর্তন করা হয়েছে ===
 function setQuality(level, url = null) {
-    const allQualityOptions = qualityOptionsList.querySelectorAll('li');
-    allQualityOptions.forEach(opt => opt.classList.remove('active', 'playing'));
-
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
 
     if (url) {
-        // প্লেয়ার ডিলিট না করে, শুধু নতুন সোর্স লোড করা হচ্ছে
+        initializeHls();
+        qualityMenuInitialized = false; 
+
         hls.loadSource(url);
+        hls.attachMedia(video);
         
         hls.once(Hls.Events.LEVEL_LOADED, () => {
-             // নতুন ভিডিও লোড হওয়ার পর পুরনো সময়ে ফিরে যাওয়া
             video.currentTime = currentTime;
             if (isPlaying) {
                 video.play();
             }
         });
-        
-        const option = qualityOptionsList.querySelector(`li[data-level='${level}']`);
-        if (option) option.classList.add('active');
 
     } else {
-        // এটি আগের মতোই কাজ করবে
         hls.currentLevel = parseInt(level, 10);
-        const option = qualityOptionsList.querySelector(`li[data-level='${level}']`);
-        if (option) option.classList.add('active');
     }
     showMenuPage(mainSettingsPage);
 }
-
 
 // === Player UI Functions (সব অপরিবর্তিত) ===
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
@@ -217,7 +231,7 @@ function addHlsEvents() {
         const videoUrl = urlParams.get('id');
 
         if (data.levels.length > 0) {
-            const qualityMenuBtn = document.createElement('li');
+            const qualityMenuBtn = document.getElementById('quality-menu-btn') || document.createElement('li');
             qualityMenuBtn.id = 'quality-menu-btn';
             qualityMenuBtn.innerHTML = `<div class="menu-item-label"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M216,104H102.09L210,75.51a8,8,0,0,0,5.68-9.84l-8.16-30a15.93,15.93,0,0,0-19.42-11.13L35.81,64.74a15.75,15.75,0,0,0-9.7,7.4,15.51,15.51,0,0,0-1.55,12L32,111.56c0,.14,0,.29,0,.44v88a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V112A8,8,0,0,0,216,104ZM192.16,40l6,22.07L164.57,71,136.44,54.72ZM77.55,70.27l28.12,16.24-59.6,15.73-6-22.08Z"></path></svg> <span>Quality</span> </div> <div class="menu-item-value"> <span class="current-value">Auto</span> <svg class="arrow-right" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg> </div>`;
             qualityMenuBtn.addEventListener('click', () => { showMenuPage(qualitySettingsPage); });
@@ -242,7 +256,9 @@ function addHlsEvents() {
                 qualityOptionsList.appendChild(option);
             });
             
-            playerSettingsGroup.prepend(qualityMenuBtn);
+            if (!document.getElementById('quality-menu-btn')) {
+                playerSettingsGroup.prepend(qualityMenuBtn);
+            }
             
             const manifestHas1080p = data.levels.some(level => level.height === 1080);
 
@@ -332,13 +348,26 @@ function addHlsEvents() {
 }
 
 // ==========================================================
-// === General Event Listeners (অপরিবর্তিত) ===
+// === General Event Listeners ===
 // ==========================================================
 video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
-video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); });
-video.addEventListener('pause', () => { updatePlayState(); clearTimeout(controlsTimeout); playerContainer.classList.add('show-controls'); });
+
+// === নতুন পরিবর্তন: Wake Lock যোগ করা হয়েছে ===
+video.addEventListener('play', () => { 
+    updatePlayState(); 
+    resetControlsTimer();
+    acquireWakeLock(); // স্ক্রিন চালু রাখুন
+});
+video.addEventListener('pause', () => { 
+    updatePlayState(); 
+    clearTimeout(controlsTimeout); 
+    playerContainer.classList.add('show-controls');
+    releaseWakeLock(); // স্ক্রিন বন্ধ হওয়ার অনুমতি দিন
+});
+video.addEventListener('ended', releaseWakeLock); // ভিডিও শেষ হলে অনুমতি দিন
+
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 video.addEventListener('volumechange', updateVolumeIcon);
@@ -390,6 +419,16 @@ speedOptions.forEach(option => {
         showMenuPage(mainSettingsPage);
     });
 });
+
+// === নতুন পরিবর্তন: ট্যাব পরিবর্তন হলে Wake Lock নিয়ন্ত্রণ ===
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && wakeLock !== null) {
+        releaseWakeLock();
+    } else if (document.visibilityState === 'visible' && !video.paused) {
+        acquireWakeLock();
+    }
+});
+
 
 // ==========================================================
 // === Page Load (অপরিবর্তিত) ===
