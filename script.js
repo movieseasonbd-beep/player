@@ -35,11 +35,9 @@ let wasPlaying = false;
 let qualityMenuInitialized = false;
 let wakeLock = null;
 
-// === নতুন ভ্যারিয়েবল: প্লেয়ারের অবস্থা মনে রাখার জন্য ===
-let originalVideoUrl = ''; // মূল ভিডিওর লিঙ্ক সংরক্ষণ করার জন্য
-let isPlayingGuessedQuality = false; // প্লেয়ার কি অনুমান করা কোয়ালিটিতে চলছে?
+let originalVideoUrl = '';
+let isPlayingGuessedQuality = false;
 
-// HLS Configuration (উন্নত করা)
 const hlsConfig = {
     maxBufferLength: 30,
     maxMaxBufferLength: 600,
@@ -75,8 +73,9 @@ function initializeHls() {
 }
 
 function loadVideo(videoUrl) {
-    originalVideoUrl = videoUrl; // মূল লিঙ্কটি সংরক্ষণ করুন
-    isPlayingGuessedQuality = false; // শুরু করার সময় রিসেট করুন
+    originalVideoUrl = videoUrl;
+    isPlayingGuessedQuality = false;
+    qualityMenuInitialized = false; // নতুন ভিডিওর জন্য মেন্যু রিসেট করুন
     const hideLoadingScreen = () => {
         if (!loadingOverlay.classList.contains('hidden')) {
             loadingOverlay.classList.add('hidden');
@@ -97,7 +96,7 @@ function loadVideo(videoUrl) {
     setTimeout(hideLoadingScreen, 3000);
 }
 
-// === এই ফাংশনটি সম্পূর্ণ নতুন করে লেখা হয়েছে (এটিই মূল সমাধান) ===
+// === এই ফাংশনটি নতুন করে লেখা হয়েছে (চূড়ান্ত সমাধান) ===
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
@@ -106,16 +105,21 @@ function setQuality(level, url = null) {
         // --- অনুমান করা 1080p সিলেক্ট করা হলে ---
         isPlayingGuessedQuality = true;
         hls.loadSource(url);
-        hls.once(Hls.Events.LEVEL_LOADED, () => {
+        hls.once(Hls.Events.MANIFEST_PARSED, () => {
             video.currentTime = currentTime;
             if (isPlaying) video.play();
+            // যেহেতু এটি একটি ম্যানুয়াল সিলেকশন, Auto মোড বন্ধ করুন
+            hls.currentLevel = hls.levels.length - 1; // সাধারণত একমাত্র লেভেলটিই থাকে
         });
     } else {
         // --- সাধারণ কোয়ালিটি সিলেক্ট করা হলে ---
         if (isPlayingGuessedQuality) {
             // যদি প্লেয়ার 1080p জগতে থাকে, তবে তাকে মূল জগতে ফিরিয়ে আনুন
             isPlayingGuessedQuality = false;
-            hls.loadSource(originalVideoUrl); // সংরক্ষিত মূল লিঙ্কটি ব্যবহার করুন
+            qualityMenuInitialized = false; // UI রিসেট করার জন্য প্রস্তুত করুন
+            initializeHls();
+            hls.loadSource(originalVideoUrl);
+            hls.attachMedia(video);
             
             hls.once(Hls.Events.LEVEL_LOADED, () => {
                 video.currentTime = currentTime;
@@ -130,7 +134,8 @@ function setQuality(level, url = null) {
     showMenuPage(mainSettingsPage);
 }
 
-// === Player UI Functions (সব অপরিবর্তিত) ===
+
+// === Player UI Functions (অপরিবর্তিত) ===
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
 function handleScreenTap() {
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
@@ -232,10 +237,11 @@ function showMenuPage(pageToShow) {
 // ==========================================================
 function addHlsEvents() {
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-        // শুধুমাত্র প্রথমবার মেন্যু তৈরি করুন
         if (qualityMenuInitialized) return;
 
         const videoLevels = data.levels.filter(level => level.height > 0);
+        
+        // শুধুমাত্র যদি কোনো বৈধ কোয়ালিটি থাকে, তবেই মেন্যু তৈরি করুন
         if (videoLevels.length > 0) {
             let qualityMenuBtn = document.getElementById('quality-menu-btn');
             if (!qualityMenuBtn) {
@@ -243,8 +249,6 @@ function addHlsEvents() {
                 qualityMenuBtn.id = 'quality-menu-btn';
                 playerSettingsGroup.prepend(qualityMenuBtn);
             }
-            qualityMenuBtn.innerHTML = `<div class="menu-item-label"> ... </div> <div class="menu-item-value"> <span class="current-value">Auto</span> ... </div>`;
-            qualityMenuBtn.addEventListener('click', () => { showMenuPage(qualitySettingsPage); });
             
             qualityOptionsList.innerHTML = '';
             const autoOption = document.createElement('li');
@@ -263,7 +267,8 @@ function addHlsEvents() {
             });
             
             const manifestHas1080p = videoLevels.some(level => level.height === 1080);
-            if (!manifestHas1080p) {
+            
+            if (!manifestHas1080p && !isPlayingGuessedQuality) {
                 try {
                     const currentUrl = new URL(originalVideoUrl);
                     const pathSegments = currentUrl.pathname.split('/');
@@ -272,6 +277,7 @@ function addHlsEvents() {
                         let segments1080 = [...pathSegments];
                         segments1080.splice(lastSegmentIndex, 0, '1080');
                         const potential1080pUrl = currentUrl.origin + segments1080.join('/') + currentUrl.search;
+                        
                         fetch(potential1080pUrl, { method: 'HEAD' }).then(response => {
                             if (response.ok) {
                                 const option1080p = document.createElement('li');
@@ -291,11 +297,14 @@ function addHlsEvents() {
     hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (!qualityMenuBtn) return;
+        
+        // UI আপডেট করার জন্য সম্পূর্ণ HTML কোডটি আবার তৈরি করুন
+        qualityMenuBtn.innerHTML = `<div class="menu-item-label"><svg>...</svg><span>Quality</span></div><div class="menu-item-value"><span class="current-value"></span><svg class="arrow-right">...</svg></div>`;
         const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
+        
         const allQualityOptions = qualityOptionsList.querySelectorAll('li');
         allQualityOptions.forEach(opt => {
-            opt.classList.remove('active');
-            opt.classList.remove('playing');
+            opt.classList.remove('active', 'playing');
         });
 
         if (isPlayingGuessedQuality) {
@@ -307,6 +316,7 @@ function addHlsEvents() {
 
         const activeLevel = hls.levels[data.level];
         if (!activeLevel || activeLevel.height === 0) return;
+
         if (hls.autoLevelEnabled) {
             qualityCurrentValue.textContent = (activeLevel.height === 1080) ? `HD 1080p (Auto)` : `${activeLevel.height}p (Auto)`;
             const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
@@ -323,15 +333,9 @@ function addHlsEvents() {
     hls.on(Hls.Events.ERROR, function(event, data) {
         if (data.fatal) {
             switch (data.type) {
-                case Hls.ErrorTypes.NETWORK_ERROR:
-                    hls.startLoad();
-                    break;
-                case Hls.ErrorTypes.MEDIA_ERROR:
-                    hls.recoverMediaError();
-                    break;
-                default:
-                    hls.destroy();
-                    break;
+                case Hls.ErrorTypes.NETWORK_ERROR: hls.startLoad(); break;
+                case Hls.ErrorTypes.MEDIA_ERROR: hls.recoverMediaError(); break;
+                default: hls.destroy(); break;
             }
         }
     });
