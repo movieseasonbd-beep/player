@@ -53,12 +53,12 @@ const hlsConfig = {
 
 // === নতুন ফাংশন: স্ক্রিন চালু রাখার জন্য ===
 const acquireWakeLock = async () => {
+    // এই ফিচারটি সাপোর্টেড কিনা তা পরীক্ষা করা হচ্ছে
     if ('wakeLock' in navigator) {
         try {
             wakeLock = await navigator.wakeLock.request('screen');
-            // console.log('Wake Lock is active!');
         } catch (err) {
-            console.error(`${err.name}, ${err.message}`);
+            console.error(`Wake Lock request failed: ${err.name}, ${err.message}`);
         }
     }
 };
@@ -67,7 +67,6 @@ const releaseWakeLock = () => {
     if (wakeLock !== null) {
         wakeLock.release();
         wakeLock = null;
-        // console.log('Wake Lock released.');
     }
 };
 
@@ -354,19 +353,20 @@ video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 
-// === নতুন পরিবর্তন: Wake Lock যোগ করা হয়েছে ===
+// === নতুন পরিবর্তন: Wake Lock এর জন্য ইভেন্টগুলো আপডেট করা হয়েছে ===
 video.addEventListener('play', () => { 
     updatePlayState(); 
     resetControlsTimer();
-    acquireWakeLock(); // স্ক্রিন চালু রাখুন
+    acquireWakeLock(); // ভিডিও প্লে হলে স্ক্রিন চালু রাখুন
 });
 video.addEventListener('pause', () => { 
     updatePlayState(); 
     clearTimeout(controlsTimeout); 
     playerContainer.classList.add('show-controls');
-    releaseWakeLock(); // স্ক্রিন বন্ধ হওয়ার অনুমতি দিন
+    releaseWakeLock(); // ভিডিও পজ হলে স্ক্রিনকে বন্ধ হওয়ার অনুমতি দিন
 });
-video.addEventListener('ended', releaseWakeLock); // ভিডিও শেষ হলে অনুমতি দিন
+// ভিডিও শেষ হয়ে গেলেও Wake Lock রিলিজ করুন
+video.addEventListener('ended', releaseWakeLock);
 
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
@@ -420,15 +420,16 @@ speedOptions.forEach(option => {
     });
 });
 
-// === নতুন পরিবর্তন: ট্যাব পরিবর্তন হলে Wake Lock নিয়ন্ত্রণ ===
+// === নতুন পরিবর্তন: ব্যবহারকারী ট্যাব পরিবর্তন করলে Wake Lock নিয়ন্ত্রণ ===
 document.addEventListener('visibilitychange', () => {
+    // যদি ট্যাবটি background-এ চলে যায়, তাহলে lock ছেড়ে দিন
     if (document.visibilityState === 'hidden' && wakeLock !== null) {
         releaseWakeLock();
+    // যদি ট্যাবটি আবার সামনে আসে এবং ভিডিওটি চলছিল, তাহলে আবার lock নিন
     } else if (document.visibilityState === 'visible' && !video.paused) {
         acquireWakeLock();
     }
 });
-
 
 // ==========================================================
 // === Page Load (অপরিবর্তিত) ===
