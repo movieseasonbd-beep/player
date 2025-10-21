@@ -105,10 +105,7 @@ function setQuality(level, url = null) {
     if (url) {
         // --- অনুমান করা 1080p সিলেক্ট করা হলে ---
         isPlayingGuessedQuality = true;
-        qualityMenuInitialized = false;
-        initializeHls();
         hls.loadSource(url);
-        hls.attachMedia(video);
         hls.once(Hls.Events.LEVEL_LOADED, () => {
             video.currentTime = currentTime;
             if (isPlaying) video.play();
@@ -118,10 +115,7 @@ function setQuality(level, url = null) {
         if (isPlayingGuessedQuality) {
             // যদি প্লেয়ার 1080p জগতে থাকে, তবে তাকে মূল জগতে ফিরিয়ে আনুন
             isPlayingGuessedQuality = false;
-            qualityMenuInitialized = false;
-            initializeHls();
             hls.loadSource(originalVideoUrl); // সংরক্ষিত মূল লিঙ্কটি ব্যবহার করুন
-            hls.attachMedia(video);
             
             hls.once(Hls.Events.LEVEL_LOADED, () => {
                 video.currentTime = currentTime;
@@ -238,35 +232,8 @@ function showMenuPage(pageToShow) {
 // ==========================================================
 function addHlsEvents() {
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+        // শুধুমাত্র প্রথমবার মেন্যু তৈরি করুন
         if (qualityMenuInitialized) return;
-
-        // এই বিশেষ কেসটি সামলানোর জন্য
-        if (isPlayingGuessedQuality && data.levels.filter(l => l.height > 0).length === 0) {
-            let qualityMenuBtn = document.getElementById('quality-menu-btn');
-            if (!qualityMenuBtn) {
-                qualityMenuBtn = document.createElement('li');
-                qualityMenuBtn.id = 'quality-menu-btn';
-                playerSettingsGroup.prepend(qualityMenuBtn);
-            }
-            qualityMenuBtn.innerHTML = `<div class="menu-item-label"> ... </div> <div class="menu-item-value"> <span class="current-value">HD 1080p</span> ... </div>`;
-            qualityMenuBtn.addEventListener('click', () => { showMenuPage(qualitySettingsPage); });
-            
-            qualityOptionsList.innerHTML = '';
-            const autoOption = document.createElement('li');
-            autoOption.textContent = 'Auto';
-            autoOption.dataset.level = -1;
-            autoOption.addEventListener('click', () => setQuality(-1));
-            qualityOptionsList.appendChild(autoOption);
-            
-            const option1080p = document.createElement('li');
-            option1080p.textContent = 'HD 1080p';
-            option1080p.dataset.level = '1080';
-            option1080p.classList.add('active');
-            qualityOptionsList.appendChild(option1080p);
-            
-            qualityMenuInitialized = true;
-            return;
-        }
 
         const videoLevels = data.levels.filter(level => level.height > 0);
         if (videoLevels.length > 0) {
@@ -283,7 +250,6 @@ function addHlsEvents() {
             const autoOption = document.createElement('li');
             autoOption.textContent = 'Auto';
             autoOption.dataset.level = -1;
-            autoOption.classList.add('active');
             autoOption.addEventListener('click', () => setQuality(-1));
             qualityOptionsList.appendChild(autoOption);
 
@@ -297,7 +263,7 @@ function addHlsEvents() {
             });
             
             const manifestHas1080p = videoLevels.some(level => level.height === 1080);
-            if (!manifestHas1080p && !isPlayingGuessedQuality) {
+            if (!manifestHas1080p) {
                 try {
                     const currentUrl = new URL(originalVideoUrl);
                     const pathSegments = currentUrl.pathname.split('/');
