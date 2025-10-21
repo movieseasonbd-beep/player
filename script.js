@@ -93,29 +93,37 @@ function loadVideo(videoUrl) {
     setTimeout(hideLoadingScreen, 3000);
 }
 
+// === এই ফাংশনটি সম্পূর্ণ পরিবর্তন করা হয়েছে (এটিই মূল সমাধান) ===
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
 
     if (url) {
-        initializeHls();
-        qualityMenuInitialized = false; 
-
-        hls.loadSource(url);
-        hls.attachMedia(video);
+        // প্লেয়ার ধ্বংস না করে, শুধু নতুন ভিডিও লিঙ্ক লোড করুন
         
+        // UI রিসেট করার জন্য এই ফ্ল্যাগটি সেট করুন
+        qualityMenuInitialized = false;
+        
+        // hls.js-কে বলুন নতুন লিঙ্কটি লোড করতে
+        hls.loadSource(url);
+
+        // নতুন ভিডিওটি লোড হয়ে গেলে, পুরনো সময়ে ফিরে যান
         hls.once(Hls.Events.LEVEL_LOADED, () => {
             video.currentTime = currentTime;
             if (isPlaying) {
                 video.play();
             }
+            // যেহেতু এটি একটি ম্যানুয়াল সিলেকশন, Auto মোড বন্ধ করুন
+            hls.currentLevel = 0; // সাধারণত একমাত্র লেভেলটিই 0 হয়
         });
 
     } else {
+        // এটি আগের মতোই কাজ করবে
         hls.currentLevel = parseInt(level, 10);
     }
     showMenuPage(mainSettingsPage);
 }
+
 
 // === Player UI Functions (সব অপরিবর্তিত) ===
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
@@ -215,17 +223,15 @@ function showMenuPage(pageToShow) {
 }
 
 // ==========================================================
-// === HLS Event Listeners ===
+// === HLS Event Listeners (অপরিবর্তিত) ===
 // ==========================================================
 function addHlsEvents() {
-    // === এই ফাংশনটি সম্পূর্ণ পরিবর্তন করা হয়েছে ===
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         if (qualityMenuInitialized) return;
         const urlParams = new URLSearchParams(window.location.search);
         const videoUrl = urlParams.get('id');
 
         if (data.levels.length > 0) {
-            // ডুপ্লিকেট বাটন তৈরি হওয়া বন্ধ করার জন্য এই পরিবর্তন
             let qualityMenuBtn = document.getElementById('quality-menu-btn');
             if (!qualityMenuBtn) {
                 qualityMenuBtn = document.createElement('li');
