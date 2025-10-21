@@ -33,8 +33,6 @@ let controlsTimeout;
 let isScrubbing = false;
 let wasPlaying = false;
 let qualityMenuInitialized = false;
-
-// === নতুন পরিবর্তন: Wake Lock এর জন্য ভ্যারিয়েবল ===
 let wakeLock = null;
 
 // HLS Configuration (উন্নত করা)
@@ -50,10 +48,7 @@ const hlsConfig = {
 // ==========================================================
 // === Functions ===
 // ==========================================================
-
-// === নতুন ফাংশন: স্ক্রিন চালু রাখার জন্য ===
 const acquireWakeLock = async () => {
-    // এই ফিচারটি সাপোর্টেড কিনা তা পরীক্ষা করা হচ্ছে
     if ('wakeLock' in navigator) {
         try {
             wakeLock = await navigator.wakeLock.request('screen');
@@ -62,7 +57,6 @@ const acquireWakeLock = async () => {
         }
     }
 };
-
 const releaseWakeLock = () => {
     if (wakeLock !== null) {
         wakeLock.release();
@@ -221,17 +215,24 @@ function showMenuPage(pageToShow) {
 }
 
 // ==========================================================
-// === HLS Event Listeners (অপরিবর্তিত) ===
+// === HLS Event Listeners ===
 // ==========================================================
 function addHlsEvents() {
+    // === এই ফাংশনটি সম্পূর্ণ পরিবর্তন করা হয়েছে ===
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         if (qualityMenuInitialized) return;
         const urlParams = new URLSearchParams(window.location.search);
         const videoUrl = urlParams.get('id');
 
         if (data.levels.length > 0) {
-            const qualityMenuBtn = document.getElementById('quality-menu-btn') || document.createElement('li');
-            qualityMenuBtn.id = 'quality-menu-btn';
+            // ডুপ্লিকেট বাটন তৈরি হওয়া বন্ধ করার জন্য এই পরিবর্তন
+            let qualityMenuBtn = document.getElementById('quality-menu-btn');
+            if (!qualityMenuBtn) {
+                qualityMenuBtn = document.createElement('li');
+                qualityMenuBtn.id = 'quality-menu-btn';
+                playerSettingsGroup.prepend(qualityMenuBtn);
+            }
+            
             qualityMenuBtn.innerHTML = `<div class="menu-item-label"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M216,104H102.09L210,75.51a8,8,0,0,0,5.68-9.84l-8.16-30a15.93,15.93,0,0,0-19.42-11.13L35.81,64.74a15.75,15.75,0,0,0-9.7,7.4,15.51,15.51,0,0,0-1.55,12L32,111.56c0,.14,0,.29,0,.44v88a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V112A8,8,0,0,0,216,104ZM192.16,40l6,22.07L164.57,71,136.44,54.72ZM77.55,70.27l28.12,16.24-59.6,15.73-6-22.08Z"></path></svg> <span>Quality</span> </div> <div class="menu-item-value"> <span class="current-value">Auto</span> <svg class="arrow-right" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg> </div>`;
             qualityMenuBtn.addEventListener('click', () => { showMenuPage(qualitySettingsPage); });
             
@@ -254,10 +255,6 @@ function addHlsEvents() {
                 option.addEventListener('click', () => setQuality(index));
                 qualityOptionsList.appendChild(option);
             });
-            
-            if (!document.getElementById('quality-menu-btn')) {
-                playerSettingsGroup.prepend(qualityMenuBtn);
-            }
             
             const manifestHas1080p = data.levels.some(level => level.height === 1080);
 
@@ -347,27 +344,23 @@ function addHlsEvents() {
 }
 
 // ==========================================================
-// === General Event Listeners ===
+// === General Event Listeners (অপরিবর্তিত) ===
 // ==========================================================
 video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
-
-// === নতুন পরিবর্তন: Wake Lock এর জন্য ইভেন্টগুলো আপডেট করা হয়েছে ===
 video.addEventListener('play', () => { 
     updatePlayState(); 
     resetControlsTimer();
-    acquireWakeLock(); // ভিডিও প্লে হলে স্ক্রিন চালু রাখুন
+    acquireWakeLock();
 });
 video.addEventListener('pause', () => { 
     updatePlayState(); 
     clearTimeout(controlsTimeout); 
     playerContainer.classList.add('show-controls');
-    releaseWakeLock(); // ভিডিও পজ হলে স্ক্রিনকে বন্ধ হওয়ার অনুমতি দিন
+    releaseWakeLock();
 });
-// ভিডিও শেষ হয়ে গেলেও Wake Lock রিলিজ করুন
 video.addEventListener('ended', releaseWakeLock);
-
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 video.addEventListener('volumechange', updateVolumeIcon);
@@ -419,13 +412,9 @@ speedOptions.forEach(option => {
         showMenuPage(mainSettingsPage);
     });
 });
-
-// === নতুন পরিবর্তন: ব্যবহারকারী ট্যাব পরিবর্তন করলে Wake Lock নিয়ন্ত্রণ ===
 document.addEventListener('visibilitychange', () => {
-    // যদি ট্যাবটি background-এ চলে যায়, তাহলে lock ছেড়ে দিন
     if (document.visibilityState === 'hidden' && wakeLock !== null) {
         releaseWakeLock();
-    // যদি ট্যাবটি আবার সামনে আসে এবং ভিডিওটি চলছিল, তাহলে আবার lock নিন
     } else if (document.visibilityState === 'visible' && !video.paused) {
         acquireWakeLock();
     }
