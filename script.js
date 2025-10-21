@@ -28,15 +28,41 @@ const backBtns = document.querySelectorAll('.back-btn');
 const speedCurrentValue = speedMenuBtn.querySelector('.current-value');
 const speedOptions = speedOptionsList.querySelectorAll('li');
 
-let hls = new Hls({ enableWorker: false }); // <-- স্থিতিশীলতার জন্য এই অপশনটি যোগ করা হয়েছে
+let hls;
 let controlsTimeout;
 let isScrubbing = false;
 let wasPlaying = false;
-let qualityMenuInitialized = false; // <-- কোয়ালিটি মেন্যু একবার লোড করার জন্য ফ্ল্যাগ
+let qualityMenuInitialized = false;
+
+// ==========================================================
+// === HLS Configuration ===
+// ==========================================================
+const hlsConfig = {
+    // Web Worker ডিফল্টভাবে true থাকে, যা পারফরম্যান্সের জন্য সেরা।
+    // enableWorker: true,
+    
+    // প্লেয়ার কত সেকেন্ডের ভিডিও বাফার করে রাখবে। এটি নেটওয়ার্ক দুর্বল থাকলেও প্লেব্যাক স্মুথ রাখে।
+    maxBufferLength: 30,
+    
+    // সর্বোচ্চ বাফার সাইজ (সেকেন্ডে)
+    maxMaxBufferLength: 600,
+    
+    // ভিডিও অটোমেটিক কোয়ালিটি দিয়ে শুরু হবে।
+    startLevel: -1,
+};
 
 // ==========================================================
 // === Functions ===
 // ==========================================================
+
+function initializeHls() {
+    if (hls) {
+        hls.destroy();
+    }
+    hls = new Hls(hlsConfig);
+    addHlsEvents(); // নতুন ইনস্ট্যান্সের জন্য ইভেন্টগুলো আবার যোগ করুন
+}
+
 function loadVideo(videoUrl) {
     const hideLoadingScreen = () => {
         if (!loadingOverlay.classList.contains('hidden')) {
@@ -45,17 +71,19 @@ function loadVideo(videoUrl) {
     };
 
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
+        initializeHls();
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
-        hls.on(Hls.Events.FRAG_BUFFERED, function() {
-            hls.off(Hls.Events.FRAG_BUFFERED);
+
+        hls.on(Hls.Events.FRAG_BUFFERED, function onFragBuffered() {
+            hls.off(Hls.Events.FRAG_BUFFERED, onFragBuffered); // একবার সফল হলেই ইভেন্টটি সরিয়ে ফেলুন
             hideLoadingScreen();
         });
     } else {
         video.src = videoUrl;
         video.addEventListener('canplay', hideLoadingScreen, { once: true });
     }
-    setTimeout(hideLoadingScreen, 2800); // একটি সর্বোচ্চ সময়সীমা
+    setTimeout(hideLoadingScreen, 3000); // একটি সর্বোচ্চ সময়সীমা
 }
 
 function setQuality(level, url = null) {
@@ -65,31 +93,38 @@ function setQuality(level, url = null) {
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
     const qualityCurrentValue = qualityMenuBtn ? qualityMenuBtn.querySelector('.current-value') : null;
 
+    const currentTime = video.currentTime;
+    const isPlaying = !video.paused;
+
     if (url) {
-        const currentTime = video.currentTime;
-        hls.destroy();
-        hls = new Hls({ enableWorker: false });
-        qualityMenuInitialized = false; // নতুন hls ইনস্ট্যান্সের জন্য মেন্যু আবার তৈরি করতে হবে
+        // সম্পূর্ণ নতুন URL (যেমন 1080p) লোড করার সময়
+        initializeHls();
+        qualityMenuInitialized = false; // মেন্যু আবার তৈরি করতে হবে
         
         hls.loadSource(url);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MEDIA_ATTACHED, function() {
+
+        hls.on(Hls.Events.LEVEL_LOADED, function() {
             video.currentTime = currentTime;
-            video.play();
+            if (isPlaying) {
+                video.play();
+            }
         });
 
         if (qualityCurrentValue) qualityCurrentValue.textContent = '1080p';
         const option1080p = qualityOptionsList.querySelector(`li[data-level='${level}']`);
         if (option1080p) option1080p.classList.add('active');
+
     } else {
-        hls.currentLevel = parseInt(level);
+        // একই ম্যানিফেস্টের মধ্যে কোয়ালিটি পরিবর্তন করার সময়
+        hls.currentLevel = parseInt(level, 10);
         const option = qualityOptionsList.querySelector(`li[data-level='${level}']`);
         if (option) option.classList.add('active');
     }
     showMenuPage(mainSettingsPage);
 }
 
-// (বাকি সব ফাংশন অপরিবর্তিত)
+// === Player UI Functions (অপরিবর্তিত) ===
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
 function handleScreenTap() {
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
@@ -186,82 +221,106 @@ function showMenuPage(pageToShow) {
     }
 }
 
-// ===== HLS Quality Management =====
-hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-    if (qualityMenuInitialized) return;
-    const urlParams = new URLSearchParams(window.location.search);
-    const videoUrl = urlParams.get('id');
+// ==========================================================
+// === HLS Event Listeners ===
+// ==========================================================
+function addHlsEvents() {
+    hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+        if (qualityMenuInitialized) return;
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoUrl = urlParams.get('id');
 
-    if (data.levels.length > 1) {
-        const qualityMenuBtn = document.createElement('li');
-        qualityMenuBtn.id = 'quality-menu-btn';
-        qualityMenuBtn.innerHTML = `<div class="menu-item-label"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M216,104H102.09L210,75.51a8,8,0,0,0,5.68-9.84l-8.16-30a15.93,15.93,0,0,0-19.42-11.13L35.81,64.74a15.75,15.75,0,0,0-9.7,7.4,15.51,15.51,0,0,0-1.55,12L32,111.56c0,.14,0,.29,0,.44v88a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V112A8,8,0,0,0,216,104ZM192.16,40l6,22.07L164.57,71,136.44,54.72ZM77.55,70.27l28.12,16.24-59.6,15.73-6-22.08Z"></path></svg> <span>Quality</span> </div> <div class="menu-item-value"> <span class="current-value">Auto</span> <svg class="arrow-right" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg> </div>`;
-        qualityMenuBtn.addEventListener('click', () => { showMenuPage(qualitySettingsPage); });
-        qualityOptionsList.innerHTML = '';
-        const autoOption = document.createElement('li');
-        autoOption.textContent = 'Auto';
-        autoOption.dataset.level = -1;
-        autoOption.classList.add('active');
-        autoOption.addEventListener('click', () => setQuality(-1));
-        qualityOptionsList.appendChild(autoOption);
-        data.levels.forEach((level, index) => {
-            const option = document.createElement('li');
-            option.textContent = `${level.height}p`;
-            option.dataset.level = index;
-            option.addEventListener('click', () => setQuality(index));
-            qualityOptionsList.appendChild(option);
-        });
-        playerSettingsGroup.prepend(qualityMenuBtn);
-        
-        try {
-            const currentUrl = new URL(videoUrl);
-            const pathSegments = currentUrl.pathname.split('/');
-            if (!pathSegments.includes('1080')) {
-                const lastSegmentIndex = pathSegments.findLastIndex(seg => seg.includes('.m3u8'));
-                if (lastSegmentIndex > -1) {
-                    let segments1080 = [...pathSegments];
-                    segments1080.splice(lastSegmentIndex, 0, '1080');
-                    const potential1080pUrl = currentUrl.origin + segments1080.join('/') + currentUrl.search;
-                    fetch(potential1080pUrl, { method: 'HEAD' })
-                        .then(response => {
-                            if (response.ok) {
-                                const option1080p = document.createElement('li');
-                                option1080p.textContent = '1080p';
-                                option1080p.dataset.level = '1080';
-                                option1080p.addEventListener('click', () => setQuality('1080', potential1080pUrl));
-                                qualityOptionsList.appendChild(option1080p);
-                            }
-                        });
+        if (data.levels.length > 1) {
+            const qualityMenuBtn = document.createElement('li');
+            qualityMenuBtn.id = 'quality-menu-btn';
+            qualityMenuBtn.innerHTML = `<div class="menu-item-label"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M216,104H102.09L210,75.51a8,8,0,0,0,5.68-9.84l-8.16-30a15.93,15.93,0,0,0-19.42-11.13L35.81,64.74a15.75,15.75,0,0,0-9.7,7.4,15.51,15.51,0,0,0-1.55,12L32,111.56c0,.14,0,.29,0,.44v88a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V112A8,8,0,0,0,216,104ZM192.16,40l6,22.07L164.57,71,136.44,54.72ZM77.55,70.27l28.12,16.24-59.6,15.73-6-22.08Z"></path></svg> <span>Quality</span> </div> <div class="menu-item-value"> <span class="current-value">Auto</span> <svg class="arrow-right" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg> </div>`;
+            qualityMenuBtn.addEventListener('click', () => { showMenuPage(qualitySettingsPage); });
+            qualityOptionsList.innerHTML = '';
+            const autoOption = document.createElement('li');
+            autoOption.textContent = 'Auto';
+            autoOption.dataset.level = -1;
+            autoOption.classList.add('active');
+            autoOption.addEventListener('click', () => setQuality(-1));
+            qualityOptionsList.appendChild(autoOption);
+            data.levels.forEach((level, index) => {
+                const option = document.createElement('li');
+                option.textContent = `${level.height}p`;
+                option.dataset.level = index;
+                option.addEventListener('click', () => setQuality(index));
+                qualityOptionsList.appendChild(option);
+            });
+            playerSettingsGroup.prepend(qualityMenuBtn);
+            
+            try {
+                const currentUrl = new URL(videoUrl);
+                const pathSegments = currentUrl.pathname.split('/');
+                if (!pathSegments.includes('1080')) {
+                    const lastSegmentIndex = pathSegments.findLastIndex(seg => seg.includes('.m3u8'));
+                    if (lastSegmentIndex > -1) {
+                        let segments1080 = [...pathSegments];
+                        segments1080.splice(lastSegmentIndex, 0, '1080');
+                        const potential1080pUrl = currentUrl.origin + segments1080.join('/') + currentUrl.search;
+                        fetch(potential1080pUrl, { method: 'HEAD' })
+                            .then(response => {
+                                if (response.ok) {
+                                    const option1080p = document.createElement('li');
+                                    option1080p.textContent = '1080p';
+                                    option1080p.dataset.level = '1080';
+                                    option1080p.addEventListener('click', () => setQuality('1080', potential1080pUrl));
+                                    qualityOptionsList.appendChild(option1080p);
+                                }
+                            });
+                }
+            }
+        } catch(e) {}
+        }
+        qualityMenuInitialized = true;
+    });
+
+    hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+        const qualityMenuBtn = document.getElementById('quality-menu-btn');
+        if (!qualityMenuBtn) return;
+        const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
+        const allQualityOptions = qualityOptionsList.querySelectorAll('li');
+        allQualityOptions.forEach(opt => opt.classList.remove('active'));
+
+        const activeLevel = hls.levels[data.level];
+        if (!activeLevel) return;
+
+        if (hls.autoLevelEnabled) {
+            qualityCurrentValue.textContent = `${activeLevel.height}p (Auto)`;
+            const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
+            if (autoOpt) autoOpt.classList.add('active');
+        } else {
+            qualityCurrentValue.textContent = `${activeLevel.height}p`;
+            const activeOption = qualityOptionsList.querySelector(`li[data-level='${data.level}']`);
+            if (activeOption) activeOption.classList.add('active');
+        }
+    });
+
+    hls.on(Hls.Events.ERROR, function(event, data) {
+        if (data.fatal) {
+            switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                    console.error('Fatal network error encountered, trying to recover...', data);
+                    hls.startLoad();
+                    break;
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                    console.error('Fatal media error encountered, trying to recover...', data);
+                    hls.recoverMediaError();
+                    break;
+                default:
+                    console.error('An unrecoverable fatal error occurred, destroying hls instance', data);
+                    hls.destroy();
+                    break;
             }
         }
-    } catch(e) {}
-    }
-    qualityMenuInitialized = true;
-});
+    });
+}
 
-hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
-    const qualityMenuBtn = document.getElementById('quality-menu-btn');
-    if (!qualityMenuBtn) return;
-    const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
-    const allQualityOptions = qualityOptionsList.querySelectorAll('li');
-    allQualityOptions.forEach(opt => opt.classList.remove('active'));
-
-    if (hls.autoLevelEnabled) {
-        const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
-        if (autoOpt) autoOpt.classList.add('active');
-        const activeLevel = hls.levels[data.level];
-        if (activeLevel) {
-            qualityCurrentValue.textContent = `${activeLevel.height}p (Auto)`;
-            const currentQualityOption = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
-            if(currentQualityOption) currentQualityOption.classList.add('active');
-        }
-    } else {
-        const activeOption = qualityOptionsList.querySelector(`li[data-level='${hls.currentLevel}']`);
-        if(activeOption) activeOption.classList.add('active');
-    }
-});
-
-// === Event Listeners (বাকি অংশ) ===
+// ==========================================================
+// === General Event Listeners ===
+// ==========================================================
 video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
@@ -277,12 +336,12 @@ volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
 progressBar.addEventListener('input', scrub);
-progressBar.addEventListener('mousedown', (e) => {
+progressBar.addEventListener('mousedown', () => {
     isScrubbing = true;
     wasPlaying = !video.paused;
     if (wasPlaying) video.pause();
 });
-document.addEventListener('mouseup', (e) => {
+document.addEventListener('mouseup', () => {
     if (isScrubbing) {
         isScrubbing = false;
         if (wasPlaying) video.play();
@@ -303,13 +362,9 @@ settingsBtn.addEventListener('click', () => {
         menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
     }
 });
-speedMenuBtn.addEventListener('click', () => {
-    showMenuPage(speedSettingsPage);
-});
+speedMenuBtn.addEventListener('click', () => { showMenuPage(speedSettingsPage); });
 backBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        showMenuPage(mainSettingsPage);
-    });
+    btn.addEventListener('click', () => { showMenuPage(mainSettingsPage); });
 });
 speedOptions.forEach(option => {
     option.addEventListener('click', () => {
@@ -321,14 +376,16 @@ speedOptions.forEach(option => {
     });
 });
 
+// ==========================================================
 // === Page Load ===
+// ==========================================================
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     if (videoUrl) {
         loadVideo(videoUrl);
     } else {
-        loadingOverlay.classList.add('hidden');
+        loadingOverlay.classList.remove('hidden');
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
     updatePlayState();
