@@ -34,11 +34,14 @@ let isScrubbing = false;
 let wasPlaying = false;
 let qualityMenuInitialized = false;
 
-// HLS Configuration (অপরিবর্তিত)
+// HLS Configuration (উন্নত করা)
 const hlsConfig = {
     maxBufferLength: 30,
     maxMaxBufferLength: 600,
     startLevel: -1,
+    capLevelToPlayerSize: false,
+    abrEwmaSlowVoD: 4.0,
+    abrEwmaFastVoD: 1.0,
 };
 
 // ==========================================================
@@ -74,32 +77,38 @@ function loadVideo(videoUrl) {
     setTimeout(hideLoadingScreen, 3000);
 }
 
+// === এই ফাংশনটি সম্পূর্ণ পরিবর্তন করা হয়েছে ===
 function setQuality(level, url = null) {
     const allQualityOptions = qualityOptionsList.querySelectorAll('li');
-    allQualityOptions.forEach(opt => opt.classList.remove('active'));
-    const qualityMenuBtn = document.getElementById('quality-menu-btn');
-    const qualityCurrentValue = qualityMenuBtn ? qualityMenuBtn.querySelector('.current-value') : null;
+    allQualityOptions.forEach(opt => opt.classList.remove('active', 'playing'));
+
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
+
     if (url) {
-        initializeHls();
-        qualityMenuInitialized = false;
+        // প্লেয়ার ডিলিট না করে, শুধু নতুন সোর্স লোড করা হচ্ছে
         hls.loadSource(url);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.LEVEL_LOADED, function() {
+        
+        hls.once(Hls.Events.LEVEL_LOADED, () => {
+             // নতুন ভিডিও লোড হওয়ার পর পুরনো সময়ে ফিরে যাওয়া
             video.currentTime = currentTime;
-            if (isPlaying) video.play();
+            if (isPlaying) {
+                video.play();
+            }
         });
-        if (qualityCurrentValue) qualityCurrentValue.textContent = 'HD 1080p';
-        const option = qualityOptionsList.querySelector(`li[data-level='1080']`);
+        
+        const option = qualityOptionsList.querySelector(`li[data-level='${level}']`);
         if (option) option.classList.add('active');
+
     } else {
+        // এটি আগের মতোই কাজ করবে
         hls.currentLevel = parseInt(level, 10);
         const option = qualityOptionsList.querySelector(`li[data-level='${level}']`);
         if (option) option.classList.add('active');
     }
     showMenuPage(mainSettingsPage);
 }
+
 
 // === Player UI Functions (সব অপরিবর্তিত) ===
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
@@ -199,10 +208,9 @@ function showMenuPage(pageToShow) {
 }
 
 // ==========================================================
-// === HLS Event Listeners ===
+// === HLS Event Listeners (অপরিবর্তিত) ===
 // ==========================================================
 function addHlsEvents() {
-    // === এই ফাংশনটি আগের সহজ অবস্থায় ফিরিয়ে আনা হয়েছে ===
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         if (qualityMenuInitialized) return;
         const urlParams = new URLSearchParams(window.location.search);
@@ -236,10 +244,8 @@ function addHlsEvents() {
             
             playerSettingsGroup.prepend(qualityMenuBtn);
             
-            // ধাপ ১: ম্যানিফেস্টে 1080p আছে কিনা পরীক্ষা করা হচ্ছে
             const manifestHas1080p = data.levels.some(level => level.height === 1080);
 
-            // ধাপ ২: যদি না থাকে, তবেই শুধু 1080p অনুমান করা হচ্ছে
             if (!manifestHas1080p) {
                 try {
                     const currentUrl = new URL(videoUrl);
@@ -269,7 +275,6 @@ function addHlsEvents() {
         qualityMenuInitialized = true;
     });
 
-    // LEVEL_SWITCHED এবং ERROR ইভেন্ট অপরিবর্তিত
     hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (!qualityMenuBtn) return;
@@ -282,12 +287,16 @@ function addHlsEvents() {
         const activeLevel = hls.levels[data.level];
         if (!activeLevel) return;
         if (hls.autoLevelEnabled) {
-            qualityCurrentValue.textContent = `${activeLevel.height}p (Auto)`;
+            if (activeLevel.height === 1080) {
+                qualityCurrentValue.textContent = `HD 1080p (Auto)`;
+            } else {
+                qualityCurrentValue.textContent = `${activeLevel.height}p (Auto)`;
+            }
             const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
             if (autoOpt) autoOpt.classList.add('active');
-            const currentQualityOption = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
-            if (currentQualityOption) {
-                currentQualityOption.classList.add('playing');
+            const currentPlayingOpt = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
+            if (currentPlayingOpt) {
+                currentPlayingOpt.classList.add('playing');
             }
         } else {
             if (activeLevel.height === 1080) {
@@ -295,12 +304,13 @@ function addHlsEvents() {
             } else {
                  qualityCurrentValue.textContent = `${activeLevel.height}p`;
             }
-            const activeOption = qualityOptionsList.querySelector(`li[data-level='${hls.currentLevel}']`);
-            if (activeOption) {
-                activeOption.classList.add('active');
+            const currentPlayingOpt = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
+            if (currentPlayingOpt) {
+                currentPlayingOpt.classList.add('active');
             }
         }
     });
+    
     hls.on(Hls.Events.ERROR, function(event, data) {
         if (data.fatal) {
             switch (data.type) {
