@@ -486,4 +486,3 @@ document.addEventListener('DOMContentLoaded', () => {
     updateVolumeIcon();
     updateFullscreenState();
 });
-```এই কোডটি আপনার সমস্যার সমাধান করবে এবং আপনি এখন সহজেই 1080p এবং অন্যান্য কোয়ালিটির মধ্যে সুইচ করতে পারবেন, কোয়ালিটি লিস্টটি হারিয়ে যাবে না।
