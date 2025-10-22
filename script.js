@@ -37,7 +37,7 @@ let hls;
 let controlsTimeout;
 let isScrubbing = false;
 let wasPlaying = false;
-let qualityMenuInitialized = false;
+let qualityMenuInitialized = false; // ফ্ল্যাগ: কোয়ালিটি মেনু কি একবার তৈরি হয়েছে?
 let originalVideoUrl = null;
 let wakeLock = null;
 
@@ -91,34 +91,30 @@ function loadVideo(videoUrl) {
 }
 
 // ==========================================================
-// === setQuality ফাংশনটি মসৃণ রূপান্তরের জন্য পুরোপুরি পরিবর্তিত ===
+// === setQuality (চূড়ান্ত এবং নির্ভরযোগ্য সংস্করণ) ===
 // ==========================================================
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
 
-    // নতুন URL (যেমন খুঁজে পাওয়া 1080p) লোড করার জন্য
-    if (url) {
-        if (video.poster) video.poster = ''; // পোস্টার এখনও সরানো হচ্ছে, কারণ এটি প্রথমবার কাজে লাগতে পারে
-        
-        // hls.destroy() ব্যবহার না করে সরাসরি নতুন সোর্স লোড করা হচ্ছে
-        hls.loadSource(url);
+    const qualityMenuBtn = document.getElementById('quality-menu-btn');
+    const qualityCurrentValue = qualityMenuBtn ? qualityMenuBtn.querySelector('.current-value') : null;
 
+    if (url) {
+        if (video.poster) video.poster = '';
+        
+        hls.loadSource(url);
         hls.once(Hls.Events.LEVEL_LOADED, () => {
             video.currentTime = currentTime;
             if (isPlaying) video.play();
         });
 
-        const qualityMenuBtn = document.getElementById('quality-menu-btn');
-        if (qualityMenuBtn) qualityMenuBtn.querySelector('.current-value').textContent = 'HD 1080p';
+        if(qualityCurrentValue) qualityCurrentValue.textContent = 'HD 1080p';
         qualityOptionsList.querySelectorAll('li').forEach(opt => opt.classList.remove('active', 'playing'));
         const new1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
         if (new1080pOption) new1080pOption.classList.add('active');
 
-    } 
-    // মূল ম্যানিফেস্টের ভেতরের কোয়ালিটি পরিবর্তনের জন্য
-    else {
-        // যদি প্লেয়ারটি বর্তমানে বাহ্যিক 1080p সোর্স চালায়, তবে মূল সোর্সে মসৃণভাবে ফিরে আসতে হবে
+    } else {
         if (hls.url !== originalVideoUrl) {
             hls.loadSource(originalVideoUrl);
             hls.once(Hls.Events.MANIFEST_PARSED, () => {
@@ -126,9 +122,7 @@ function setQuality(level, url = null) {
                 video.currentTime = currentTime;
                 if (isPlaying) video.play();
             });
-        } 
-        // যদি প্লেয়ারটি 이미 মূল সোর্সেই থাকে, তবে শুধু লেভেল পরিবর্তন করলেই হবে
-        else {
+        } else {
             hls.currentLevel = parseInt(level, 10);
         }
     }
@@ -269,11 +263,14 @@ function showMenuPage(pageToShow) {
     }
 }
 
+// ==========================================================
+// === HLS Event Listeners (চূড়ান্ত এবং নির্ভরযোগ্য সংস্করণ) ===
+// ==========================================================
 function addHlsEvents() {
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-        if (qualityMenuInitialized && hls.url === originalVideoUrl) return;
-        if(hls.url === originalVideoUrl) qualityMenuInitialized = true;
-        
+        // যদি কোয়ালিটি লিস্ট একবার তৈরি হয়ে গিয়ে থাকে, তাহলে আর কিছু করার দরকার নেই
+        if (qualityMenuInitialized) return;
+
         const urlParams = new URLSearchParams(window.location.search);
         const videoUrl = urlParams.get('id');
         if (data.levels.length > 0) {
@@ -281,6 +278,7 @@ function addHlsEvents() {
             qualityMenuBtn.id = 'quality-menu-btn';
             qualityMenuBtn.innerHTML = `<div class="menu-item-label"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M216,104H102.09L210,75.51a8,8,0,0,0,5.68-9.84l-8.16-30a15.93,15.93,0,0,0-19.42-11.13L35.81,64.74a15.75,15.75,0,0,0-9.7,7.4,15.51,15.51,0,0,0-1.55,12L32,111.56c0,.14,0,.29,0,.44v88a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V112A8,8,0,0,0,216,104ZM192.16,40l6,22.07L164.57,71,136.44,54.72ZM77.55,70.27l28.12,16.24-59.6,15.73-6-22.08Z"></path></svg> <span>Quality</span> </div> <div class="menu-item-value"> <span class="current-value">Auto</span> <svg class="arrow-right" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"></path></svg> </div>`;
             qualityMenuBtn.addEventListener('click', () => { showMenuPage(qualitySettingsPage); });
+            
             qualityOptionsList.innerHTML = '';
             const autoOption = document.createElement('li');
             autoOption.textContent = 'Auto';
@@ -288,6 +286,7 @@ function addHlsEvents() {
             autoOption.classList.add('active');
             autoOption.addEventListener('click', () => setQuality(-1));
             qualityOptionsList.appendChild(autoOption);
+            
             data.levels.forEach((level, index) => {
                 const option = document.createElement('li');
                 option.textContent = (level.height === 1080) ? `HD 1080p` : `${level.height}p`;
@@ -295,11 +294,13 @@ function addHlsEvents() {
                 option.addEventListener('click', () => setQuality(index));
                 qualityOptionsList.appendChild(option);
             });
+            
             if (!document.getElementById('quality-menu-btn')) {
                 playerSettingsGroup.prepend(qualityMenuBtn);
             }
+            
             const manifestHas1080p = data.levels.some(level => level.height === 1080);
-            if (!manifestHas1080p && !qualityOptionsList.querySelector('li[data-level="1080"]')) {
+            if (!manifestHas1080p) {
                 try {
                     const currentUrl = new URL(videoUrl);
                     const pathSegments = currentUrl.pathname.split('/');
@@ -321,6 +322,8 @@ function addHlsEvents() {
                     }
                 } catch (e) { /* ignore */ }
             }
+            // লিস্ট সফলভাবে তৈরি হওয়ার পর ফ্ল্যাগটি সেট করে দেওয়া হচ্ছে
+            qualityMenuInitialized = true;
         }
     });
 
