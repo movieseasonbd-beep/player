@@ -96,24 +96,24 @@ function loadVideo(videoUrl) {
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
-
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
     const qualityCurrentValue = qualityMenuBtn ? qualityMenuBtn.querySelector('.current-value') : null;
 
     if (url) {
         if (video.poster) video.poster = '';
         
+        // hls.destroy() ব্যবহার না করে সরাসরি নতুন সোর্স লোড করা হচ্ছে
         hls.loadSource(url);
+        
         hls.once(Hls.Events.LEVEL_LOADED, () => {
             video.currentTime = currentTime;
             if (isPlaying) video.play();
         });
 
-        if(qualityCurrentValue) qualityCurrentValue.textContent = 'HD 1080p';
+        if (qualityCurrentValue) qualityCurrentValue.textContent = 'HD 1080p';
         qualityOptionsList.querySelectorAll('li').forEach(opt => opt.classList.remove('active', 'playing'));
         const new1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
         if (new1080pOption) new1080pOption.classList.add('active');
-
     } else {
         if (hls.url !== originalVideoUrl) {
             hls.loadSource(originalVideoUrl);
@@ -128,7 +128,6 @@ function setQuality(level, url = null) {
     }
     showMenuPage(mainSettingsPage);
 }
-
 
 function setupSubtitles() {
     if (!subtitleMenuBtn) return;
