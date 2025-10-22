@@ -1,4 +1,4 @@
-// DOM Elements (অপরিবর্তিত)
+// DOM Elements
 const playerContainer = document.querySelector('.player-container');
 const loadingOverlay = document.querySelector('.loading-overlay');
 const video = document.querySelector('.video');
@@ -34,10 +34,10 @@ let isScrubbing = false;
 let wasPlaying = false;
 let qualityMenuInitialized = false;
 
-// === নতুন পরিবর্তন: Wake Lock এর জন্য ভ্যারিয়েবল ===
+// Wake Lock এর জন্য ভ্যারিয়েবল
 let wakeLock = null;
 
-// HLS Configuration (উন্নত করা)
+// HLS Configuration
 const hlsConfig = {
     maxBufferLength: 30,
     maxMaxBufferLength: 600,
@@ -51,9 +51,8 @@ const hlsConfig = {
 // === Functions ===
 // ==========================================================
 
-// === নতুন ফাংশন: স্ক্রিন চালু রাখার জন্য ===
+// স্ক্রিন চালু রাখার জন্য ফাংশন
 const acquireWakeLock = async () => {
-    // এই ফিচারটি সাপোর্টেড কিনা তা পরীক্ষা করা হচ্ছে
     if ('wakeLock' in navigator) {
         try {
             wakeLock = await navigator.wakeLock.request('screen');
@@ -78,55 +77,25 @@ function initializeHls() {
     addHlsEvents();
 }
 
-// === শুধুমাত্র এই ফাংশনটি পরিবর্তন করুন ===
-
-function loadVideo(videoUrl, seekTime = 0) {
-    // --- নতুন লজিক শুরু ---
-    let isVideoReady = false;
-    let isMinTimeElapsed = false;
-
-    // লোডিং স্ক্রিন দেখানোর জন্য এটিকে প্রথমে un-hide করুন
-    loadingOverlay.classList.remove('hidden');
-
-    const tryHideLoadingScreen = () => {
-        // দুটি শর্ত পূরণ হলেই শুধুমাত্র লোডিং স্ক্রিনটি সরানো হবে
-        if (isVideoReady && isMinTimeElapsed) {
-            if (!loadingOverlay.classList.contains('hidden')) {
-                loadingOverlay.classList.add('hidden');
-            }
-        }
-    };
-
-    // শর্ত ১: ৩ সেকেন্ড টাইমার সেট করুন
+// === পরিবর্তিত loadVideo ফাংশন ===
+function loadVideo(videoUrl) {
+    // ঠিক ৩ সেকেন্ড পরে লোডিং স্ক্রিনটি লুকিয়ে ফেলার জন্য টাইমার সেট করা হলো
     setTimeout(() => {
-        isMinTimeElapsed = true;
-        tryHideLoadingScreen(); // চেক করুন: ভিডিও কি এর মধ্যেই রেডি হয়ে গেছে?
-    }, 3000);
+        if (!loadingOverlay.classList.contains('hidden')) {
+            loadingOverlay.classList.add('hidden');
+        }
+    }, 3000); // সময়: ৩ সেকেন্ড (3000 মিলিসেকেন্ড)
 
-    const onVideoReady = () => {
-        isVideoReady = true;
-        tryHideLoadingScreen(); // চেক করুন: ৩ সেকেন্ড কি পার হয়েছে?
-    };
-    // --- নতুন লজিক শেষ ---
-
-    // শুধুমাত্র প্রথমবার মূল লিঙ্কটি সংরক্ষণ করুন
-    if (!isPlayingGuessedQuality) {
-        originalVideoUrl = videoUrl;
+    // একই সাথে, ভিডিও লোড করার প্রক্রিয়া ব্যাকগ্রাউন্ডে চলতে থাকবে
+    if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
+        initializeHls();
+        hls.loadSource(videoUrl);
+        hls.attachMedia(video);
+    } else {
+        video.src = videoUrl;
     }
-    qualityMenuInitialized = false;
-
-    initializeHls();
-    hls.loadSource(videoUrl);
-    hls.attachMedia(video);
-
-    // শর্ত ২: ভিডিও রেডি হওয়ার জন্য অপেক্ষা করুন
-    hls.once(Hls.Events.FRAG_BUFFERED, onVideoReady);
-
-    hls.once(Hls.Events.LEVEL_LOADED, () => {
-        if (seekTime > 0) video.currentTime = seekTime;
-        if(wasPlaying || isPlayingGuessedQuality) video.play(); // অটো-প্লে ঠিক করা
-    });
 }
+
 
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
@@ -152,7 +121,7 @@ function setQuality(level, url = null) {
     showMenuPage(mainSettingsPage);
 }
 
-// === Player UI Functions (সব অপরিবর্তিত) ===
+// Player UI Functions
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
 function handleScreenTap() {
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
@@ -250,7 +219,7 @@ function showMenuPage(pageToShow) {
 }
 
 // ==========================================================
-// === HLS Event Listeners (অপরিবর্তিত) ===
+// === HLS Event Listeners ===
 // ==========================================================
 function addHlsEvents() {
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
@@ -382,19 +351,18 @@ video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 
-// === নতুন পরিবর্তন: Wake Lock এর জন্য ইভেন্টগুলো আপডেট করা হয়েছে ===
+// Wake Lock এর জন্য ইভেন্ট
 video.addEventListener('play', () => { 
     updatePlayState(); 
     resetControlsTimer();
-    acquireWakeLock(); // ভিডিও প্লে হলে স্ক্রিন চালু রাখুন
+    acquireWakeLock();
 });
 video.addEventListener('pause', () => { 
     updatePlayState(); 
     clearTimeout(controlsTimeout); 
     playerContainer.classList.add('show-controls');
-    releaseWakeLock(); // ভিডিও পজ হলে স্ক্রিনকে বন্ধ হওয়ার অনুমতি দিন
+    releaseWakeLock();
 });
-// ভিডিও শেষ হয়ে গেলেও Wake Lock রিলিজ করুন
 video.addEventListener('ended', releaseWakeLock);
 
 video.addEventListener('timeupdate', updateProgressUI);
@@ -449,19 +417,17 @@ speedOptions.forEach(option => {
     });
 });
 
-// === নতুন পরিবর্তন: ব্যবহারকারী ট্যাব পরিবর্তন করলে Wake Lock নিয়ন্ত্রণ ===
+// ব্যবহারকারী ট্যাব পরিবর্তন করলে Wake Lock নিয়ন্ত্রণ
 document.addEventListener('visibilitychange', () => {
-    // যদি ট্যাবটি background-এ চলে যায়, তাহলে lock ছেড়ে দিন
     if (document.visibilityState === 'hidden' && wakeLock !== null) {
         releaseWakeLock();
-    // যদি ট্যাবটি আবার সামনে আসে এবং ভিডিওটি চলছিল, তাহলে আবার lock নিন
     } else if (document.visibilityState === 'visible' && !video.paused) {
         acquireWakeLock();
     }
 });
 
 // ==========================================================
-// === Page Load (অপরিবর্তিত) ===
+// === Page Load ===
 // ==========================================================
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
