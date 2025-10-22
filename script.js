@@ -37,7 +37,7 @@ let hls;
 let controlsTimeout;
 let isScrubbing = false;
 let wasPlaying = false;
-let qualityMenuInitialized = false; // ফ্ল্যাগ: কোয়ালিটি মেনু কি একবার তৈরি হয়েছে?
+let qualityMenuInitialized = false;
 let originalVideoUrl = null;
 let wakeLock = null;
 
@@ -91,43 +91,49 @@ function loadVideo(videoUrl) {
 }
 
 // ==========================================================
-// === setQuality (চূড়ান্ত এবং নির্ভরযোগ্য সংস্করণ) ===
+// === setQuality (মসৃণ রূপান্তর এবং লিস্ট সমস্যার চূড়ান্ত সমাধান) ===
 // ==========================================================
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
     const qualityCurrentValue = qualityMenuBtn ? qualityMenuBtn.querySelector('.current-value') : null;
+    
+    // ভিডিও পজ করে শেষ ফ্রেমটি ধরে রাখা হচ্ছে
+    if (isPlaying) video.pause();
 
-    if (url) {
-        if (video.poster) video.poster = '';
-        
-        // hls.destroy() ব্যবহার না করে সরাসরি নতুন সোর্স লোড করা হচ্ছে
-        hls.loadSource(url);
-        
+    const switchSource = (newUrl) => {
+        hls.loadSource(newUrl);
         hls.once(Hls.Events.LEVEL_LOADED, () => {
             video.currentTime = currentTime;
             if (isPlaying) video.play();
         });
+    };
+
+    if (url) {
+        if (video.poster) video.poster = '';
+        switchSource(url);
 
         if (qualityCurrentValue) qualityCurrentValue.textContent = 'HD 1080p';
         qualityOptionsList.querySelectorAll('li').forEach(opt => opt.classList.remove('active', 'playing'));
         const new1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
         if (new1080pOption) new1080pOption.classList.add('active');
+
     } else {
         if (hls.url !== originalVideoUrl) {
-            hls.loadSource(originalVideoUrl);
+            switchSource(originalVideoUrl);
             hls.once(Hls.Events.MANIFEST_PARSED, () => {
                 hls.currentLevel = parseInt(level, 10);
-                video.currentTime = currentTime;
-                if (isPlaying) video.play();
             });
         } else {
             hls.currentLevel = parseInt(level, 10);
+            // যদি শুধু লেভেল পরিবর্তন করা হয়, তাহলে সাথে সাথেই প্লে করে দেওয়া যায়
+            if (isPlaying) video.play();
         }
     }
     showMenuPage(mainSettingsPage);
 }
+
 
 function setupSubtitles() {
     if (!subtitleMenuBtn) return;
@@ -262,13 +268,10 @@ function showMenuPage(pageToShow) {
     }
 }
 
-// ==========================================================
-// === HLS Event Listeners (চূড়ান্ত এবং নির্ভরযোগ্য সংস্করণ) ===
-// ==========================================================
 function addHlsEvents() {
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-        // যদি কোয়ালিটি লিস্ট একবার তৈরি হয়ে গিয়ে থাকে, তাহলে আর কিছু করার দরকার নেই
-        if (qualityMenuInitialized) return;
+        // নতুন: শুধুমাত্র মূল URL এর জন্য এবং লিস্ট তৈরি না হয়ে থাকলে কাজ করবে
+        if (qualityMenuInitialized || hls.url !== originalVideoUrl) return;
 
         const urlParams = new URLSearchParams(window.location.search);
         const videoUrl = urlParams.get('id');
@@ -321,7 +324,6 @@ function addHlsEvents() {
                     }
                 } catch (e) { /* ignore */ }
             }
-            // লিস্ট সফলভাবে তৈরি হওয়ার পর ফ্ল্যাগটি সেট করে দেওয়া হচ্ছে
             qualityMenuInitialized = true;
         }
     });
