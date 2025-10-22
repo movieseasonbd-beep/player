@@ -91,28 +91,19 @@ function loadVideo(videoUrl) {
 }
 
 // ==========================================================
-// === setQuality (মসৃণ রূপান্তর এবং লিস্ট সমস্যার চূড়ান্ত সমাধান) ===
+// === setQuality (পেশাদার এবং চূড়ান্ত সংস্করণ) ===
 // ==========================================================
 function setQuality(level, url = null) {
-    const currentTime = video.currentTime;
-    const isPlaying = !video.paused;
     const qualityMenuBtn = document.getElementById('quality-menu-btn');
     const qualityCurrentValue = qualityMenuBtn ? qualityMenuBtn.querySelector('.current-value') : null;
-    
-    // ভিডিও পজ করে শেষ ফ্রেমটি ধরে রাখা হচ্ছে
-    if (isPlaying) video.pause();
-
-    const switchSource = (newUrl) => {
-        hls.loadSource(newUrl);
-        hls.once(Hls.Events.LEVEL_LOADED, () => {
-            video.currentTime = currentTime;
-            if (isPlaying) video.play();
-        });
-    };
 
     if (url) {
         if (video.poster) video.poster = '';
-        switchSource(url);
+        
+        // hls.js কে মসৃণভাবে সোর্স পরিবর্তন করতে বলা হচ্ছে
+        const currentLevel = hls.currentLevel;
+        hls.loadSource(url);
+        hls.currentLevel = currentLevel; // আগের লেভেলটি ধরে রাখার চেষ্টা
 
         if (qualityCurrentValue) qualityCurrentValue.textContent = 'HD 1080p';
         qualityOptionsList.querySelectorAll('li').forEach(opt => opt.classList.remove('active', 'playing'));
@@ -120,15 +111,13 @@ function setQuality(level, url = null) {
         if (new1080pOption) new1080pOption.classList.add('active');
 
     } else {
+        // মূল ম্যানিফেস্টের ভেতরে কোয়ালিটি পরিবর্তন
         if (hls.url !== originalVideoUrl) {
-            switchSource(originalVideoUrl);
-            hls.once(Hls.Events.MANIFEST_PARSED, () => {
-                hls.currentLevel = parseInt(level, 10);
-            });
+            const currentLevel = hls.currentLevel;
+            hls.loadSource(originalVideoUrl);
+            hls.currentLevel = level === -1 ? currentLevel : parseInt(level, 10);
         } else {
             hls.currentLevel = parseInt(level, 10);
-            // যদি শুধু লেভেল পরিবর্তন করা হয়, তাহলে সাথে সাথেই প্লে করে দেওয়া যায়
-            if (isPlaying) video.play();
         }
     }
     showMenuPage(mainSettingsPage);
@@ -270,7 +259,7 @@ function showMenuPage(pageToShow) {
 
 function addHlsEvents() {
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-        // নতুন: শুধুমাত্র মূল URL এর জন্য এবং লিস্ট তৈরি না হয়ে থাকলে কাজ করবে
+        // শুধুমাত্র মূল URL এর জন্য এবং লিস্ট তৈরি না হয়ে থাকলে কাজ করবে
         if (qualityMenuInitialized || hls.url !== originalVideoUrl) return;
 
         const urlParams = new URLSearchParams(window.location.search);
