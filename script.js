@@ -83,13 +83,8 @@ function initializeHls() {
     addHlsEvents();
 }
 
-// ==========================================================
-// === loadVideo ফাংশনে ৩ সেকেন্ডের টাইমার পুনরায় যোগ করা হলো ===
-// ==========================================================
 function loadVideo(videoUrl) {
-    // ৩ সেকেন্ডের টাইমারটি এখানে আবার যোগ করা হলো
     setTimeout(hideLoadingOverlay, 3000);
-
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         initializeHls();
         hls.loadSource(videoUrl);
@@ -139,17 +134,14 @@ function setupSubtitles() {
     if (!subtitleMenuBtn) return;
     const textTracks = video.textTracks;
     if (textTracks.length === 0) return;
-
     subtitleMenuBtn.style.display = 'flex';
     subtitleOptionsList.innerHTML = '';
-
     const offOption = document.createElement('li');
     offOption.textContent = 'Off';
     offOption.dataset.lang = 'off';
     offOption.classList.add('active');
     offOption.addEventListener('click', () => setSubtitle('off'));
     subtitleOptionsList.appendChild(offOption);
-
     for (let i = 0; i < textTracks.length; i++) {
         const track = textTracks[i];
         track.mode = 'hidden';
@@ -201,7 +193,7 @@ function resetControlsTimer() {
 }
 function updateProgressUI() {
     if (isScrubbing) return;
-    if (video.duration) {
+    if (video.duration && !isNaN(video.duration)) { // isNaN চেক যোগ করা হলো
         const progressPercent = (video.currentTime / video.duration) * 100;
         progressFilled.style.width = `${progressPercent}%`;
         progressBar.value = progressPercent;
@@ -222,7 +214,7 @@ function scrub(e) {
     timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`;
 }
 function formatTime(seconds) {
-    if (isNaN(seconds)) return "00:00";
+    if (isNaN(seconds) || seconds === Infinity) return "00:00"; // Infinity চেক যোগ করা হলো
     const date = new Date(seconds * 1000);
     const [hh, mm, ss] = [date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()].map(v => v.toString().padStart(2, '0'));
     return hh > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
@@ -406,7 +398,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ==========================================================
-// === Page Load (আগের মতো ৩ সেকেন্ড টাইমার সহ) ===
+// === Page Load ===
 // ==========================================================
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -435,17 +427,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.appendChild(a); a.click(); document.body.removeChild(a);
             });
         }
-        
-        loadVideo(videoUrl); // এই ফাংশনের ভেতরেই ৩ সেকেন্ডের টাইমার সেট করা আছে
-
+        loadVideo(videoUrl);
     } else {
         loadingOverlay.classList.remove('hidden');
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
 
-    // `canplay` ইভেন্ট লিসেনারটি সরিয়ে দেওয়া হয়েছে
+    // নতুন: ভিডিও মেটাডেটা লোড হলেই টাইম ডিসপ্লে আপডেট হবে
+    video.addEventListener('loadedmetadata', updateProgressUI);
     
-    video.addEventListener('loadedmetadata', setupSubtitles);
+    video.addEventListener('loadedmetadata', setupSubtitles); // এটি অপরিবর্তিত
     updatePlayState();
     updateVolumeIcon();
     updateFullscreenState();
