@@ -78,25 +78,54 @@ function initializeHls() {
     addHlsEvents();
 }
 
-function loadVideo(videoUrl) {
-    const hideLoadingScreen = () => {
-        if (!loadingOverlay.classList.contains('hidden')) {
-            loadingOverlay.classList.add('hidden');
+// === শুধুমাত্র এই ফাংশনটি পরিবর্তন করুন ===
+
+function loadVideo(videoUrl, seekTime = 0) {
+    // --- নতুন লজিক শুরু ---
+    let isVideoReady = false;
+    let isMinTimeElapsed = false;
+
+    // লোডিং স্ক্রিন দেখানোর জন্য এটিকে প্রথমে un-hide করুন
+    loadingOverlay.classList.remove('hidden');
+
+    const tryHideLoadingScreen = () => {
+        // দুটি শর্ত পূরণ হলেই শুধুমাত্র লোডিং স্ক্রিনটি সরানো হবে
+        if (isVideoReady && isMinTimeElapsed) {
+            if (!loadingOverlay.classList.contains('hidden')) {
+                loadingOverlay.classList.add('hidden');
+            }
         }
     };
-    if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
-        initializeHls();
-        hls.loadSource(videoUrl);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.FRAG_BUFFERED, function onFragBuffered() {
-            hls.off(Hls.Events.FRAG_BUFFERED, onFragBuffered);
-            hideLoadingScreen();
-        });
-    } else {
-        video.src = videoUrl;
-        video.addEventListener('canplay', hideLoadingScreen, { once: true });
+
+    // শর্ত ১: ৩ সেকেন্ড টাইমার সেট করুন
+    setTimeout(() => {
+        isMinTimeElapsed = true;
+        tryHideLoadingScreen(); // চেক করুন: ভিডিও কি এর মধ্যেই রেডি হয়ে গেছে?
+    }, 3000);
+
+    const onVideoReady = () => {
+        isVideoReady = true;
+        tryHideLoadingScreen(); // চেক করুন: ৩ সেকেন্ড কি পার হয়েছে?
+    };
+    // --- নতুন লজিক শেষ ---
+
+    // শুধুমাত্র প্রথমবার মূল লিঙ্কটি সংরক্ষণ করুন
+    if (!isPlayingGuessedQuality) {
+        originalVideoUrl = videoUrl;
     }
-    setTimeout(hideLoadingScreen, 3000);
+    qualityMenuInitialized = false;
+
+    initializeHls();
+    hls.loadSource(videoUrl);
+    hls.attachMedia(video);
+
+    // শর্ত ২: ভিডিও রেডি হওয়ার জন্য অপেক্ষা করুন
+    hls.once(Hls.Events.FRAG_BUFFERED, onVideoReady);
+
+    hls.once(Hls.Events.LEVEL_LOADED, () => {
+        if (seekTime > 0) video.currentTime = seekTime;
+        if(wasPlaying || isPlayingGuessedQuality) video.play(); // অটো-প্লে ঠিক করা
+    });
 }
 
 function setQuality(level, url = null) {
