@@ -33,6 +33,7 @@ let controlsTimeout;
 let isScrubbing = false;
 let wasPlaying = false;
 let qualityMenuInitialized = false;
+let originalVideoUrl = null; // নতুন: মূল ভিডিওর URL সংরক্ষণ করার জন্য
 
 // Wake Lock এর জন্য ভ্যারিয়েবল
 let wakeLock = null;
@@ -96,15 +97,17 @@ function loadVideo(videoUrl) {
     }
 }
 
-
+// ==========================================================
+// === নতুন এবং উন্নত setQuality ফাংশন ===
+// ==========================================================
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
 
+    // যদি একটি নতুন URL (যেমন 1080p) লোড করার জন্য আসে
     if (url) {
         initializeHls();
-        qualityMenuInitialized = false; 
-
+        
         hls.loadSource(url);
         hls.attachMedia(video);
         
@@ -115,11 +118,42 @@ function setQuality(level, url = null) {
             }
         });
 
-    } else {
-        hls.currentLevel = parseInt(level, 10);
+        // UI ম্যানুয়ালি আপডেট করা হচ্ছে, কারণ আমরা লিস্টটি নতুন করে তৈরি করছি না
+        const qualityMenuBtn = document.getElementById('quality-menu-btn');
+        if (qualityMenuBtn) {
+            const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
+            qualityCurrentValue.textContent = 'HD 1080p';
+        }
+        qualityOptionsList.querySelectorAll('li').forEach(opt => opt.classList.remove('active', 'playing'));
+        const new1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
+        if (new1080pOption) {
+            new1080pOption.classList.add('active');
+        }
+
+    } else { // যদি আগের লিস্টের কোনো কোয়ালিটি (যেমন Auto, 720p) সিলেক্ট করা হয়
+        
+        // যদি প্লেয়ারটি বর্তমানে বাহ্যিক 1080p সোর্স চালাচ্ছে, তবে মূল সোর্সে ফিরে যেতে হবে
+        if (hls.url !== originalVideoUrl) {
+            initializeHls();
+            hls.loadSource(originalVideoUrl);
+            hls.attachMedia(video);
+
+            // মূল সোর্সটি লোড হওয়ার পর নির্দিষ্ট কোয়ালিটি সেট করা হবে
+            hls.once(Hls.Events.MANIFEST_PARSED, () => {
+                hls.currentLevel = parseInt(level, 10);
+                video.currentTime = currentTime;
+                if (isPlaying) {
+                    video.play();
+                }
+            });
+        } else {
+            // যদি প্লেয়ারটি 이미 মূল সোর্সেই থাকে, তবে শুধু লেভেল পরিবর্তন করলেই হবে
+            hls.currentLevel = parseInt(level, 10);
+        }
     }
     showMenuPage(mainSettingsPage);
 }
+
 
 // Player UI Functions
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
@@ -289,6 +323,9 @@ function addHlsEvents() {
     });
 
     hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+        // যদি প্লেয়ারটি একটি বাহ্যিক URL (যেমন 1080p) চালায়, তাহলে এই লজিকটি এড়িয়ে যান
+        if (hls.url !== originalVideoUrl) return;
+
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (!qualityMenuBtn) return;
         const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
@@ -297,6 +334,11 @@ function addHlsEvents() {
             opt.classList.remove('active');
             opt.classList.remove('playing');
         });
+
+        // 1080p অপশনটিকে নিষ্ক্রিয় করুন যদি এটি বাহ্যিক হয়
+        const external1080p = qualityOptionsList.querySelector('li[data-level="1080"]');
+        if (external1080p) external1080p.classList.remove('active');
+
         const activeLevel = hls.levels[data.level];
         if (!activeLevel) return;
         if (hls.autoLevelEnabled) {
@@ -432,6 +474,8 @@ document.addEventListener('visibilitychange', () => {
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
+    originalVideoUrl = videoUrl; // মূল URL সংরক্ষণ করা হচ্ছে
+
     if (videoUrl) {
         loadVideo(videoUrl);
     } else {
