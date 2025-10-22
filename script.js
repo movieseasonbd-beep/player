@@ -27,11 +27,10 @@ const qualityOptionsList = document.getElementById('quality-options-list');
 const backBtns = document.querySelectorAll('.back-btn');
 const speedCurrentValue = speedMenuBtn.querySelector('.current-value');
 const speedOptions = speedOptionsList.querySelectorAll('li');
-// সাবটাইটেল এবং ডাউনলোড বাটনের জন্য DOM এলিমেন্ট (যদি আগে যোগ না করে থাকেন)
 const subtitleMenuBtn = document.getElementById('subtitle-menu-btn');
 const subtitleSettingsPage = document.querySelector('.menu-subtitle');
 const subtitleOptionsList = document.getElementById('subtitle-options-list');
-const subtitleCurrentValue = subtitleMenuBtn.querySelector('.current-value');
+const subtitleCurrentValue = subtitleMenuBtn ? subtitleMenuBtn.querySelector('.current-value') : null;
 const downloadBtn = document.getElementById('download-btn');
 
 let hls;
@@ -40,8 +39,6 @@ let isScrubbing = false;
 let wasPlaying = false;
 let qualityMenuInitialized = false;
 let originalVideoUrl = null;
-
-// Wake Lock এর জন্য ভ্যারিয়েবল
 let wakeLock = null;
 
 // HLS Configuration
@@ -58,23 +55,25 @@ const hlsConfig = {
 // === Functions ===
 // ==========================================================
 
-// স্ক্রিন চালু রাখার জন্য ফাংশন
 const acquireWakeLock = async () => {
     if ('wakeLock' in navigator) {
         try {
             wakeLock = await navigator.wakeLock.request('screen');
-        } catch (err) {
-            console.error(`Wake Lock request failed: ${err.name}, ${err.message}`);
-        }
+        } catch (err) { /* ignore */ }
     }
 };
 
 const releaseWakeLock = () => {
     if (wakeLock !== null) {
-        wakeLock.release();
-        wakeLock = null;
+        wakeLock.release().then(() => { wakeLock = null; });
     }
 };
+
+function hideLoadingOverlay() {
+    if (!loadingOverlay.classList.contains('hidden')) {
+        loadingOverlay.classList.add('hidden');
+    }
+}
 
 function initializeHls() {
     if (hls) {
@@ -84,12 +83,12 @@ function initializeHls() {
     addHlsEvents();
 }
 
+// ==========================================================
+// === loadVideo ফাংশনে ৩ সেকেন্ডের টাইমার পুনরায় যোগ করা হলো ===
+// ==========================================================
 function loadVideo(videoUrl) {
-    setTimeout(() => {
-        if (!loadingOverlay.classList.contains('hidden')) {
-            loadingOverlay.classList.add('hidden');
-        }
-    }, 3000);
+    // ৩ সেকেন্ডের টাইমারটি এখানে আবার যোগ করা হলো
+    setTimeout(hideLoadingOverlay, 3000);
 
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         initializeHls();
@@ -136,7 +135,6 @@ function setQuality(level, url = null) {
     showMenuPage(mainSettingsPage);
 }
 
-// সাবটাইটেল ফাংশন (যদি আগে যোগ না করে থাকেন)
 function setupSubtitles() {
     if (!subtitleMenuBtn) return;
     const textTracks = video.textTracks;
@@ -173,11 +171,10 @@ function setSubtitle(lang) {
         opt.classList.toggle('active', opt.dataset.lang === lang);
     });
     const activeTrack = [...textTracks].find(t => t.mode === 'showing');
-    subtitleCurrentValue.textContent = activeTrack ? activeTrack.label : 'Off';
+    if(subtitleCurrentValue) subtitleCurrentValue.textContent = activeTrack ? activeTrack.label : 'Off';
     showMenuPage(mainSettingsPage);
 }
 
-// Player UI Functions
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
 function handleScreenTap() {
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
@@ -240,10 +237,10 @@ function updateVolumeIcon() {
 async function toggleFullscreen() {
     if (!document.fullscreenElement) {
         await playerContainer.requestFullscreen();
-        try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (err) { console.warn("Screen orientation lock failed:", err); }
+        try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (err) { /* ignore */ }
     } else {
         await document.exitFullscreen();
-        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (err) { console.warn("Screen orientation unlock failed:", err); }
+        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (err) { /* ignore */ }
     }
 }
 function updateFullscreenState() {
@@ -274,7 +271,6 @@ function showMenuPage(pageToShow) {
     }
 }
 
-// HLS Event Listeners
 function addHlsEvents() {
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         if (qualityMenuInitialized) return;
@@ -323,7 +319,7 @@ function addHlsEvents() {
                                 }
                             });
                     }
-                } catch (e) { console.error("Error while trying to guess 1080p URL:", e); }
+                } catch (e) { /* ignore */ }
             }
         }
         qualityMenuInitialized = true;
@@ -374,7 +370,6 @@ video.addEventListener('ended', releaseWakeLock);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 video.addEventListener('volumechange', updateVolumeIcon);
-video.addEventListener('canplay', updateProgressUI);
 rewindBtn.addEventListener('click', () => { video.currentTime -= 10; });
 forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
@@ -411,24 +406,19 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ==========================================================
-// === Page Load (পোস্টার, সাবটাইটেল ও ডাউনলোড ফিচার সহ) ===
+// === Page Load (আগের মতো ৩ সেকেন্ড টাইমার সহ) ===
 // ==========================================================
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     const subtitleUrl = urlParams.get('sub');
     const downloadUrl = urlParams.get('download');
-    const posterUrl = urlParams.get('poster'); // পোস্টার ছবির লিঙ্কটি পড়া হচ্ছে
+    const posterUrl = urlParams.get('poster');
 
     originalVideoUrl = videoUrl;
 
     if (videoUrl) {
-        // --- ডায়নামিক পোস্টার সেট করা ---
-        if (posterUrl) {
-            video.poster = posterUrl; // <video> ট্যাগের পোস্টার হিসেবে সেট করা হলো
-        }
-
-        // --- ডায়নামিক সাবটাইটেল লোডিং ---
+        if (posterUrl) video.poster = posterUrl;
         if (subtitleUrl && subtitleMenuBtn) {
             const subtitleTrack = document.createElement('track');
             subtitleTrack.kind = 'subtitles';
@@ -438,29 +428,24 @@ document.addEventListener('DOMContentLoaded', () => {
             subtitleTrack.default = true;
             video.appendChild(subtitleTrack);
         }
-
-        // --- ডায়নামিক ডাউনলোড বাটন ---
         if (downloadUrl && downloadBtn) {
             downloadBtn.style.display = 'flex';
             downloadBtn.addEventListener('click', () => {
-                const a = document.createElement('a');
-                a.href = downloadUrl;
-                a.download = '';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                const a = document.createElement('a'); a.href = downloadUrl; a.download = '';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
             });
         }
         
-        loadVideo(videoUrl);
+        loadVideo(videoUrl); // এই ফাংশনের ভেতরেই ৩ সেকেন্ডের টাইমার সেট করা আছে
 
     } else {
         loadingOverlay.classList.remove('hidden');
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
 
+    // `canplay` ইভেন্ট লিসেনারটি সরিয়ে দেওয়া হয়েছে
+    
     video.addEventListener('loadedmetadata', setupSubtitles);
-
     updatePlayState();
     updateVolumeIcon();
     updateFullscreenState();
