@@ -40,20 +40,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 
 /* === কন্ট্রোলস === */
-.controls-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 10px 25px;
-    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-    z-index: 4;
-    opacity: 0;
-    transform: translateY(100%);
-    transition: opacity 0.25s ease, transform 0.25s ease;
-    will-change: transform, opacity; /* পারফরম্যান্স উন্নতি */
-}
+.controls-container { position: absolute; bottom: 0; left: 0; width: 100%; box-sizing: border-box; padding: 10px 25px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 4; opacity: 0; transform: translateY(100%); transition: opacity 0.25s ease, transform 0.25s ease; }
 .progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 2px 0; cursor: pointer; position: relative; }
 .progress-background, .buffer-bar, .progress-filled, .progress-bar { grid-column: 1; grid-row: 1; }
 .progress-background, .buffer-bar, .progress-filled { height: var(--progress-bar-height); border-radius: 5px; pointer-events: none; }
@@ -69,6 +56,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .control-btn:active { transform: scale(1); }
 .control-btn.active { color: var(--theme-color); }
 
+/* ========== START: FINAL & SAFE ICON STYLES ========== */
 .control-btn svg path { 
     fill: white; 
 }
@@ -88,6 +76,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 #fullscreen-btn:hover .fullscreen-on-icon path {
     stroke: var(--theme-color);
 }
+/* ========== END: FINAL & SAFE ICON STYLES ========== */
 
 #play-pause-btn svg { width: 30px; height: 30px; }
 #play-pause-btn { transform: translateX(-9px); }
@@ -107,7 +96,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     top: 50%; 
     left: 50%; 
     width: 240px; 
-    background: linear-gradient(to top right, #1f1f1f, #050505);
+    background: linear-gradient(to top right, #1f1f1f, #050505); /* ডায়াগোনাল গ্রেডিয়েন্ট */
     border: 1px solid #3a3a3a;
     border-radius: 16px; 
     opacity: 0; 
@@ -117,7 +106,6 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     padding: 8px; 
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); 
     z-index: 5; 
-    will-change: transform, opacity; /* পারফরম্যান্স উন্নতি */
 }
 .settings-menu.active { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
 .menu-handle-container { width: 100%; padding: 2px 0 6px 0; display: flex; justify-content: center; }
@@ -138,6 +126,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .menu-page .back-btn svg { width: 24px; height: 24px; fill: white; }
 .menu-speed ul, .menu-quality ul { list-style: none; margin: 0; padding: 0; }
 
+/* ===== START: FINAL ALIGNMENT & STYLE FIX ===== */
 .menu-speed li, 
 .menu-quality li {
     display: flex !important;
@@ -151,6 +140,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 }
 .menu-speed li:hover, .menu-quality li:hover { background-color: rgba(255, 255, 255, 0.1); }
 .menu-speed li.active, .menu-quality li.active { color: var(--theme-color); font-weight: bold; }
+/* ===== END: FINAL ALIGNMENT & STYLE FIX ===== */
 
 /* === স্ক্রলবার === */
 .menu-main ul, .menu-speed ul, .menu-quality ul { max-height: 40vh; overflow-y: auto; }
@@ -163,13 +153,18 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container, .player-container * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .player-container input[type="range"] { -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; }
 
+/* ===== START: QUALITY LIST HEIGHT FIX ===== */
 #quality-options-list {
     min-height: 110px;
     max-height: 130px;
 }
+/* ===== END: QUALITY LIST HEIGHT FIX ===== */
 
+
+/* ============================================== */
 /* === নতুন যুক্ত করা স্টাইল (New Added Style) === */
+/* ============================================== */
 .menu-quality li.playing {
-    color: #f21111;
+    color: #f21111; /* আপনার থিম-এর রঙ ব্যবহার করা হলো */
     font-weight: bold;
 }
