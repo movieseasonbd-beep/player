@@ -246,7 +246,7 @@ body {
 #quality-options-list,
 #speed-options-list {
     min-height: 110px;
-    max-height: 130px; 
+    max-height: 170px; 
     overflow-y: auto; /* স্ক্রলবার যোগ করা হলো */
 }
 
