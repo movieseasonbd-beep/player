@@ -122,24 +122,18 @@ function setQuality(level, url = null) {
         }, { once: true });
     };
 
-    if (url || (hls.url !== originalVideoUrl && !url)) {
-        const newUrl = url || originalVideoUrl;
-
+    if (url) {
         captureAndHoldFrame();
         initializeHls();
-        hls.loadSource(newUrl);
+        hls.loadSource(url);
         hls.attachMedia(video);
         hideCanvasOnPlay();
 
         hls.once(Hls.Events.MANIFEST_PARSED, () => {
-            if (!url) {
-                hls.currentLevel = parseInt(level, 10);
-            }
             video.currentTime = currentTime;
             if (isPlaying) video.play().catch(() => {});
-        });
-
-        if (url) {
+            
+            // HD ব্যাজ এবং মেন্যু আপডেট
             const qualityMenuBtn = document.getElementById('quality-menu-btn');
             if (qualityMenuBtn) {
                 qualityMenuBtn.querySelector('.current-value').textContent = 'HD 1080p';
@@ -147,15 +141,16 @@ function setQuality(level, url = null) {
             qualityOptionsList.querySelectorAll('li').forEach(opt => opt.classList.remove('active', 'playing'));
             const new1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
             if (new1080pOption) new1080pOption.classList.add('active');
-        }
+            settingsBtn.classList.add('show-hd-badge');
+        });
 
-    } 
-    else {
+    } else {
         hls.currentLevel = parseInt(level, 10);
     }
 
     showMenuPage(mainSettingsPage);
 }
+
 
 function setupSubtitles() {
     if (!subtitleMenuBtn) return;
@@ -199,14 +194,12 @@ function directTogglePlay() {
 }
 
 function handleScreenTap() {
-    // নতুন যুক্তি: যদি সেটিংস মেন্যু খোলা থাকে, তবে তা বন্ধ করো এবং আর কিছু করবে না।
     if (settingsMenu.classList.contains('active')) {
         settingsMenu.classList.remove('active');
         settingsBtn.classList.remove('active');
-        return; // এই return-এর কারণে নিচের প্লে/পজ কোড আর কাজ করবে না।
+        return;
     }
 
-    // পুরোনো যুক্তি অপরিবর্তিত থাকবে
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
     if (video.paused) {
         video.play();
@@ -219,7 +212,6 @@ function handleScreenTap() {
         }
     }
 }
-
 
 function updatePlayState() {
     const isPaused = video.paused;
@@ -302,27 +294,26 @@ function updateFullscreenState() {
 function showMenuPage(pageToShow) {
     const currentPage = menuContentWrapper.querySelector('.menu-page.active');
     
-    // নতুন এবং সঠিক কোড
     setTimeout(() => {
         const newHeight = pageToShow.scrollHeight;
         menuContentWrapper.style.height = `${newHeight}px`;
     }, 0);
 
-    if (currentPage) {
+    if (currentPage && currentPage !== pageToShow) {
         if (pageToShow === mainSettingsPage) {
-            currentPage.classList.remove('active');
             currentPage.classList.add('slide-out-right');
             mainSettingsPage.classList.remove('slide-out-left');
-            mainSettingsPage.classList.add('active');
         } else {
             mainSettingsPage.classList.add('slide-out-left');
-            currentPage.classList.remove('active');
-            pageToShow.classList.add('active');
             pageToShow.classList.remove('slide-out-right');
         }
+        
+        setTimeout(() => {
+            if(currentPage) currentPage.classList.remove('active');
+            pageToShow.classList.add('active');
+        }, 150);
     }
 }
-
 
 function addHlsEvents() {
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
@@ -343,7 +334,7 @@ function addHlsEvents() {
             qualityOptionsList.appendChild(autoOption);
             data.levels.forEach((level, index) => {
                 const option = document.createElement('li');
-                option.textContent = (level.height === 1080) ? `HD 1080p` : `${level.height}p`;
+                option.textContent = (level.height >= 1080) ? `HD 1080p` : `${level.height}p`;
                 option.dataset.level = index;
                 option.addEventListener('click', () => setQuality(index));
                 qualityOptionsList.appendChild(option);
@@ -351,7 +342,7 @@ function addHlsEvents() {
             if (!document.getElementById('quality-menu-btn')) {
                 playerSettingsGroup.prepend(qualityMenuBtn);
             }
-            const manifestHas1080p = data.levels.some(level => level.height === 1080);
+            const manifestHas1080p = data.levels.some(level => level.height >= 1080);
             if (!manifestHas1080p) {
                 try {
                     const currentUrl = new URL(videoUrl);
@@ -379,35 +370,39 @@ function addHlsEvents() {
     });
 
     hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
-        if (hls.url !== originalVideoUrl) return;
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (!qualityMenuBtn) return;
+        
         const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
         const allQualityOptions = qualityOptionsList.querySelectorAll('li');
         allQualityOptions.forEach(opt => opt.classList.remove('active', 'playing'));
+        
         const external1080p = qualityOptionsList.querySelector('li[data-level="1080"]');
         if (external1080p) external1080p.classList.remove('active');
+        
         const activeLevel = hls.levels[data.level];
-        if (!activeLevel) return;
+        if (!activeLevel) {
+            settingsBtn.classList.remove('show-hd-badge');
+            return;
+        }
+        
         if (hls.autoLevelEnabled) {
-            qualityCurrentValue.textContent = (activeLevel.height === 1080) ? `HD 1080p (Auto)` : `${activeLevel.height}p (Auto)`;
+            qualityCurrentValue.textContent = (activeLevel.height >= 1080) ? `HD 1080p (Auto)` : `${activeLevel.height}p (Auto)`;
             const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
             if (autoOpt) autoOpt.classList.add('active');
             const currentPlayingOpt = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
             if (currentPlayingOpt) currentPlayingOpt.classList.add('playing');
         } else {
-            qualityCurrentValue.textContent = (activeLevel.height === 1080) ? `HD 1080p` : `${activeLevel.height}p`;
+            qualityCurrentValue.textContent = (activeLevel.height >= 1080) ? `HD 1080p` : `${activeLevel.height}p`;
             const currentPlayingOpt = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
             if (currentPlayingOpt) currentPlayingOpt.classList.add('active');
         }
 
-        // === নতুন কোড শুরু (HD ব্যাজ দেখানোর জন্য) ===
         if (activeLevel.height >= 1080) {
             settingsBtn.classList.add('show-hd-badge');
         } else {
             settingsBtn.classList.remove('show-hd-badge');
         }
-        // === নতুন কোড শেষ ===
     });
     
     hls.on(Hls.Events.ERROR, function(event, data) {
@@ -432,15 +427,11 @@ video.addEventListener('play', () => {
     acquireWakeLock(); 
 });
 
-// ==========================================================
-// === নতুন সমাধান: প্রথমবার প্লে হলে পোস্টার মুছে ফেলা ===
-// ==========================================================
 video.addEventListener('play', () => {
     if (video.poster) {
         video.poster = '';
     }
 }, { once: true });
-
 
 video.addEventListener('pause', () => { 
     updatePlayState();
@@ -471,7 +462,7 @@ document.addEventListener('mouseup', () => {
         if (wasPlaying) video.play(); 
     } 
 });
-playerContainer.addEventListener('mousemove', () => { 
+document.addEventListener('mousemove', () => { 
     playerContainer.classList.add('show-controls'); 
     resetControlsTimer(); 
 });
