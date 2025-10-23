@@ -43,9 +43,6 @@ let qualityMenuInitialized = false;
 let originalVideoUrl = null;
 let wakeLock = null;
 
-// ==========================================================
-// === HLS Configuration (চূড়ান্ত অপটিমাইজেশনসহ) ===
-// ==========================================================
 const hlsConfig = {
     maxBufferLength: 30,
     maxMaxBufferLength: 600,
@@ -55,10 +52,6 @@ const hlsConfig = {
     maxStarveDuration: 2,
     maxBufferHole: 0.5,
 };
-
-// ==========================================================
-// === Functions ===
-// ==========================================================
 
 const acquireWakeLock = async () => {
     if ('wakeLock' in navigator) {
@@ -129,7 +122,6 @@ function setQuality(level, url = null) {
         hls.attachMedia(video);
         hideCanvasOnPlay();
 
-        // ম্যানুয়ালি UI আপডেট করুন, কারণ LEVEL_SWITCHED এটিকে ওভাররাইড করতে পারে
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (qualityMenuBtn) {
             qualityMenuBtn.querySelector('.current-value').textContent = 'HD 1080p';
@@ -150,7 +142,6 @@ function setQuality(level, url = null) {
 
     showMenuPage(mainSettingsPage);
 }
-
 
 function setupSubtitles() {
     if (!subtitleMenuBtn) return;
@@ -199,17 +190,11 @@ function handleScreenTap() {
         settingsBtn.classList.remove('active');
         return;
     }
-
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
-    if (video.paused) {
-        video.play();
-    } else {
-        if (isControlsVisible) {
-            video.pause();
-        } else {
-            playerContainer.classList.add('show-controls');
-            resetControlsTimer();
-        }
+    if (video.paused) { video.play(); } 
+    else {
+        if (isControlsVisible) { video.pause(); } 
+        else { playerContainer.classList.add('show-controls'); resetControlsTimer(); }
     }
 }
 
@@ -276,10 +261,10 @@ function updateVolumeIcon() {
 async function toggleFullscreen() {
     if (!document.fullscreenElement) {
         await playerContainer.requestFullscreen();
-        try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (err) { /* ignore */ }
+        try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (err) {}
     } else {
         await document.exitFullscreen();
-        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (err) { /* ignore */ }
+        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (err) {}
     }
 }
 
@@ -291,27 +276,31 @@ function updateFullscreenState() {
     fullscreenBtn.classList.toggle('active', isFullscreen);
 }
 
+// ==========================================================
+// === আপনার আসল অ্যানিমেশনসহ সঠিক showMenuPage ফাংশন ===
+// ==========================================================
 function showMenuPage(pageToShow) {
     const currentPage = menuContentWrapper.querySelector('.menu-page.active');
     
+    // উচ্চতা ঠিক করার জন্য সঠিক কোড
     setTimeout(() => {
         const newHeight = pageToShow.scrollHeight;
         menuContentWrapper.style.height = `${newHeight}px`;
     }, 0);
 
+    // আপনার আসল অ্যানিমেশন লজিক
     if (currentPage && currentPage !== pageToShow) {
         if (pageToShow === mainSettingsPage) {
+            currentPage.classList.remove('active');
             currentPage.classList.add('slide-out-right');
             mainSettingsPage.classList.remove('slide-out-left');
+            mainSettingsPage.classList.add('active');
         } else {
+            mainSettingsPage.classList.remove('active');
             mainSettingsPage.classList.add('slide-out-left');
             pageToShow.classList.remove('slide-out-right');
-        }
-        
-        setTimeout(() => {
-            if(currentPage) currentPage.classList.remove('active');
             pageToShow.classList.add('active');
-        }, 150);
+        }
     }
 }
 
@@ -363,33 +352,27 @@ function addHlsEvents() {
                                 }
                             });
                     }
-                } catch (e) { /* ignore */ }
+                } catch (e) {}
             }
         }
         qualityMenuInitialized = true;
     });
 
-    // ==========================================================
-    // === চূড়ান্ত এবং সঠিক LEVEL_SWITCHED ফাংশন ===
-    // ==========================================================
     hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (!qualityMenuBtn) return;
-    
         const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
         const allQualityOptions = qualityOptionsList.querySelectorAll('li');
         allQualityOptions.forEach(opt => opt.classList.remove('active', 'playing'));
-    
-        // কেস ১: যদি এটি বাহ্যিক 1080p লিঙ্ক হয়
+
         if (hls.url !== originalVideoUrl) {
             qualityCurrentValue.textContent = 'HD 1080p';
             const external1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
             if (external1080pOption) external1080pOption.classList.add('active');
             settingsBtn.classList.add('show-hd-badge');
-            return; // এখানে ফাংশনের কাজ শেষ
+            return;
         }
-    
-        // কেস ২: যদি এটি মূল ভিডিও লিঙ্ক হয় (সাধারণ অবস্থা)
+
         const activeLevel = hls.levels[data.level];
         if (!activeLevel) {
             qualityCurrentValue.textContent = hls.autoLevelEnabled ? 'Auto' : '...';
@@ -398,7 +381,7 @@ function addHlsEvents() {
             settingsBtn.classList.remove('show-hd-badge');
             return;
         }
-    
+
         if (hls.autoLevelEnabled) {
             qualityCurrentValue.textContent = `${activeLevel.height}p (Auto)`;
             const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
@@ -410,7 +393,7 @@ function addHlsEvents() {
             const currentSelectedOpt = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
             if (currentSelectedOpt) currentSelectedOpt.classList.add('active');
         }
-    
+
         if (activeLevel.height >= 1080) {
             settingsBtn.classList.add('show-hd-badge');
             if (hls.autoLevelEnabled) {
@@ -432,30 +415,12 @@ function addHlsEvents() {
     });
 }
 
-// === General Event Listeners ===
 video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
-
-video.addEventListener('play', () => { 
-    updatePlayState();
-    resetControlsTimer(); 
-    acquireWakeLock(); 
-});
-
-video.addEventListener('play', () => {
-    if (video.poster) {
-        video.poster = '';
-    }
-}, { once: true });
-
-video.addEventListener('pause', () => { 
-    updatePlayState();
-    clearTimeout(controlsTimeout); 
-    playerContainer.classList.add('show-controls'); 
-    releaseWakeLock(); 
-});
-
+video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); acquireWakeLock(); });
+video.addEventListener('play', () => { if (video.poster) { video.poster = ''; } }, { once: true });
+video.addEventListener('pause', () => { updatePlayState(); clearTimeout(controlsTimeout); playerContainer.classList.add('show-controls'); releaseWakeLock(); });
 video.addEventListener('ended', releaseWakeLock);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
@@ -465,23 +430,10 @@ forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
-
 progressBar.addEventListener('input', scrub);
-progressBar.addEventListener('mousedown', () => { 
-    isScrubbing = true; 
-    wasPlaying = !video.paused; 
-    if (wasPlaying) video.pause(); 
-});
-document.addEventListener('mouseup', () => { 
-    if (isScrubbing) { 
-        isScrubbing = false; 
-        if (wasPlaying) video.play(); 
-    } 
-});
-document.addEventListener('mousemove', () => { 
-    playerContainer.classList.add('show-controls'); 
-    resetControlsTimer(); 
-});
+progressBar.addEventListener('mousedown', () => { isScrubbing = true; wasPlaying = !video.paused; if (wasPlaying) video.pause(); });
+document.addEventListener('mouseup', () => { if (isScrubbing) { isScrubbing = false; if (wasPlaying) video.play(); } });
+document.addEventListener('mousemove', () => { playerContainer.classList.add('show-controls'); resetControlsTimer(); });
 
 settingsBtn.addEventListener('click', () => {
     settingsMenu.classList.toggle('active');
@@ -519,7 +471,6 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-// === Page Load ===
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
