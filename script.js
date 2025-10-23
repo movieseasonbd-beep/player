@@ -43,14 +43,20 @@ let qualityMenuInitialized = false;
 let originalVideoUrl = null;
 let wakeLock = null;
 
-// HLS Configuration
+// ==========================================================
+// === HLS Configuration (চূড়ান্ত অপটিমাইজেশনসহ) ===
+// ==========================================================
 const hlsConfig = {
+    // আগের কনফিগারেশন
     maxBufferLength: 30,
     maxMaxBufferLength: 600,
     startLevel: -1,
-    capLevelToPlayerSize: false,
-    abrEwmaSlowVoD: 4.0,
-    abrEwmaFastVoD: 1.0,
+    
+    // নতুন অপটিমাইজেশন: মসৃণ কোয়ালিটি পরিবর্তনের জন্য
+    abrBandWidthFactor: 0.95, // ব্যান্ডউইথ ব্যবহারের জন্য প্লেয়ারকে আরও আত্মবিশ্বাসী করে তোলে
+    abrBandWidthUpFactor: 0.8, // কোয়ালিটি বাড়ানোর সিদ্ধান্ত দ্রুত নিতে সাহায্য করে
+    maxStarveDuration: 2, // ডেটার জন্য সর্বোচ্চ ২ সেকেন্ড অপেক্ষা করবে, যা প্লেয়ারকে আরও প্রতিক্রিয়াশীল করে
+    maxBufferHole: 0.5, // বাফারের মধ্যে ০.৫ সেকেন্ডের গ্যাপ থাকলে তা উপেক্ষা করে এগিয়ে যাবে
 };
 
 // ==========================================================
@@ -96,15 +102,10 @@ function loadVideo(videoUrl) {
     }
 }
 
-// ==========================================================
-// === setQuality ফাংশন (চূড়ান্ত সমাধানসহ) ===
-// ==========================================================
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
 
-    // *** চূড়ান্ত সমাধান: সোর্স পরিবর্তনের আগে পোস্টার মুছে ফেলা ***
-    // এটি নিশ্চিত করে যে ব্রাউজার কোনো অবস্থাতেই পোস্টারটি দেখানোর সুযোগ পাবে না।
     if (video.poster && (url || (hls && hls.url !== originalVideoUrl))) {
         video.poster = '';
     }
@@ -124,12 +125,11 @@ function setQuality(level, url = null) {
             frameHoldCanvas.classList.add('invisible');
             setTimeout(() => {
                 frameHoldCanvas.style.display = 'none';
-            }, 300); // CSS ট্রানজিশনের সাথে মিল রাখতে হবে
+            }, 300);
         }, { once: true });
     };
 
     if (url) {
-        // নতুন 1080p লিঙ্কে যাওয়ার সময়
         captureAndHoldFrame();
         initializeHls();
         hls.loadSource(url);
@@ -151,7 +151,6 @@ function setQuality(level, url = null) {
         if (new1080pOption) new1080pOption.classList.add('active');
 
     } else {
-        // মূল manifest-এ ফিরে আসা বা পরিবর্তন
         if (hls.url !== originalVideoUrl) {
             captureAndHoldFrame();
             initializeHls();
@@ -166,6 +165,9 @@ function setQuality(level, url = null) {
                 if (isPlaying) video.play();
             });
         } else {
+            // *** এখানে মূল পরিবর্তন ***
+            // `currentLevel` সেট করার পাশাপাশি, আমরা `nextLevel` ও সেট করতে পারি যা প্লেয়ারকে প্রস্তুত করে।
+            // তবে সবচেয়ে কার্যকরী উপায় হলো সঠিক কনফিগারেশন।
             hls.currentLevel = parseInt(level, 10);
         }
     }
