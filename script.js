@@ -2,6 +2,8 @@
 const playerContainer = document.querySelector('.player-container');
 const loadingOverlay = document.querySelector('.loading-overlay');
 const video = document.querySelector('.video');
+const frameHoldCanvas = document.getElementById('frame-hold-canvas'); // নতুন
+const ctx = frameHoldCanvas.getContext('2d'); // নতুন
 const controlsContainer = document.querySelector('.controls-container');
 const centralPlayBtn = document.querySelector('.central-play-btn');
 const playPauseBtn = document.getElementById('play-pause-btn');
@@ -45,7 +47,7 @@ let wakeLock = null;
 const hlsConfig = {
     maxBufferLength: 30,
     maxMaxBufferLength: 600,
-    startLevel: 0,
+    startLevel: -1, // Auto start
     capLevelToPlayerSize: false,
     abrEwmaSlowVoD: 4.0,
     abrEwmaFastVoD: 1.0,
@@ -95,25 +97,39 @@ function loadVideo(videoUrl) {
 }
 
 // ==========================================================
-// === setQuality ফাংশনে পোস্টার ফ্ল্যাশ সমস্যার সমাধান ===
+// === setQuality ফাংশন (আপডেট করা হয়েছে) ===
 // ==========================================================
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
 
     if (url) {
-        // নতুন: কোয়ালিটি সুইচ করার সময় পোস্টারটি সরিয়ে ফেলা হচ্ছে
-        if (video.poster) {
-            video.poster = '';
+        // === ধাপ ১: বর্তমান ফ্রেমটি ক্যানভাসে আঁকুন ===
+        if (isPlaying && video.readyState > 2) {
+            frameHoldCanvas.width = video.videoWidth;
+            frameHoldCanvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, frameHoldCanvas.width, frameHoldCanvas.height);
+            frameHoldCanvas.style.display = 'block';
         }
 
+        // === ধাপ ২: নতুন HLS সোর্স লোড করুন ===
         initializeHls();
         hls.loadSource(url);
         hls.attachMedia(video);
+        
         hls.once(Hls.Events.LEVEL_LOADED, () => {
             video.currentTime = currentTime;
-            if (isPlaying) video.play();
+            if (isPlaying) {
+                video.play().catch(() => {});
+            }
         });
+
+        // === ধাপ ৩: নতুন ভিডিও চালু হলে ক্যানভাসটি লুকান ===
+        video.addEventListener('playing', () => {
+            frameHoldCanvas.style.display = 'none';
+        }, { once: true });
+
+        // UI আপডেট
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (qualityMenuBtn) {
             qualityMenuBtn.querySelector('.current-value').textContent = 'HD 1080p';
@@ -121,7 +137,9 @@ function setQuality(level, url = null) {
         qualityOptionsList.querySelectorAll('li').forEach(opt => opt.classList.remove('active', 'playing'));
         const new1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
         if (new1080pOption) new1080pOption.classList.add('active');
+
     } else {
+        // একই manifest-এর মধ্যে কোয়ালিটি পরিবর্তন
         if (hls.url !== originalVideoUrl) {
             initializeHls();
             hls.loadSource(originalVideoUrl);
@@ -364,7 +382,6 @@ function addHlsEvents() {
 // General Event Listeners
 video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
-playPauseBtn.addEventListener('click', directTogglePlay);
 video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); acquireWakeLock(); });
 video.addEventListener('pause', () => { updatePlayState(); clearTimeout(controlsTimeout); playerContainer.classList.add('show-controls'); releaseWakeLock(); });
 video.addEventListener('ended', releaseWakeLock);
@@ -384,7 +401,7 @@ settingsBtn.addEventListener('click', () => {
     settingsMenu.classList.toggle('active');
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
     if (settingsMenu.classList.contains('active')) {
-        [mainSettingsPage, speedSettingsPage, qualitySettingsPage, subtitleSettingsPage].forEach(p => { if(p) p.classList.remove('active', 'slide-out-left', 'slide-out-right'); });
+        [mainSettingsPage, speedSettingsPage, qualitySettingsPage, subtitleSettingsPage].filter(p => p).forEach(p => p.classList.remove('active', 'slide-out-left', 'slide-out-right'));
         mainSettingsPage.classList.add('active');
         menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
     }
