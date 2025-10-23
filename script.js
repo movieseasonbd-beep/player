@@ -220,6 +220,7 @@ function handleScreenTap() {
     }
 }
 
+
 function updatePlayState() {
     const isPaused = video.paused;
     playPauseBtn.querySelector('.play-icon').style.display = isPaused ? 'block' : 'none';
@@ -300,10 +301,13 @@ function updateFullscreenState() {
 
 function showMenuPage(pageToShow) {
     const currentPage = menuContentWrapper.querySelector('.menu-page.active');
+    
+    // নতুন এবং সঠিক কোড
     setTimeout(() => {
-    const newHeight = pageToShow.scrollHeight;
-    menuContentWrapper.style.height = `${newHeight}px`;
-}, 0);
+        const newHeight = pageToShow.scrollHeight;
+        menuContentWrapper.style.height = `${newHeight}px`;
+    }, 0);
+
     if (currentPage) {
         if (pageToShow === mainSettingsPage) {
             currentPage.classList.remove('active');
@@ -318,6 +322,7 @@ function showMenuPage(pageToShow) {
         }
     }
 }
+
 
 function addHlsEvents() {
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
@@ -395,6 +400,14 @@ function addHlsEvents() {
             const currentPlayingOpt = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
             if (currentPlayingOpt) currentPlayingOpt.classList.add('active');
         }
+
+        // === নতুন কোড শুরু (HD ব্যাজ দেখানোর জন্য) ===
+        if (activeLevel.height >= 1080) {
+            settingsBtn.classList.add('show-hd-badge');
+        } else {
+            settingsBtn.classList.remove('show-hd-badge');
+        }
+        // === নতুন কোড শেষ ===
     });
     
     hls.on(Hls.Events.ERROR, function(event, data) {
