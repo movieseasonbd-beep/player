@@ -44,19 +44,15 @@ body {
     transform: translateY(0); 
 }
 
-/* ========================================================== */
-/* === নতুন সমাধান: ভিডিও এবং ক্যানভাসের স্টাইল এক করা === */
-/* ========================================================== */
-
 .video {
     width: 100%;
-    height: 100%; /* 'auto' থেকে '100%' করা হয়েছে */
+    height: 100%;
     display: block;
-    position: absolute; /* যোগ করা হয়েছে */
+    position: absolute;
     top: 0;
     left: 0;
-    object-fit: contain; /* সবচেয়ে গুরুত্বপূর্ণ: এটি যোগ করা হয়েছে */
-    background-color: #000; /* পোস্টার লোড হওয়ার আগে কালো ব্যাকগ্রাউন্ড */
+    object-fit: contain;
+    background-color: #000;
 }
 
 #frame-hold-canvas {
@@ -70,7 +66,7 @@ body {
     background-color: #000;
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
-    object-fit: contain; /* সবচেয়ে গুরুত্বপূর্ণ: এটি যোগ করা হয়েছে */
+    object-fit: contain;
 }
 
 #frame-hold-canvas.invisible {
@@ -186,9 +182,41 @@ body {
 .menu-page { position: absolute; top: 0; left: 0; width: 100%; background-color: transparent; transform: translateX(100%); transition: transform 0.2s ease-in-out; }
 .menu-page.active { position: relative; transform: translateX(0); }
 .menu-page.slide-out-left { transform: translateX(-100%); }
-.menu-main ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
-.menu-main li { display: flex; justify-content: space-between; align-items: center; padding: 12px; font-size: 14px; color: #f1f1f1; cursor: pointer; background-color: #2c2c2c; border-radius: 12px; transition: background-color 0.2s ease; }
-.menu-main li:hover { background-color: #3f3f3f; }
+
+/* ========================================================== */
+/* === আপনার পছন্দের গ্রুপ ডিজাইন ফিরিয়ে আনা হলো === */
+/* ========================================================== */
+
+.menu-main ul.settings-group {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: #2c2c2c; 
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.menu-main ul.settings-group li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    font-size: 14px;
+    color: #f1f1f1;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.menu-main ul.settings-group li:not(:last-child) {
+    border-bottom: 1px solid #3f3f3f; 
+}
+
+.menu-main ul.settings-group li:hover {
+    background-color: #3a3a3a;
+}
+
+/* ========================================================== */
+
 .menu-item-label, .menu-item-value { display: flex; align-items: center; gap: 10px; }
 .menu-item-label svg { width: 20px; height: 20px; fill: #e0e0e0; }
 .menu-item-value .current-value { color: #a0a0a0; font-size: 13px; }
@@ -227,14 +255,13 @@ body {
 #quality-options-list,
 #speed-options-list {
     min-height: 110px;
-    max-height: 130px; /* মোবাইল ভিউর জন্য উচ্চতা সীমাবদ্ধ করা হলো */
+    max-height: 130px; 
 }
 
-/* শুধুমাত্র বড় স্ক্রিনে (ডেস্কটপ) উভয় লিস্টের উচ্চতার সীমাবদ্ধতা তুলে দেওয়া হবে */
 @media (min-width: 768px) {
     #quality-options-list,
     #speed-options-list {
-        max-height: none; /* বড় স্ক্রিনে কোনো সীমাবদ্ধতা থাকবে না */
+        max-height: none; 
     }
 }
 
