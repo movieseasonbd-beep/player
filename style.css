@@ -253,6 +253,7 @@ body {
 #speed-options-list {
     min-height: 110px;
     max-height: 130px; 
+    overflow-y: auto;
 }
 
 @media (min-width: 768px) {
