@@ -2,8 +2,8 @@
 const playerContainer = document.querySelector('.player-container');
 const loadingOverlay = document.querySelector('.loading-overlay');
 const video = document.querySelector('.video');
-const frameHoldCanvas = document.getElementById('frame-hold-canvas'); // নতুন
-const ctx = frameHoldCanvas.getContext('2d'); // নতুন
+const frameHoldCanvas = document.getElementById('frame-hold-canvas');
+const ctx = frameHoldCanvas.getContext('2d');
 const controlsContainer = document.querySelector('.controls-container');
 const centralPlayBtn = document.querySelector('.central-play-btn');
 const playPauseBtn = document.getElementById('play-pause-btn');
@@ -97,39 +97,44 @@ function loadVideo(videoUrl) {
 }
 
 // ==========================================================
-// === setQuality ফাংশন (আপডেট করা হয়েছে) ===
+// === setQuality ফাংশন (সর্বশেষ আপডেট করা) ===
 // ==========================================================
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
 
-    if (url) {
-        // === ধাপ ১: বর্তমান ফ্রেমটি ক্যানভাসে আঁকুন ===
+    // Helper function to capture the current frame on canvas
+    const captureAndHoldFrame = () => {
         if (isPlaying && video.readyState > 2) {
             frameHoldCanvas.width = video.videoWidth;
             frameHoldCanvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0, frameHoldCanvas.width, frameHoldCanvas.height);
             frameHoldCanvas.style.display = 'block';
         }
+    };
 
-        // === ধাপ ২: নতুন HLS সোর্স লোড করুন ===
+    // Helper function to hide the canvas once the new video starts playing
+    const hideCanvasOnPlay = () => {
+        video.addEventListener('playing', () => {
+            frameHoldCanvas.style.display = 'none';
+        }, { once: true });
+    };
+
+    if (url) {
+        // Switching TO the external 1080p URL
+        captureAndHoldFrame();
         initializeHls();
         hls.loadSource(url);
         hls.attachMedia(video);
         
         hls.once(Hls.Events.LEVEL_LOADED, () => {
             video.currentTime = currentTime;
-            if (isPlaying) {
-                video.play().catch(() => {});
-            }
+            if (isPlaying) video.play().catch(() => {});
         });
 
-        // === ধাপ ৩: নতুন ভিডিও চালু হলে ক্যানভাসটি লুকান ===
-        video.addEventListener('playing', () => {
-            frameHoldCanvas.style.display = 'none';
-        }, { once: true });
+        hideCanvasOnPlay();
 
-        // UI আপডেট
+        // Update UI
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (qualityMenuBtn) {
             qualityMenuBtn.querySelector('.current-value').textContent = 'HD 1080p';
@@ -139,17 +144,23 @@ function setQuality(level, url = null) {
         if (new1080pOption) new1080pOption.classList.add('active');
 
     } else {
-        // একই manifest-এর মধ্যে কোয়ালিটি পরিবর্তন
+        // Switching within the main manifest (Auto, 720p, etc.)
         if (hls.url !== originalVideoUrl) {
+            // This block executes when switching BACK from 1080p to the original manifest
+            captureAndHoldFrame(); // Capture frame before switching back
             initializeHls();
             hls.loadSource(originalVideoUrl);
             hls.attachMedia(video);
+            
+            hideCanvasOnPlay(); // Hide canvas when the original stream plays
+
             hls.once(Hls.Events.MANIFEST_PARSED, () => {
                 hls.currentLevel = parseInt(level, 10);
                 video.currentTime = currentTime;
                 if (isPlaying) video.play();
             });
         } else {
+            // This block executes for normal quality switches within the same manifest
             hls.currentLevel = parseInt(level, 10);
         }
     }
