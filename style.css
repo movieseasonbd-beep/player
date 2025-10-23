@@ -161,6 +161,27 @@ body {
 #fullscreen-btn .tooltip { position: absolute; bottom: 150%; left: 50%; transform: translateX(-50%); background-color: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-size: 14px; white-space: nowrap; opacity: 0; visibility: hidden; transition: opacity 0.2s ease; }
 #fullscreen-btn:hover .tooltip { opacity: 1; visibility: visible; }
 
+/* === HD Badge on Settings Icon === */
+.hd-badge {
+    position: absolute;
+    top: -2px;
+    right: -4px;
+    background-color: var(--theme-color);
+    color: white;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 1.5px 3.5px;
+    border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    line-height: 1;
+    pointer-events: none; /* যাতে ব্যাজের উপর ক্লিক করলে সেটিংস বাটন কাজ করে */
+    display: none; /* ডিফল্টভাবে ব্যাজ লুকানো থাকবে */
+}
+
+#settings-btn.show-hd-badge .hd-badge {
+    display: block; /* এই ক্লাসটি যোগ হলে ব্যাজ দেখা যাবে */
+}
+
 /* === সেটিংস মেনু === */
 .settings-menu { 
     position: absolute; 
@@ -227,7 +248,7 @@ body {
 #quality-options-list,
 #speed-options-list {
     min-height: 110px;
-    max-height: 130px; /* মোবাইল ভিউর জন্য উচ্চতা সীমাবদ্ধ করা হলো */
+    max-height: 180px; /* মোবাইল ভিউর জন্য উচ্চতা বাড়ানো হলো */
 }
 
 /* শুধুমাত্র বড় স্ক্রিনে (ডেস্কটপ) উভয় লিস্টের উচ্চতার সীমাবদ্ধতা তুলে দেওয়া হবে */
