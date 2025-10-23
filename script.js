@@ -293,13 +293,9 @@ function updateFullscreenState() {
 function showMenuPage(pageToShow) {
     const currentPage = menuContentWrapper.querySelector('.menu-page.active');
     setTimeout(() => {
-        let newHeight = pageToShow.scrollHeight;
-        const list = pageToShow.querySelector('ul#quality-options-list, ul#speed-options-list');
-        if (list && list.scrollHeight > list.clientHeight && list.clientHeight > 0) {
-            newHeight = newHeight - list.scrollHeight + list.clientHeight;
-        }
-        menuContentWrapper.style.height = `${newHeight}px`;
-    }, 0);
+    const newHeight = pageToShow.scrollHeight;
+    menuContentWrapper.style.height = `${newHeight}px`;
+}, 0);
     if (currentPage) {
         if (pageToShow === mainSettingsPage) {
             currentPage.classList.remove('active');
