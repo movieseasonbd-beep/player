@@ -99,9 +99,6 @@ function loadVideo(videoUrl) {
     }
 }
 
-// ==========================================================
-// === নতুন এবং উন্নত setQuality ফাংশন ===
-// ==========================================================
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
@@ -125,8 +122,6 @@ function setQuality(level, url = null) {
         }, { once: true });
     };
 
-    // কেস ১: যদি একটি নতুন URL (যেমন বাহ্যিক 1080p লিঙ্ক) দেওয়া হয়
-    // অথবা যদি আমরা বাহ্যিক লিঙ্ক থেকে মূল লিঙ্কে ফিরে আসি।
     if (url || (hls.url !== originalVideoUrl && !url)) {
         const newUrl = url || originalVideoUrl;
 
@@ -137,14 +132,13 @@ function setQuality(level, url = null) {
         hideCanvasOnPlay();
 
         hls.once(Hls.Events.MANIFEST_PARSED, () => {
-            if (!url) { // যদি মূল ভিডিওতে ফিরে আসি
+            if (!url) {
                 hls.currentLevel = parseInt(level, 10);
             }
             video.currentTime = currentTime;
             if (isPlaying) video.play().catch(() => {});
         });
 
-        // UI আপডেট (শুধুমাত্র বাহ্যিক 1080p লিঙ্কের জন্য)
         if (url) {
             const qualityMenuBtn = document.getElementById('quality-menu-btn');
             if (qualityMenuBtn) {
@@ -156,14 +150,12 @@ function setQuality(level, url = null) {
         }
 
     } 
-    // কেস ২: যদি আমরা একই manifest ফাইলের মধ্যে কোয়ালিটি পরিবর্তন করি। (মসৃণ উপায়)
     else {
         hls.currentLevel = parseInt(level, 10);
     }
 
     showMenuPage(mainSettingsPage);
 }
-
 
 function setupSubtitles() {
     if (!subtitleMenuBtn) return;
@@ -422,6 +414,17 @@ video.addEventListener('play', () => {
     resetControlsTimer(); 
     acquireWakeLock(); 
 });
+
+// ==========================================================
+// === নতুন সমাধান: প্রথমবার প্লে হলে পোস্টার মুছে ফেলা ===
+// ==========================================================
+video.addEventListener('play', () => {
+    if (video.poster) {
+        video.poster = '';
+    }
+}, { once: true });
+
+
 video.addEventListener('pause', () => { 
     updatePlayState();
     clearTimeout(controlsTimeout); 
