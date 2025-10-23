@@ -129,18 +129,19 @@ function setQuality(level, url = null) {
         hls.attachMedia(video);
         hideCanvasOnPlay();
 
+        // ম্যানুয়ালি UI আপডেট করুন, কারণ LEVEL_SWITCHED এটিকে ওভাররাইড করতে পারে
+        const qualityMenuBtn = document.getElementById('quality-menu-btn');
+        if (qualityMenuBtn) {
+            qualityMenuBtn.querySelector('.current-value').textContent = 'HD 1080p';
+        }
+        qualityOptionsList.querySelectorAll('li').forEach(opt => opt.classList.remove('active', 'playing'));
+        const new1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
+        if (new1080pOption) new1080pOption.classList.add('active');
+        settingsBtn.classList.add('show-hd-badge');
+
         hls.once(Hls.Events.MANIFEST_PARSED, () => {
             video.currentTime = currentTime;
             if (isPlaying) video.play().catch(() => {});
-            
-            const qualityMenuBtn = document.getElementById('quality-menu-btn');
-            if (qualityMenuBtn) {
-                qualityMenuBtn.querySelector('.current-value').textContent = 'HD 1080p';
-            }
-            qualityOptionsList.querySelectorAll('li').forEach(opt => opt.classList.remove('active', 'playing'));
-            const new1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
-            if (new1080pOption) new1080pOption.classList.add('active');
-            settingsBtn.classList.add('show-hd-badge');
         });
 
     } else {
@@ -369,7 +370,7 @@ function addHlsEvents() {
     });
 
     // ==========================================================
-    // === নতুন এবং সঠিক LEVEL_SWITCHED ফাংশন ===
+    // === চূড়ান্ত এবং সঠিক LEVEL_SWITCHED ফাংশন ===
     // ==========================================================
     hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
@@ -379,9 +380,17 @@ function addHlsEvents() {
         const allQualityOptions = qualityOptionsList.querySelectorAll('li');
         allQualityOptions.forEach(opt => opt.classList.remove('active', 'playing'));
     
-        const activeLevel = hls.levels[data.level];
+        // কেস ১: যদি এটি বাহ্যিক 1080p লিঙ্ক হয়
+        if (hls.url !== originalVideoUrl) {
+            qualityCurrentValue.textContent = 'HD 1080p';
+            const external1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
+            if (external1080pOption) external1080pOption.classList.add('active');
+            settingsBtn.classList.add('show-hd-badge');
+            return; // এখানে ফাংশনের কাজ শেষ
+        }
     
-        // যদি লেভেল খুঁজে না পাওয়া যায়, তবে একটি নিরাপদ ডিফল্ট মান সেট করুন
+        // কেস ২: যদি এটি মূল ভিডিও লিঙ্ক হয় (সাধারণ অবস্থা)
+        const activeLevel = hls.levels[data.level];
         if (!activeLevel) {
             qualityCurrentValue.textContent = hls.autoLevelEnabled ? 'Auto' : '...';
             const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
@@ -390,7 +399,6 @@ function addHlsEvents() {
             return;
         }
     
-        // কোয়ালিটি মেনুর টেক্সট এবং একটিভ ক্লাস আপডেট করুন
         if (hls.autoLevelEnabled) {
             qualityCurrentValue.textContent = `${activeLevel.height}p (Auto)`;
             const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
@@ -403,10 +411,8 @@ function addHlsEvents() {
             if (currentSelectedOpt) currentSelectedOpt.classList.add('active');
         }
     
-        // HD ব্যাজ দেখানোর লজিক
         if (activeLevel.height >= 1080) {
             settingsBtn.classList.add('show-hd-badge');
-            // যদি অটো মোডে 1080p চলে, তবে টেক্সটটি HD করুন
             if (hls.autoLevelEnabled) {
                 qualityCurrentValue.textContent = 'HD 1080p (Auto)';
             }
