@@ -103,7 +103,6 @@ function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
 
-    // Helper function to capture the current frame on canvas
     const captureAndHoldFrame = () => {
         if (isPlaying && video.readyState > 2) {
             frameHoldCanvas.width = video.videoWidth;
@@ -113,7 +112,6 @@ function setQuality(level, url = null) {
         }
     };
 
-    // Helper function to hide the canvas once the new video starts playing
     const hideCanvasOnPlay = () => {
         video.addEventListener('playing', () => {
             frameHoldCanvas.style.display = 'none';
@@ -121,7 +119,7 @@ function setQuality(level, url = null) {
     };
 
     if (url) {
-        // Switching TO the external 1080p URL
+        // নতুন 1080p লিঙ্কে যাওয়ার সময়
         captureAndHoldFrame();
         initializeHls();
         hls.loadSource(url);
@@ -134,7 +132,7 @@ function setQuality(level, url = null) {
 
         hideCanvasOnPlay();
 
-        // Update UI
+        // UI আপডেট
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (qualityMenuBtn) {
             qualityMenuBtn.querySelector('.current-value').textContent = 'HD 1080p';
@@ -144,15 +142,15 @@ function setQuality(level, url = null) {
         if (new1080pOption) new1080pOption.classList.add('active');
 
     } else {
-        // Switching within the main manifest (Auto, 720p, etc.)
+        // মূল manifest-এর মধ্যে কোয়ালিটি পরিবর্তন
         if (hls.url !== originalVideoUrl) {
-            // This block executes when switching BACK from 1080p to the original manifest
-            captureAndHoldFrame(); // Capture frame before switching back
+            // 1080p থেকে মূল লিঙ্কে ফিরে আসার সময়
+            captureAndHoldFrame();
             initializeHls();
             hls.loadSource(originalVideoUrl);
             hls.attachMedia(video);
             
-            hideCanvasOnPlay(); // Hide canvas when the original stream plays
+            hideCanvasOnPlay();
 
             hls.once(Hls.Events.MANIFEST_PARSED, () => {
                 hls.currentLevel = parseInt(level, 10);
@@ -160,7 +158,7 @@ function setQuality(level, url = null) {
                 if (isPlaying) video.play();
             });
         } else {
-            // This block executes for normal quality switches within the same manifest
+            // একই manifest-এর মধ্যে সাধারণ কোয়ালিটি পরিবর্তন
             hls.currentLevel = parseInt(level, 10);
         }
     }
@@ -205,14 +203,28 @@ function setSubtitle(lang) {
     showMenuPage(mainSettingsPage);
 }
 
-function directTogglePlay() { video.paused ? video.play() : video.pause(); }
-function handleScreenTap() {
-    const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
-    if (video.paused) { video.play(); } else {
-        if (isControlsVisible) { video.pause(); }
-        else { playerContainer.classList.add('show-controls'); resetControlsTimer(); }
+function directTogglePlay() { 
+    if (video.paused) {
+        video.play();
+    } else {
+        video.pause();
     }
 }
+
+function handleScreenTap() {
+    const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
+    if (video.paused) { 
+        video.play(); 
+    } else {
+        if (isControlsVisible) { 
+            video.pause(); 
+        } else { 
+            playerContainer.classList.add('show-controls'); 
+            resetControlsTimer(); 
+        }
+    }
+}
+
 function updatePlayState() {
     const isPaused = video.paused;
     playPauseBtn.querySelector('.play-icon').style.display = isPaused ? 'block' : 'none';
@@ -220,15 +232,18 @@ function updatePlayState() {
     playerContainer.classList.toggle('paused', isPaused);
     playerContainer.classList.toggle('playing', !isPaused);
 }
+
 function hideControls() {
     if (!video.paused && !settingsMenu.classList.contains('active') && !isScrubbing) {
         playerContainer.classList.remove('show-controls');
     }
 }
+
 function resetControlsTimer() {
     clearTimeout(controlsTimeout);
     controlsTimeout = setTimeout(hideControls, 3000);
 }
+
 function updateProgressUI() {
     if (isScrubbing) return;
     if (video.duration && !isNaN(video.duration)) {
@@ -238,12 +253,14 @@ function updateProgressUI() {
         timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
     }
 }
+
 function updateBufferBar() {
     if (video.duration > 0 && video.buffered.length > 0) {
         const bufferEnd = video.buffered.end(video.buffered.length - 1);
         bufferBar.style.width = `${(bufferEnd / video.duration) * 100}%`;
     }
 }
+
 function scrub(e) {
     const scrubTime = (e.target.value / 100) * video.duration;
     if (isNaN(scrubTime)) return;
@@ -251,19 +268,23 @@ function scrub(e) {
     progressFilled.style.width = `${e.target.value}%`;
     timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`;
 }
+
 function formatTime(seconds) {
     if (isNaN(seconds) || seconds === Infinity) return "00:00";
     const date = new Date(seconds * 1000);
     const [hh, mm, ss] = [date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()].map(v => v.toString().padStart(2, '0'));
     return hh > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
 }
+
 function toggleMute() { video.muted = !video.muted; }
+
 function updateVolumeIcon() {
     const isMuted = video.muted || video.volume === 0;
     volumeBtn.querySelector('.volume-on-icon').style.display = isMuted ? 'none' : 'block';
     volumeBtn.querySelector('.volume-off-icon').style.display = isMuted ? 'block' : 'none';
     volumeBtn.classList.toggle('active', isMuted);
 }
+
 async function toggleFullscreen() {
     if (!document.fullscreenElement) {
         await playerContainer.requestFullscreen();
@@ -273,6 +294,7 @@ async function toggleFullscreen() {
         try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (err) { /* ignore */ }
     }
 }
+
 function updateFullscreenState() {
     const isFullscreen = !!document.fullscreenElement;
     fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block';
@@ -280,6 +302,7 @@ function updateFullscreenState() {
     fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
     fullscreenBtn.classList.toggle('active', isFullscreen);
 }
+
 function showMenuPage(pageToShow) {
     const currentPage = menuContentWrapper.querySelector('.menu-page.active');
     setTimeout(() => {
@@ -390,11 +413,25 @@ function addHlsEvents() {
     });
 }
 
-// General Event Listeners
+// ==========================================================
+// === General Event Listeners (সঠিক এবং কার্যকরী) ===
+// ==========================================================
 video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
-video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); acquireWakeLock(); });
-video.addEventListener('pause', () => { updatePlayState(); clearTimeout(controlsTimeout); playerContainer.classList.add('show-controls'); releaseWakeLock(); });
+playPauseBtn.addEventListener('click', directTogglePlay);
+
+video.addEventListener('play', updatePlayState);
+video.addEventListener('pause', updatePlayState);
+video.addEventListener('play', () => { 
+    resetControlsTimer(); 
+    acquireWakeLock(); 
+});
+video.addEventListener('pause', () => { 
+    clearTimeout(controlsTimeout); 
+    playerContainer.classList.add('show-controls'); 
+    releaseWakeLock(); 
+});
+
 video.addEventListener('ended', releaseWakeLock);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
@@ -404,22 +441,42 @@ forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
+
 progressBar.addEventListener('input', scrub);
-progressBar.addEventListener('mousedown', () => { isScrubbing = true; wasPlaying = !video.paused; if (wasPlaying) video.pause(); });
-document.addEventListener('mouseup', () => { if (isScrubbing) { isScrubbing = false; if (wasPlaying) video.play(); } });
-playerContainer.addEventListener('mousemove', () => { playerContainer.classList.add('show-controls'); resetControlsTimer(); });
+progressBar.addEventListener('mousedown', () => { 
+    isScrubbing = true; 
+    wasPlaying = !video.paused; 
+    if (wasPlaying) video.pause(); 
+});
+document.addEventListener('mouseup', () => { 
+    if (isScrubbing) { 
+        isScrubbing = false; 
+        if (wasPlaying) video.play(); 
+    } 
+});
+playerContainer.addEventListener('mousemove', () => { 
+    playerContainer.classList.add('show-controls'); 
+    resetControlsTimer(); 
+});
+
 settingsBtn.addEventListener('click', () => {
     settingsMenu.classList.toggle('active');
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
     if (settingsMenu.classList.contains('active')) {
-        [mainSettingsPage, speedSettingsPage, qualitySettingsPage, subtitleSettingsPage].filter(p => p).forEach(p => p.classList.remove('active', 'slide-out-left', 'slide-out-right'));
+        [mainSettingsPage, speedSettingsPage, qualitySettingsPage, subtitleSettingsPage]
+            .filter(p => p) // Ensures null pages don't cause errors
+            .forEach(p => p.classList.remove('active', 'slide-out-left', 'slide-out-right'));
         mainSettingsPage.classList.add('active');
         menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
     }
 });
+
 speedMenuBtn.addEventListener('click', () => { showMenuPage(speedSettingsPage); });
-if (subtitleMenuBtn) subtitleMenuBtn.addEventListener('click', () => { showMenuPage(subtitleSettingsPage); });
+if (subtitleMenuBtn) {
+    subtitleMenuBtn.addEventListener('click', () => { showMenuPage(subtitleSettingsPage); });
+}
 backBtns.forEach(btn => btn.addEventListener('click', () => showMenuPage(mainSettingsPage)));
+
 speedOptions.forEach(option => {
     option.addEventListener('click', () => {
         video.playbackRate = parseFloat(option.dataset.speed);
@@ -429,9 +486,13 @@ speedOptions.forEach(option => {
         showMenuPage(mainSettingsPage);
     });
 });
+
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden' && wakeLock !== null) releaseWakeLock();
-    else if (document.visibilityState === 'visible' && !video.paused) acquireWakeLock();
+    if (document.visibilityState === 'hidden' && wakeLock !== null) {
+        releaseWakeLock();
+    } else if (document.visibilityState === 'visible' && !video.paused) {
+        acquireWakeLock();
+    }
 });
 
 // ==========================================================
