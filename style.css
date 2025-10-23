@@ -18,17 +18,24 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container.show-controls .controls-container { opacity: 1; transform: translateY(0); }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
-/* === নতুন ক্যানভাস স্টাইল === */
+/* === ক্যানভাস স্টাইল (ফেড ইফেক্টসহ) === */
 #frame-hold-canvas {
-    display: none; /* শুরুতে এটি লুকানো থাকবে */
+    display: none;
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1; /* ভিডিওর উপরে কিন্তু কন্ট্রোলের নিচে থাকবে */
-    background-color: #000; /* একটি ফলব্যাক কালো রঙ */
+    z-index: 1;
+    background-color: #000;
+    opacity: 1; /* শুরুতে দৃশ্যমান */
+    transition: opacity 0.3s ease-in-out; /* ফেড ইফেক্টের জন্য ট্রানজিশন */
 }
+
+#frame-hold-canvas.invisible {
+    opacity: 0; /* এই ক্লাসটি থাকলে ক্যানভাস অদৃশ্য হবে */
+}
+
 
 /* === লোডিং ও সেন্ট্রাল বাটন === */
 .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s ease; }
@@ -64,7 +71,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     opacity: 0;
     transform: translateY(100%);
     transition: opacity 0.25s ease, transform 0.25s ease;
-    will-change: transform, opacity; /* পারফরম্যান্স উন্নতি */
+    will-change: transform, opacity;
 }
 .progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 2px 0; cursor: pointer; position: relative; }
 .progress-background, .buffer-bar, .progress-filled, .progress-bar { grid-column: 1; grid-row: 1; }
@@ -129,7 +136,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
     padding: 8px; 
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); 
     z-index: 5; 
-    will-change: transform, opacity; /* পারফরম্যান্স উন্নতি */
+    will-change: transform, opacity;
 }
 .settings-menu.active { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
 .menu-handle-container { width: 100%; padding: 2px 0 6px 0; display: flex; justify-content: center; }
@@ -165,7 +172,7 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .menu-speed li.active, .menu-quality li.active { color: var(--theme-color); font-weight: bold; }
 
 /* === স্ক্রলবার === */
-.menu-main ul, .menu-speed ul, .menu-quality ul { max-height: 40vh; overflow-y: auto; }
+.menu-main ul, .menu-speed ul, .menu-quality ul { overflow-y: auto; }
 .settings-menu ul::-webkit-scrollbar { width: 6px; }
 .settings-menu ul::-webkit-scrollbar-track { background: transparent; }
 .settings-menu ul::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
@@ -175,23 +182,20 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container, .player-container * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .player-container input[type="range"] { -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto; }
 
+/* কোয়ালিটি লিস্টের উচ্চতা (বড় স্ক্রিনে কোনো max-height নেই) */
 #quality-options-list {
     min-height: 110px;
-    
 }
 
-/* === নতুন যুক্ত করা স্টাইল (New Added Style) === */
 .menu-quality li.playing {
     color: #f21111;
     font-weight: bold;
 }
 
-/* style.css (ফাইলের শেষে নতুন যোগ করুন) */
-
-/* === Responsive Settings Menu for Smaller Screens === */
-/* শুধুমাত্র ছোট স্ক্রিনের জন্য (যেমন মোবাইল) কোয়ালিটি লিস্টে স্ক্রলবার দেখাবে */
+/* === রেসপন্সিভ সেটিংস মেনু === */
+/* শুধুমাত্র ছোট স্ক্রিনের জন্য কোয়ালিটি লিস্টে স্ক্রলবার দেখাবে */
 @media (max-height: 500px) {
     #quality-options-list {
-        max-height: 150px; /* আপনি এই মানটি প্রয়োজন অনুযায়ী পরিবর্তন করতে পারেন */
+        max-height: 150px;
     }
 }
