@@ -43,9 +43,6 @@ let qualityMenuInitialized = false;
 let originalVideoUrl = null;
 let wakeLock = null;
 
-// ==========================================================
-// === HLS Configuration (চূড়ান্ত অপটিমাইজেশনসহ) ===
-// ==========================================================
 const hlsConfig = {
     maxBufferLength: 30,
     maxMaxBufferLength: 600,
@@ -55,10 +52,6 @@ const hlsConfig = {
     maxStarveDuration: 2,
     maxBufferHole: 0.5,
 };
-
-// ==========================================================
-// === Functions ===
-// ==========================================================
 
 const acquireWakeLock = async () => {
     if ('wakeLock' in navigator) {
@@ -124,13 +117,11 @@ function setQuality(level, url = null) {
 
     if (url || (hls.url !== originalVideoUrl && !url)) {
         const newUrl = url || originalVideoUrl;
-
         captureAndHoldFrame();
         initializeHls();
         hls.loadSource(newUrl);
         hls.attachMedia(video);
         hideCanvasOnPlay();
-
         hls.once(Hls.Events.MANIFEST_PARSED, () => {
             if (!url) {
                 hls.currentLevel = parseInt(level, 10);
@@ -138,7 +129,6 @@ function setQuality(level, url = null) {
             video.currentTime = currentTime;
             if (isPlaying) video.play().catch(() => {});
         });
-
         if (url) {
             const qualityMenuBtn = document.getElementById('quality-menu-btn');
             if (qualityMenuBtn) {
@@ -148,12 +138,9 @@ function setQuality(level, url = null) {
             const new1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
             if (new1080pOption) new1080pOption.classList.add('active');
         }
-
-    } 
-    else {
+    } else {
         hls.currentLevel = parseInt(level, 10);
     }
-
     showMenuPage(mainSettingsPage);
 }
 
@@ -183,31 +170,30 @@ function setupSubtitles() {
 function setSubtitle(lang) {
     const textTracks = video.textTracks;
     for (let i = 0; i < textTracks.length; i++) {
-        const track = textTracks[i];
-        track.mode = (track.language === lang) ? 'showing' : 'hidden';
+        textTracks[i].mode = (textTracks[i].language === lang) ? 'showing' : 'hidden';
     }
     subtitleOptionsList.querySelectorAll('li').forEach(opt => {
         opt.classList.toggle('active', opt.dataset.lang === lang);
     });
-    const activeTrack = [...textTracks].find(t => t.mode === 'showing');
-    if(subtitleCurrentValue) subtitleCurrentValue.textContent = activeTrack ? activeTrack.label : 'Off';
+    const activeTrack = [...video.textTracks].find(t => t.mode === 'showing');
+    if (subtitleCurrentValue) subtitleCurrentValue.textContent = activeTrack ? activeTrack.label : 'Off';
     showMenuPage(mainSettingsPage);
 }
 
-function directTogglePlay() { 
+function directTogglePlay() {
     video.paused ? video.play() : video.pause();
 }
 
 function handleScreenTap() {
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
-    if (video.paused) { 
-        video.play(); 
+    if (video.paused) {
+        video.play();
     } else {
-        if (isControlsVisible) { 
-            video.pause(); 
-        } else { 
-            playerContainer.classList.add('show-controls'); 
-            resetControlsTimer(); 
+        if (isControlsVisible) {
+            video.pause();
+        } else {
+            playerContainer.classList.add('show-controls');
+            resetControlsTimer();
         }
     }
 }
@@ -263,7 +249,9 @@ function formatTime(seconds) {
     return hh > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
-function toggleMute() { video.muted = !video.muted; }
+function toggleMute() {
+    video.muted = !video.muted;
+}
 
 function updateVolumeIcon() {
     const isMuted = video.muted || video.volume === 0;
@@ -290,16 +278,12 @@ function updateFullscreenState() {
     fullscreenBtn.classList.toggle('active', isFullscreen);
 }
 
+// ==========================================================
+// === নতুন এবং চূড়ান্ত showMenuPage ফাংশন ===
+// ==========================================================
 function showMenuPage(pageToShow) {
     const currentPage = menuContentWrapper.querySelector('.menu-page.active');
-    setTimeout(() => {
-        let newHeight = pageToShow.scrollHeight;
-        const list = pageToShow.querySelector('ul#quality-options-list, ul#speed-options-list');
-        if (list && list.scrollHeight > list.clientHeight && list.clientHeight > 0) {
-            newHeight = newHeight - list.scrollHeight + list.clientHeight;
-        }
-        menuContentWrapper.style.height = `${newHeight}px`;
-    }, 0);
+
     if (currentPage) {
         if (pageToShow === mainSettingsPage) {
             currentPage.classList.remove('active');
@@ -313,7 +297,13 @@ function showMenuPage(pageToShow) {
             pageToShow.classList.remove('slide-out-right');
         }
     }
+
+    setTimeout(() => {
+        const newHeight = pageToShow.getBoundingClientRect().height;
+        menuContentWrapper.style.height = `${newHeight}px`;
+    }, 10); 
 }
+
 
 function addHlsEvents() {
     hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
@@ -334,7 +324,7 @@ function addHlsEvents() {
             qualityOptionsList.appendChild(autoOption);
             data.levels.forEach((level, index) => {
                 const option = document.createElement('li');
-                option.textContent = (level.height === 1080) ? `HD 1080p` : `${level.height}p`;
+                option.textContent = `${level.height}p`;
                 option.dataset.level = index;
                 option.addEventListener('click', () => setQuality(index));
                 qualityOptionsList.appendChild(option);
@@ -342,8 +332,7 @@ function addHlsEvents() {
             if (!document.getElementById('quality-menu-btn')) {
                 playerSettingsGroup.prepend(qualityMenuBtn);
             }
-            const manifestHas1080p = data.levels.some(level => level.height === 1080);
-            if (!manifestHas1080p) {
+            if (!data.levels.some(level => level.height === 1080)) {
                 try {
                     const currentUrl = new URL(videoUrl);
                     const pathSegments = currentUrl.pathname.split('/');
@@ -370,29 +359,34 @@ function addHlsEvents() {
     });
 
     hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
-        if (hls.url !== originalVideoUrl) return;
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (!qualityMenuBtn) return;
         const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
         const allQualityOptions = qualityOptionsList.querySelectorAll('li');
         allQualityOptions.forEach(opt => opt.classList.remove('active', 'playing'));
-        const external1080p = qualityOptionsList.querySelector('li[data-level="1080"]');
-        if (external1080p) external1080p.classList.remove('active');
+
         const activeLevel = hls.levels[data.level];
         if (!activeLevel) return;
+
         if (hls.autoLevelEnabled) {
-            qualityCurrentValue.textContent = (activeLevel.height === 1080) ? `HD 1080p (Auto)` : `${activeLevel.height}p (Auto)`;
+            qualityCurrentValue.textContent = `${activeLevel.height}p (Auto)`;
             const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
             if (autoOpt) autoOpt.classList.add('active');
             const currentPlayingOpt = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
             if (currentPlayingOpt) currentPlayingOpt.classList.add('playing');
         } else {
-            qualityCurrentValue.textContent = (activeLevel.height === 1080) ? `HD 1080p` : `${activeLevel.height}p`;
-            const currentPlayingOpt = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
-            if (currentPlayingOpt) currentPlayingOpt.classList.add('active');
+            if (hls.url !== originalVideoUrl) {
+                qualityCurrentValue.textContent = 'HD 1080p';
+                const external1080p = qualityOptionsList.querySelector('li[data-level="1080"]');
+                if (external1080p) external1080p.classList.add('active');
+            } else {
+                qualityCurrentValue.textContent = `${activeLevel.height}p`;
+                const currentPlayingOpt = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
+                if (currentPlayingOpt) currentPlayingOpt.classList.add('active');
+            }
         }
     });
-    
+
     hls.on(Hls.Events.ERROR, function(event, data) {
         if (data.fatal) {
             switch (data.type) {
@@ -404,32 +398,24 @@ function addHlsEvents() {
     });
 }
 
-// === General Event Listeners ===
 video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 
-video.addEventListener('play', () => { 
-    updatePlayState();
-    resetControlsTimer(); 
-    acquireWakeLock(); 
-});
-
-// ==========================================================
-// === নতুন সমাধান: প্রথমবার প্লে হলে পোস্টার মুছে ফেলা ===
-// ==========================================================
 video.addEventListener('play', () => {
+    updatePlayState();
+    resetControlsTimer();
+    acquireWakeLock();
     if (video.poster) {
         video.poster = '';
     }
-}, { once: true });
+}, { once: !video.poster });
 
-
-video.addEventListener('pause', () => { 
+video.addEventListener('pause', () => {
     updatePlayState();
-    clearTimeout(controlsTimeout); 
-    playerContainer.classList.add('show-controls'); 
-    releaseWakeLock(); 
+    clearTimeout(controlsTimeout);
+    playerContainer.classList.add('show-controls');
+    releaseWakeLock();
 });
 
 video.addEventListener('ended', releaseWakeLock);
@@ -443,20 +429,20 @@ fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
 
 progressBar.addEventListener('input', scrub);
-progressBar.addEventListener('mousedown', () => { 
-    isScrubbing = true; 
-    wasPlaying = !video.paused; 
-    if (wasPlaying) video.pause(); 
+progressBar.addEventListener('mousedown', () => {
+    isScrubbing = true;
+    wasPlaying = !video.paused;
+    if (wasPlaying) video.pause();
 });
-document.addEventListener('mouseup', () => { 
-    if (isScrubbing) { 
-        isScrubbing = false; 
-        if (wasPlaying) video.play(); 
-    } 
+document.addEventListener('mouseup', () => {
+    if (isScrubbing) {
+        isScrubbing = false;
+        if (wasPlaying) video.play();
+    }
 });
-playerContainer.addEventListener('mousemove', () => { 
-    playerContainer.classList.add('show-controls'); 
-    resetControlsTimer(); 
+playerContainer.addEventListener('mousemove', () => {
+    playerContainer.classList.add('show-controls');
+    resetControlsTimer();
 });
 
 settingsBtn.addEventListener('click', () => {
@@ -464,10 +450,10 @@ settingsBtn.addEventListener('click', () => {
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
     if (settingsMenu.classList.contains('active')) {
         [mainSettingsPage, speedSettingsPage, qualitySettingsPage, subtitleSettingsPage]
-            .filter(p => p)
-            .forEach(p => p.classList.remove('active', 'slide-out-left', 'slide-out-right'));
+        .filter(p => p)
+        .forEach(p => p.classList.remove('active', 'slide-out-left', 'slide-out-right'));
         mainSettingsPage.classList.add('active');
-        menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
+        showMenuPage(mainSettingsPage);
     }
 });
 
@@ -495,7 +481,6 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-// === Page Load ===
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
@@ -519,8 +504,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (downloadUrl && downloadBtn) {
             downloadBtn.style.display = 'flex';
             downloadBtn.addEventListener('click', () => {
-                const a = document.createElement('a'); a.href = downloadUrl; a.download = '';
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = '';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             });
         }
         loadVideo(videoUrl);
@@ -528,7 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingOverlay.classList.remove('hidden');
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
-    
+
     video.addEventListener('loadedmetadata', updateProgressUI);
     video.addEventListener('loadedmetadata', setupSubtitles);
     updatePlayState();
