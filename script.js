@@ -47,16 +47,13 @@ let wakeLock = null;
 // === HLS Configuration (চূড়ান্ত অপটিমাইজেশনসহ) ===
 // ==========================================================
 const hlsConfig = {
-    // আগের কনফিগারেশন
     maxBufferLength: 30,
     maxMaxBufferLength: 600,
     startLevel: -1,
-    
-    // নতুন অপটিমাইজেশন: মসৃণ কোয়ালিটি পরিবর্তনের জন্য
-    abrBandWidthFactor: 0.95, // ব্যান্ডউইথ ব্যবহারের জন্য প্লেয়ারকে আরও আত্মবিশ্বাসী করে তোলে
-    abrBandWidthUpFactor: 0.8, // কোয়ালিটি বাড়ানোর সিদ্ধান্ত দ্রুত নিতে সাহায্য করে
-    maxStarveDuration: 2, // ডেটার জন্য সর্বোচ্চ ২ সেকেন্ড অপেক্ষা করবে, যা প্লেয়ারকে আরও প্রতিক্রিয়াশীল করে
-    maxBufferHole: 0.5, // বাফারের মধ্যে ০.৫ সেকেন্ডের গ্যাপ থাকলে তা উপেক্ষা করে এগিয়ে যাবে
+    abrBandWidthFactor: 0.95,
+    abrBandWidthUpFactor: 0.8,
+    maxStarveDuration: 2,
+    maxBufferHole: 0.5,
 };
 
 // ==========================================================
@@ -102,13 +99,12 @@ function loadVideo(videoUrl) {
     }
 }
 
+// ==========================================================
+// === নতুন এবং উন্নত setQuality ফাংশন ===
+// ==========================================================
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
-
-    if (video.poster && (url || (hls && hls.url !== originalVideoUrl))) {
-        video.poster = '';
-    }
 
     const captureAndHoldFrame = () => {
         if (isPlaying && video.readyState > 2) {
@@ -129,48 +125,42 @@ function setQuality(level, url = null) {
         }, { once: true });
     };
 
-    if (url) {
+    // কেস ১: যদি একটি নতুন URL (যেমন বাহ্যিক 1080p লিঙ্ক) দেওয়া হয়
+    // অথবা যদি আমরা বাহ্যিক লিঙ্ক থেকে মূল লিঙ্কে ফিরে আসি।
+    if (url || (hls.url !== originalVideoUrl && !url)) {
+        const newUrl = url || originalVideoUrl;
+
         captureAndHoldFrame();
         initializeHls();
-        hls.loadSource(url);
+        hls.loadSource(newUrl);
         hls.attachMedia(video);
-        
-        hls.once(Hls.Events.LEVEL_LOADED, () => {
+        hideCanvasOnPlay();
+
+        hls.once(Hls.Events.MANIFEST_PARSED, () => {
+            if (!url) { // যদি মূল ভিডিওতে ফিরে আসি
+                hls.currentLevel = parseInt(level, 10);
+            }
             video.currentTime = currentTime;
             if (isPlaying) video.play().catch(() => {});
         });
 
-        hideCanvasOnPlay();
-
-        const qualityMenuBtn = document.getElementById('quality-menu-btn');
-        if (qualityMenuBtn) {
-            qualityMenuBtn.querySelector('.current-value').textContent = 'HD 1080p';
+        // UI আপডেট (শুধুমাত্র বাহ্যিক 1080p লিঙ্কের জন্য)
+        if (url) {
+            const qualityMenuBtn = document.getElementById('quality-menu-btn');
+            if (qualityMenuBtn) {
+                qualityMenuBtn.querySelector('.current-value').textContent = 'HD 1080p';
+            }
+            qualityOptionsList.querySelectorAll('li').forEach(opt => opt.classList.remove('active', 'playing'));
+            const new1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
+            if (new1080pOption) new1080pOption.classList.add('active');
         }
-        qualityOptionsList.querySelectorAll('li').forEach(opt => opt.classList.remove('active', 'playing'));
-        const new1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
-        if (new1080pOption) new1080pOption.classList.add('active');
 
-    } else {
-        if (hls.url !== originalVideoUrl) {
-            captureAndHoldFrame();
-            initializeHls();
-            hls.loadSource(originalVideoUrl);
-            hls.attachMedia(video);
-            
-            hideCanvasOnPlay();
-
-            hls.once(Hls.Events.MANIFEST_PARSED, () => {
-                hls.currentLevel = parseInt(level, 10);
-                video.currentTime = currentTime;
-                if (isPlaying) video.play();
-            });
-        } else {
-            // *** এখানে মূল পরিবর্তন ***
-            // `currentLevel` সেট করার পাশাপাশি, আমরা `nextLevel` ও সেট করতে পারি যা প্লেয়ারকে প্রস্তুত করে।
-            // তবে সবচেয়ে কার্যকরী উপায় হলো সঠিক কনফিগারেশন।
-            hls.currentLevel = parseInt(level, 10);
-        }
+    } 
+    // কেস ২: যদি আমরা একই manifest ফাইলের মধ্যে কোয়ালিটি পরিবর্তন করি। (মসৃণ উপায়)
+    else {
+        hls.currentLevel = parseInt(level, 10);
     }
+
     showMenuPage(mainSettingsPage);
 }
 
@@ -311,7 +301,11 @@ function updateFullscreenState() {
 function showMenuPage(pageToShow) {
     const currentPage = menuContentWrapper.querySelector('.menu-page.active');
     setTimeout(() => {
-        const newHeight = pageToShow.scrollHeight;
+        let newHeight = pageToShow.scrollHeight;
+        const list = pageToShow.querySelector('ul#quality-options-list, ul#speed-options-list');
+        if (list && list.scrollHeight > list.clientHeight && list.clientHeight > 0) {
+            newHeight = newHeight - list.scrollHeight + list.clientHeight;
+        }
         menuContentWrapper.style.height = `${newHeight}px`;
     }, 0);
     if (currentPage) {
