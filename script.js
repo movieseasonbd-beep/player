@@ -199,15 +199,23 @@ function directTogglePlay() {
 }
 
 function handleScreenTap() {
+    // নতুন যুক্তি: যদি সেটিংস মেন্যু খোলা থাকে, তবে তা বন্ধ করো এবং আর কিছু করবে না।
+    if (settingsMenu.classList.contains('active')) {
+        settingsMenu.classList.remove('active');
+        settingsBtn.classList.remove('active');
+        return; // এই return-এর কারণে নিচের প্লে/পজ কোড আর কাজ করবে না।
+    }
+
+    // পুরোনো যুক্তি অপরিবর্তিত থাকবে
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
-    if (video.paused) { 
-        video.play(); 
+    if (video.paused) {
+        video.play();
     } else {
-        if (isControlsVisible) { 
-            video.pause(); 
-        } else { 
-            playerContainer.classList.add('show-controls'); 
-            resetControlsTimer(); 
+        if (isControlsVisible) {
+            video.pause();
+        } else {
+            playerContainer.classList.add('show-controls');
+            resetControlsTimer();
         }
     }
 }
