@@ -50,13 +50,13 @@ body {
 
 .video {
     width: 100%;
-    height: 100%; /* 'auto' থেকে '100%' করা হয়েছে */
+    height: 100%;
     display: block;
-    position: absolute; /* যোগ করা হয়েছে */
+    position: absolute;
     top: 0;
     left: 0;
-    object-fit: contain; /* সবচেয়ে গুরুত্বপূর্ণ: এটি যোগ করা হয়েছে */
-    background-color: #000; /* পোস্টার লোড হওয়ার আগে কালো ব্যাকগ্রাউন্ড */
+    object-fit: contain;
+    background-color: #000;
 }
 
 #frame-hold-canvas {
@@ -70,7 +70,7 @@ body {
     background-color: #000;
     opacity: 1;
     transition: opacity 0.3s ease-in-out;
-    object-fit: contain; /* সবচেয়ে গুরুত্বপূর্ণ: এটি যোগ করা হয়েছে */
+    object-fit: contain;
 }
 
 #frame-hold-canvas.invisible {
@@ -174,12 +174,12 @@ body {
     border-radius: 3px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.5);
     line-height: 1;
-    pointer-events: none; /* যাতে ব্যাজের উপর ক্লিক করলে সেটিংস বাটন কাজ করে */
-    display: none; /* ডিফল্টভাবে ব্যাজ লুকানো থাকবে */
+    pointer-events: none;
+    display: none;
 }
 
 #settings-btn.show-hd-badge .hd-badge {
-    display: block; /* এই ক্লাসটি যোগ হলে ব্যাজ দেখা যাবে */
+    display: block;
 }
 
 /* === সেটিংস মেনু === */
