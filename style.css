@@ -18,6 +18,18 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 .player-container.show-controls .controls-container { opacity: 1; transform: translateY(0); }
 .video { width: 100%; height: auto; max-height: 100vh; display: block; }
 
+/* === নতুন ক্যানভাস স্টাইল === */
+#frame-hold-canvas {
+    display: none; /* শুরুতে এটি লুকানো থাকবে */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* ভিডিওর উপরে কিন্তু কন্ট্রোলের নিচে থাকবে */
+    background-color: #000; /* একটি ফলব্যাক কালো রঙ */
+}
+
 /* === লোডিং ও সেন্ট্রাল বাটন === */
 .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s ease; }
 .loading-overlay.hidden { opacity: 0; visibility: hidden; }
