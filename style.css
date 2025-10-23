@@ -177,11 +177,21 @@ body { margin: 0; background-color: #000; display: flex; justify-content: center
 
 #quality-options-list {
     min-height: 110px;
-    max-height: 130px;
+    
 }
 
 /* === নতুন যুক্ত করা স্টাইল (New Added Style) === */
 .menu-quality li.playing {
     color: #f21111;
     font-weight: bold;
+}
+
+/* style.css (ফাইলের শেষে নতুন যোগ করুন) */
+
+/* === Responsive Settings Menu for Smaller Screens === */
+/* শুধুমাত্র ছোট স্ক্রিনের জন্য (যেমন মোবাইল) কোয়ালিটি লিস্টে স্ক্রলবার দেখাবে */
+@media (max-height: 500px) {
+    #quality-options-list {
+        max-height: 150px; /* আপনি এই মানটি প্রয়োজন অনুযায়ী পরিবর্তন করতে পারেন */
+    }
 }
