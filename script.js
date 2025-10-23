@@ -47,7 +47,7 @@ let wakeLock = null;
 const hlsConfig = {
     maxBufferLength: 30,
     maxMaxBufferLength: 600,
-    startLevel: -1, // Auto start
+    startLevel: -1,
     capLevelToPlayerSize: false,
     abrEwmaSlowVoD: 4.0,
     abrEwmaFastVoD: 1.0,
@@ -97,24 +97,34 @@ function loadVideo(videoUrl) {
 }
 
 // ==========================================================
-// === setQuality ফাংশন (সর্বশেষ আপডেট করা) ===
+// === setQuality ফাংশন (চূড়ান্ত সমাধানসহ) ===
 // ==========================================================
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
+
+    // *** চূড়ান্ত সমাধান: সোর্স পরিবর্তনের আগে পোস্টার মুছে ফেলা ***
+    // এটি নিশ্চিত করে যে ব্রাউজার কোনো অবস্থাতেই পোস্টারটি দেখানোর সুযোগ পাবে না।
+    if (video.poster && (url || (hls && hls.url !== originalVideoUrl))) {
+        video.poster = '';
+    }
 
     const captureAndHoldFrame = () => {
         if (isPlaying && video.readyState > 2) {
             frameHoldCanvas.width = video.videoWidth;
             frameHoldCanvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0, frameHoldCanvas.width, frameHoldCanvas.height);
+            frameHoldCanvas.classList.remove('invisible');
             frameHoldCanvas.style.display = 'block';
         }
     };
 
     const hideCanvasOnPlay = () => {
         video.addEventListener('playing', () => {
-            frameHoldCanvas.style.display = 'none';
+            frameHoldCanvas.classList.add('invisible');
+            setTimeout(() => {
+                frameHoldCanvas.style.display = 'none';
+            }, 300); // CSS ট্রানজিশনের সাথে মিল রাখতে হবে
         }, { once: true });
     };
 
@@ -132,7 +142,6 @@ function setQuality(level, url = null) {
 
         hideCanvasOnPlay();
 
-        // UI আপডেট
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (qualityMenuBtn) {
             qualityMenuBtn.querySelector('.current-value').textContent = 'HD 1080p';
@@ -142,9 +151,8 @@ function setQuality(level, url = null) {
         if (new1080pOption) new1080pOption.classList.add('active');
 
     } else {
-        // মূল manifest-এর মধ্যে কোয়ালিটি পরিবর্তন
+        // মূল manifest-এ ফিরে আসা বা পরিবর্তন
         if (hls.url !== originalVideoUrl) {
-            // 1080p থেকে মূল লিঙ্কে ফিরে আসার সময়
             captureAndHoldFrame();
             initializeHls();
             hls.loadSource(originalVideoUrl);
@@ -158,7 +166,6 @@ function setQuality(level, url = null) {
                 if (isPlaying) video.play();
             });
         } else {
-            // একই manifest-এর মধ্যে সাধারণ কোয়ালিটি পরিবর্তন
             hls.currentLevel = parseInt(level, 10);
         }
     }
@@ -204,11 +211,7 @@ function setSubtitle(lang) {
 }
 
 function directTogglePlay() { 
-    if (video.paused) {
-        video.play();
-    } else {
-        video.pause();
-    }
+    video.paused ? video.play() : video.pause();
 }
 
 function handleScreenTap() {
@@ -413,20 +416,18 @@ function addHlsEvents() {
     });
 }
 
-// ==========================================================
-// === General Event Listeners (সঠিক এবং কার্যকরী) ===
-// ==========================================================
+// === General Event Listeners ===
 video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 
-video.addEventListener('play', updatePlayState);
-video.addEventListener('pause', updatePlayState);
 video.addEventListener('play', () => { 
+    updatePlayState();
     resetControlsTimer(); 
     acquireWakeLock(); 
 });
 video.addEventListener('pause', () => { 
+    updatePlayState();
     clearTimeout(controlsTimeout); 
     playerContainer.classList.add('show-controls'); 
     releaseWakeLock(); 
@@ -464,7 +465,7 @@ settingsBtn.addEventListener('click', () => {
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
     if (settingsMenu.classList.contains('active')) {
         [mainSettingsPage, speedSettingsPage, qualitySettingsPage, subtitleSettingsPage]
-            .filter(p => p) // Ensures null pages don't cause errors
+            .filter(p => p)
             .forEach(p => p.classList.remove('active', 'slide-out-left', 'slide-out-right'));
         mainSettingsPage.classList.add('active');
         menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
@@ -495,9 +496,7 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-// ==========================================================
 // === Page Load ===
-// ==========================================================
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
