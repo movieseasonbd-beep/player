@@ -46,7 +46,7 @@ let originalVideoUrl = null;
 let wakeLock = null;
 
 // ==========================================================
-// === FFmpeg.wasm Integration (for MKV playback)         ===
+// === FFmpeg.wasm Integration (with Timeout Failsafe)    ===
 // ==========================================================
 const { createFFmpeg, fetchFile } = FFmpeg;
 const ffmpeg = createFFmpeg({
@@ -54,7 +54,23 @@ const ffmpeg = createFFmpeg({
 });
 
 async function playMkvWithFfmpeg(videoUrl) {
+    let failureTimeout; // Timeout variable
+
     try {
+        // Set a 60-second timeout as a failsafe
+        failureTimeout = setTimeout(() => {
+            console.error("Timeout: MKV processing took too long or failed.");
+            loadingMainText.textContent = "Error Loading Video";
+            // Hide the animation bar and show an error message
+            document.querySelector('.loading-bar-container').style.display = 'none';
+            document.querySelector('.loading-subtext').textContent = "File might be corrupted or unsupported.";
+            try {
+                if (ffmpeg.isLoaded()) {
+                    ffmpeg.exit(); // Attempt to terminate the ffmpeg process
+                }
+            } catch (e) {}
+        }, 60000); // 60 seconds (60,000 milliseconds)
+
         if (!ffmpeg.isLoaded()) {
             loadingMainText.textContent = "Loading Player Engine...";
             await ffmpeg.load();
@@ -69,35 +85,41 @@ async function playMkvWithFfmpeg(videoUrl) {
         const data = ffmpeg.FS('readFile', 'output.mp4');
         const blob = new Blob([data.buffer], { type: 'video/mp4' });
         const url = URL.createObjectURL(blob);
+
         if (Hls.isSupported() && hls) {
             hls.destroy();
         }
+
         video.src = url;
-        hideLoadingOverlay();
-        console.log("MKV video is ready to play.");
+
+        video.addEventListener('canplay', () => {
+            // If video loads successfully, clear the timeout
+            clearTimeout(failureTimeout);
+            hideLoadingOverlay();
+            console.log("MKV video is now ready to be played.");
+        }, { once: true });
+
     } catch (error) {
+        // If any other error occurs, also clear the timeout
+        clearTimeout(failureTimeout);
         console.error("Error playing MKV file:", error);
         loadingMainText.textContent = "Failed to load video.";
+        document.querySelector('.loading-bar-container').style.display = 'none';
     }
 }
+
 
 // ==========================================================
 // === Original Player Functions                          ===
 // ==========================================================
 const hlsConfig = { maxBufferLength: 30, maxMaxBufferLength: 600, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5 };
-
 const acquireWakeLock = async () => { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } };
 const releaseWakeLock = () => { if (wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); } };
-
 function hideLoadingOverlay() { if (!loadingOverlay.classList.contains('hidden')) { loadingOverlay.classList.add('hidden'); } }
-
-function initializeHls() {
-    if (hls) { hls.destroy(); }
-    hls = new Hls(hlsConfig);
-    addHlsEvents();
-}
+function initializeHls() { if (hls) { hls.destroy(); } hls = new Hls(hlsConfig); addHlsEvents(); }
 
 function loadVideo(videoUrl) {
+    // This timeout is the original failsafe for non-MKV files
     setTimeout(hideLoadingOverlay, 3000);
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         initializeHls();
@@ -130,27 +152,174 @@ function setQuality(level, url = null) {
     showMenuPage(mainSettingsPage);
 }
 
-function setupSubtitles() { /* (Your original setupSubtitles function) */ }
-function setSubtitle(lang) { /* (Your original setSubtitle function) */ }
+function setupSubtitles() {
+    if (!subtitleMenuBtn) return;
+    const textTracks = video.textTracks;
+    if (textTracks.length === 0) return;
+    subtitleMenuBtn.style.display = 'flex';
+    subtitleOptionsList.innerHTML = '';
+    const offOption = document.createElement('li');
+    offOption.textContent = 'Off';
+    offOption.dataset.lang = 'off';
+    offOption.classList.add('active');
+    offOption.addEventListener('click', () => setSubtitle('off'));
+    subtitleOptionsList.appendChild(offOption);
+    for (let i = 0; i < textTracks.length; i++) {
+        const track = textTracks[i];
+        track.mode = 'hidden';
+        const option = document.createElement('li');
+        option.textContent = track.label;
+        option.dataset.lang = track.language;
+        option.addEventListener('click', () => setSubtitle(track.language));
+        subtitleOptionsList.appendChild(option);
+    }
+}
+
+function setSubtitle(lang) {
+    const textTracks = video.textTracks;
+    for (let i = 0; i < textTracks.length; i++) {
+        const track = textTracks[i];
+        track.mode = (track.language === lang) ? 'showing' : 'hidden';
+    }
+    subtitleOptionsList.querySelectorAll('li').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.lang === lang);
+    });
+    const activeTrack = [...textTracks].find(t => t.mode === 'showing');
+    if (subtitleCurrentValue) subtitleCurrentValue.textContent = activeTrack ? activeTrack.label : 'Off';
+    showMenuPage(mainSettingsPage);
+}
+
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
-function handleScreenTap() { if (settingsMenu.classList.contains('active')) { settingsMenu.classList.remove('active'); settingsBtn.classList.remove('active'); return; } const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1'; if (video.paused) { video.play(); } else { if (isControlsVisible) { video.pause(); } else { playerContainer.classList.add('show-controls'); resetControlsTimer(); } } }
-function updatePlayState() { const isPaused = video.paused; playPauseBtn.querySelector('.play-icon').style.display = isPaused ? 'block' : 'none'; playPauseBtn.querySelector('.pause-icon').style.display = isPaused ? 'none' : 'block'; playerContainer.classList.toggle('paused', isPaused); playerContainer.classList.toggle('playing', !isPaused); }
-function hideControls() { if (!video.paused && !settingsMenu.classList.contains('active') && !isScrubbing) { playerContainer.classList.remove('show-controls'); } }
-function resetControlsTimer() { clearTimeout(controlsTimeout); controlsTimeout = setTimeout(hideControls, 3000); }
-function updateProgressUI() { if (isScrubbing) return; if (video.duration && !isNaN(video.duration)) { const progressPercent = (video.currentTime / video.duration) * 100; progressFilled.style.width = `${progressPercent}%`; progressBar.value = progressPercent; timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`; } }
-function updateBufferBar() { if (video.duration > 0 && video.buffered.length > 0) { const bufferEnd = video.buffered.end(video.buffered.length - 1); bufferBar.style.width = `${(bufferEnd / video.duration) * 100}%`; } }
-function scrub(e) { const scrubTime = (e.target.value / 100) * video.duration; if (isNaN(scrubTime)) return; video.currentTime = scrubTime; progressFilled.style.width = `${e.target.value}%`; timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`; }
-function formatTime(seconds) { if (isNaN(seconds) || seconds === Infinity) return "00:00"; const date = new Date(seconds * 1000); const [hh, mm, ss] = [date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()].map(v => v.toString().padStart(2, '0')); return hh > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`; }
+
+function handleScreenTap() {
+    if (settingsMenu.classList.contains('active')) {
+        settingsMenu.classList.remove('active');
+        settingsBtn.classList.remove('active');
+        return;
+    }
+    const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
+    if (video.paused) {
+        video.play();
+    } else {
+        if (isControlsVisible) {
+            video.pause();
+        } else {
+            playerContainer.classList.add('show-controls');
+            resetControlsTimer();
+        }
+    }
+}
+
+function updatePlayState() {
+    const isPaused = video.paused;
+    playPauseBtn.querySelector('.play-icon').style.display = isPaused ? 'block' : 'none';
+    playPauseBtn.querySelector('.pause-icon').style.display = isPaused ? 'none' : 'block';
+    playerContainer.classList.toggle('paused', isPaused);
+    playerContainer.classList.toggle('playing', !isPaused);
+}
+
+function hideControls() {
+    if (!video.paused && !settingsMenu.classList.contains('active') && !isScrubbing) {
+        playerContainer.classList.remove('show-controls');
+    }
+}
+
+function resetControlsTimer() {
+    clearTimeout(controlsTimeout);
+    controlsTimeout = setTimeout(hideControls, 3000);
+}
+
+function updateProgressUI() {
+    if (isScrubbing) return;
+    if (video.duration && !isNaN(video.duration)) {
+        const progressPercent = (video.currentTime / video.duration) * 100;
+        progressFilled.style.width = `${progressPercent}%`;
+        progressBar.value = progressPercent;
+        timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+    }
+}
+
+function updateBufferBar() {
+    if (video.duration > 0 && video.buffered.length > 0) {
+        const bufferEnd = video.buffered.end(video.buffered.length - 1);
+        bufferBar.style.width = `${(bufferEnd / video.duration) * 100}%`;
+    }
+}
+
+function scrub(e) {
+    const scrubTime = (e.target.value / 100) * video.duration;
+    if (isNaN(scrubTime)) return;
+    video.currentTime = scrubTime;
+    progressFilled.style.width = `${e.target.value}%`;
+    timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`;
+}
+
+function formatTime(seconds) {
+    if (isNaN(seconds) || seconds === Infinity) return "00:00";
+    const date = new Date(seconds * 1000);
+    const [hh, mm, ss] = [date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()].map(v => v.toString().padStart(2, '0'));
+    return hh > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
 function toggleMute() { video.muted = !video.muted; }
-function updateVolumeIcon() { const isMuted = video.muted || video.volume === 0; volumeBtn.querySelector('.volume-on-icon').style.display = isMuted ? 'none' : 'block'; volumeBtn.querySelector('.volume-off-icon').style.display = isMuted ? 'block' : 'none'; volumeBtn.classList.toggle('active', isMuted); }
-async function toggleFullscreen() { if (!document.fullscreenElement) { await playerContainer.requestFullscreen(); try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (err) {} } else { await document.exitFullscreen(); try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (err) {} } }
-function updateFullscreenState() { const isFullscreen = !!document.fullscreenElement; fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block'; fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none'; fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'; fullscreenBtn.classList.toggle('active', isFullscreen); }
-function showMenuPage(pageToShow) { const currentPage = menuContentWrapper.querySelector('.menu-page.active'); setTimeout(() => { menuContentWrapper.style.height = `${pageToShow.scrollHeight}px`; }, 0); if (currentPage && currentPage !== pageToShow) { if (pageToShow === mainSettingsPage) { currentPage.classList.remove('active'); currentPage.classList.add('slide-out-right'); mainSettingsPage.classList.remove('slide-out-left'); mainSettingsPage.classList.add('active'); } else { mainSettingsPage.classList.remove('active'); mainSettingsPage.classList.add('slide-out-left'); pageToShow.classList.remove('slide-out-right'); pageToShow.classList.add('active'); } } }
+
+function updateVolumeIcon() {
+    const isMuted = video.muted || video.volume === 0;
+    volumeBtn.querySelector('.volume-on-icon').style.display = isMuted ? 'none' : 'block';
+    volumeBtn.querySelector('.volume-off-icon').style.display = isMuted ? 'block' : 'none';
+    volumeBtn.classList.toggle('active', isMuted);
+}
+
+async function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        await playerContainer.requestFullscreen();
+        try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (err) {}
+    } else {
+        await document.exitFullscreen();
+        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (err) {}
+    }
+}
+
+function updateFullscreenState() {
+    const isFullscreen = !!document.fullscreenElement;
+    fullscreenBtn.querySelector('.fullscreen-on-icon').style.display = isFullscreen ? 'none' : 'block';
+    fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
+    fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
+    fullscreenBtn.classList.toggle('active', isFullscreen);
+}
+
+function showMenuPage(pageToShow) {
+    const currentPage = menuContentWrapper.querySelector('.menu-page.active');
+    setTimeout(() => {
+        menuContentWrapper.style.height = `${pageToShow.scrollHeight}px`;
+    }, 0);
+    if (currentPage && currentPage !== pageToShow) {
+        if (pageToShow === mainSettingsPage) {
+            currentPage.classList.remove('active');
+            currentPage.classList.add('slide-out-right');
+            mainSettingsPage.classList.remove('slide-out-left');
+            mainSettingsPage.classList.add('active');
+        } else {
+            mainSettingsPage.classList.remove('active');
+            mainSettingsPage.classList.add('slide-out-left');
+            pageToShow.classList.remove('slide-out-right');
+            pageToShow.classList.add('active');
+        }
+    }
+}
 
 function addHlsEvents() {
-    hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => { /* (Your original HLS manifest parsing code) */ });
-    hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => { /* (Your original HLS level switched code) */ });
-    hls.on(Hls.Events.ERROR, function(event, data) { if (data.fatal) { switch (data.type) { case Hls.ErrorTypes.NETWORK_ERROR: hls.startLoad(); break; case Hls.ErrorTypes.MEDIA_ERROR: hls.recoverMediaError(); break; default: hls.destroy(); break; } } });
+    hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => { /* Your original HLS manifest parsing code here */ });
+    hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => { /* Your original HLS level switched code here */ });
+    hls.on(Hls.Events.ERROR, function(event, data) {
+        if (data.fatal) {
+            switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR: hls.startLoad(); break;
+                case Hls.ErrorTypes.MEDIA_ERROR: hls.recoverMediaError(); break;
+                default: hls.destroy(); break;
+            }
+        }
+    });
 }
 
 // Event Listeners
@@ -173,12 +342,31 @@ progressBar.addEventListener('input', scrub);
 progressBar.addEventListener('mousedown', () => { isScrubbing = true; wasPlaying = !video.paused; if (wasPlaying) video.pause(); });
 document.addEventListener('mouseup', () => { if (isScrubbing) { isScrubbing = false; if (wasPlaying) video.play(); } });
 document.addEventListener('mousemove', () => { playerContainer.classList.add('show-controls'); resetControlsTimer(); });
-settingsBtn.addEventListener('click', () => { settingsMenu.classList.toggle('active'); settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active')); if (settingsMenu.classList.contains('active')) { [mainSettingsPage, speedSettingsPage, qualitySettingsPage, subtitleSettingsPage].filter(p => p).forEach(p => p.classList.remove('active', 'slide-out-left', 'slide-out-right')); mainSettingsPage.classList.add('active'); menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`; } });
+settingsBtn.addEventListener('click', () => {
+    settingsMenu.classList.toggle('active');
+    settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
+    if (settingsMenu.classList.contains('active')) {
+        [mainSettingsPage, speedSettingsPage, qualitySettingsPage, subtitleSettingsPage].filter(p => p).forEach(p => p.classList.remove('active', 'slide-out-left', 'slide-out-right'));
+        mainSettingsPage.classList.add('active');
+        menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
+    }
+});
 speedMenuBtn.addEventListener('click', () => { showMenuPage(speedSettingsPage); });
 if (subtitleMenuBtn) { subtitleMenuBtn.addEventListener('click', () => { showMenuPage(subtitleSettingsPage); }); }
 backBtns.forEach(btn => btn.addEventListener('click', () => showMenuPage(mainSettingsPage)));
-speedOptions.forEach(option => { option.addEventListener('click', () => { video.playbackRate = parseFloat(option.dataset.speed); speedOptions.forEach(opt => opt.classList.remove('active')); option.classList.add('active'); speedCurrentValue.textContent = option.dataset.speed === '1' ? 'Normal' : `${option.dataset.speed}x`; showMenuPage(mainSettingsPage); }); });
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && wakeLock !== null) { releaseWakeLock(); } else if (document.visibilityState === 'visible' && !video.paused) { acquireWakeLock(); } });
+speedOptions.forEach(option => {
+    option.addEventListener('click', () => {
+        video.playbackRate = parseFloat(option.dataset.speed);
+        speedOptions.forEach(opt => opt.classList.remove('active'));
+        option.classList.add('active');
+        speedCurrentValue.textContent = option.dataset.speed === '1' ? 'Normal' : `${option.dataset.speed}x`;
+        showMenuPage(mainSettingsPage);
+    });
+});
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && wakeLock !== null) { releaseWakeLock(); }
+    else if (document.visibilityState === 'visible' && !video.paused) { acquireWakeLock(); }
+});
 
 // ==========================================================
 // === Main Logic on Page Load                            ===
@@ -190,11 +378,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadUrl = urlParams.get('download');
     const posterUrl = urlParams.get('poster');
     originalVideoUrl = videoUrl;
+
     if (videoUrl) {
         if (posterUrl) video.poster = posterUrl;
-        if (subtitleUrl && subtitleMenuBtn) { /* (Your subtitle track creation code) */ }
-        if (downloadUrl && downloadBtn) { /* (Your download button code) */ }
-        
+        if (subtitleUrl && subtitleMenuBtn) {
+            const subtitleTrack = document.createElement('track');
+            subtitleTrack.kind = 'subtitles';
+            subtitleTrack.srclang = 'bn';
+            subtitleTrack.label = 'বাংলা';
+            subtitleTrack.src = subtitleUrl;
+            subtitleTrack.default = true;
+            video.appendChild(subtitleTrack);
+        }
+        if (downloadUrl && downloadBtn) {
+            downloadBtn.style.display = 'flex';
+            downloadBtn.addEventListener('click', () => {
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = '';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+        }
+
         // --- Main Decision Logic ---
         if (videoUrl.toLowerCase().endsWith('.mkv')) {
             console.log("MKV file detected. Using ffmpeg.wasm player.");
@@ -207,6 +414,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingOverlay.classList.remove('hidden');
         loadingMainText.textContent = "No video source found.";
     }
+
+    // General event listeners
     video.addEventListener('loadedmetadata', updateProgressUI);
     video.addEventListener('loadedmetadata', setupSubtitles);
     updatePlayState();
