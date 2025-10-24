@@ -102,58 +102,7 @@ body {
     transition: opacity 0.25s ease, transform 0.25s ease;
     will-change: transform, opacity;
 }
-
-.progress-range { 
-    display: grid; 
-    grid-template-columns: 1fr; 
-    grid-template-rows: 1fr; 
-    align-items: center; 
-    width: 100%; 
-    padding: 2px 0; 
-    cursor: pointer; 
-    position: relative; /* << নতুন যোগ করা হয়েছে */
-}
-
-/* ============================================== */
-/* === নতুন: থাম্বনেইল প্রিভিউয়ের জন্য CSS === */
-/* ============================================== */
-.thumbnail-preview {
-    position: absolute;
-    bottom: 22px; /* প্রোগ্রেস বারের উপরে অবস্থান */
-    border: 2px solid white;
-    border-radius: 4px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
-    background-color: #000;
-    background-repeat: no-repeat;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateX(-50%); /* প্রিভিউটি সেন্টারে রাখার জন্য */
-    transition: opacity 0.1s ease, visibility 0.1s ease;
-    pointer-events: none; /* যাতে এর উপর মাউস ইন্টারঅ্যাক্ট না করে */
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    /* width এবং height জাভাস্ক্রিপ্ট দিয়ে সেট করা হবে */
-}
-
-.thumbnail-time {
-    background-color: rgba(0,0,0,0.7);
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-size: 13px;
-    margin-bottom: 5px;
-    color: white;
-    font-weight: 500;
-}
-
-.progress-range:hover .thumbnail-preview {
-    opacity: 1;
-    visibility: visible;
-}
-/* ============================================== */
-/* === থাম্বনেইল প্রিভিউ CSS শেষ === */
-/* ============================================== */
-
+.progress-range { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; align-items: center; width: 100%; padding: 2px 0; cursor: pointer; position: relative; }
 .progress-background, .buffer-bar, .progress-filled, .progress-bar { grid-column: 1; grid-row: 1; }
 .progress-background, .buffer-bar, .progress-filled { height: var(--progress-bar-height); border-radius: 5px; pointer-events: none; }
 .progress-background { background: rgba(255, 255, 255, 0.2); }
