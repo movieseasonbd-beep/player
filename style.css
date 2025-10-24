@@ -1,7 +1,7 @@
 :root {
     --theme-color: #f21111;
     --theme-color-darker: #e33939;
-    --progress-bar-height: 4px;
+    --progress-bar-height: 2px;
     --thumb-size: 15px;
     --central-play-btn-color: #fa0505;
     --gradient-start-color: #cf0000;
