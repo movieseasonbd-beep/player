@@ -44,8 +44,8 @@ let originalVideoUrl = null;
 let wakeLock = null;
 
 const hlsConfig = {
-    maxBufferLength: 30,
-    maxMaxBufferLength: 600,
+    maxBufferLength: 60,
+    maxMaxBufferLength: 900,
     startLevel: -1,
     abrBandWidthFactor: 0.95,
     abrBandWidthUpFactor: 0.8,
