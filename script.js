@@ -249,7 +249,11 @@ function formatTime(seconds) {
     return hh > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
-function toggleMute() { video.muted = !video.muted; }
+function toggleMute() {
+    video.muted = !video.muted;
+    // UI আপডেট করার কাজটি requestAnimationFrame এর মাধ্যমে করলে প্লেব্যাক মসৃণ থাকে
+    requestAnimationFrame(updateVolumeIcon);
+}
 
 function updateVolumeIcon() {
     const isMuted = video.muted || video.volume === 0;
