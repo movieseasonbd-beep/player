@@ -42,10 +42,12 @@ let wasPlaying = false;
 let qualityMenuInitialized = false;
 let originalVideoUrl = null;
 let wakeLock = null;
+let seekTimeout; // <-- নতুন: ভিডিও টানার (seek) জন্য ডিবাউন্স ভেরিয়েবল
 
+// === পরিবর্তন ১: বাফারিং বৃদ্ধি করা হলো ===
 const hlsConfig = {
-    maxBufferLength: 60,
-    maxMaxBufferLength: 900,
+    maxBufferLength: 60,       // আগে 30 ছিল, এখন 60 সেকেন্ড করা হলো
+    maxMaxBufferLength: 900,     // আগে 600 ছিল, এখন 900 সেকেন্ড (15 মিনিট) করা হলো
     startLevel: -1,
     abrBandWidthFactor: 0.95,
     abrBandWidthUpFactor: 0.8,
@@ -176,11 +178,11 @@ function setSubtitle(lang) {
         opt.classList.toggle('active', opt.dataset.lang === lang);
     });
     const activeTrack = [...textTracks].find(t => t.mode === 'showing');
-    if(subtitleCurrentValue) subtitleCurrentValue.textContent = activeTrack ? activeTrack.label : 'Off';
+    if (subtitleCurrentValue) subtitleCurrentValue.textContent = activeTrack ? activeTrack.label : 'Off';
     showMenuPage(mainSettingsPage);
 }
 
-function directTogglePlay() { 
+function directTogglePlay() {
     video.paused ? video.play() : video.pause();
 }
 
@@ -191,10 +193,9 @@ function handleScreenTap() {
         return;
     }
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
-    if (video.paused) { video.play(); } 
-    else {
-        if (isControlsVisible) { video.pause(); } 
-        else { playerContainer.classList.add('show-controls'); resetControlsTimer(); }
+    if (video.paused) { video.play(); } else {
+        if (isControlsVisible) { video.pause(); } else { playerContainer.classList.add('show-controls');
+            resetControlsTimer(); }
     }
 }
 
@@ -234,13 +235,24 @@ function updateBufferBar() {
     }
 }
 
+// === পরিবর্তন ২: ভিডিও টানার (Seek) ফাংশন আপডেট করা হলো ===
 function scrub(e) {
+    // আগের রিকোয়েস্ট বাতিল করুন
+    clearTimeout(seekTimeout);
+
     const scrubTime = (e.target.value / 100) * video.duration;
     if (isNaN(scrubTime)) return;
-    video.currentTime = scrubTime;
+
+    // UI তাৎক্ষণিক আপডেট করুন, কিন্তু সার্ভারে রিকোয়েস্ট পাঠাবেন না
     progressFilled.style.width = `${e.target.value}%`;
     timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`;
+
+    // ২৫০ মিলিসেকেন্ড অপেক্ষা করুন, তারপর ভিডিওর সময় পরিবর্তন করুন (Debounce)
+    seekTimeout = setTimeout(() => {
+        video.currentTime = scrubTime;
+    }, 250);
 }
+
 
 function formatTime(seconds) {
     if (isNaN(seconds) || seconds === Infinity) return "00:00";
@@ -251,8 +263,7 @@ function formatTime(seconds) {
 
 function toggleMute() {
     video.muted = !video.muted;
-    // UI আপডেট করার কাজটি requestAnimationFrame এর মাধ্যমে করলে প্লেব্যাক মসৃণ থাকে
-    requestAnimationFrame(updateVolumeIcon);
+    requestAnimationFrame(updateVolumeIcon); // মিউট করার সময় ঝাঁকুনি বন্ধ করতে
 }
 
 function updateVolumeIcon() {
@@ -280,19 +291,14 @@ function updateFullscreenState() {
     fullscreenBtn.classList.toggle('active', isFullscreen);
 }
 
-// ==========================================================
-// === আপনার আসল অ্যানিমেশনসহ সঠিক showMenuPage ফাংশন ===
-// ==========================================================
 function showMenuPage(pageToShow) {
     const currentPage = menuContentWrapper.querySelector('.menu-page.active');
     
-    // উচ্চতা ঠিক করার জন্য সঠিক কোড
     setTimeout(() => {
         const newHeight = pageToShow.scrollHeight;
         menuContentWrapper.style.height = `${newHeight}px`;
     }, 0);
 
-    // আপনার আসল অ্যানিমেশন লজিক
     if (currentPage && currentPage !== pageToShow) {
         if (pageToShow === mainSettingsPage) {
             currentPage.classList.remove('active');
@@ -368,7 +374,7 @@ function addHlsEvents() {
         const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
         const allQualityOptions = qualityOptionsList.querySelectorAll('li');
         allQualityOptions.forEach(opt => opt.classList.remove('active', 'playing'));
-
+        
         if (hls.url !== originalVideoUrl) {
             qualityCurrentValue.textContent = 'HD 1080p';
             const external1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
@@ -407,18 +413,25 @@ function addHlsEvents() {
             settingsBtn.classList.remove('show-hd-badge');
         }
     });
-    
+
     hls.on(Hls.Events.ERROR, function(event, data) {
         if (data.fatal) {
             switch (data.type) {
-                case Hls.ErrorTypes.NETWORK_ERROR: hls.startLoad(); break;
-                case Hls.ErrorTypes.MEDIA_ERROR: hls.recoverMediaError(); break;
-                default: hls.destroy(); break;
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                    hls.startLoad();
+                    break;
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                    hls.recoverMediaError();
+                    break;
+                default:
+                    hls.destroy();
+                    break;
             }
         }
     });
 }
 
+// Event Listeners
 video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
@@ -434,8 +447,9 @@ forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
+
 progressBar.addEventListener('input', scrub);
-progressBar.addEventListener('mousedown', () => { isScrubbing = true; wasPlaying = !video.paused; if (wasPlaying) video.pause(); });
+progressBar.addEventListener('mousedown', () => { isScrubbing = true; wasPlaying = !video.paused; }); // <-- পরিবর্তন: video.pause() সরানো হয়েছে
 document.addEventListener('mouseup', () => { if (isScrubbing) { isScrubbing = false; if (wasPlaying) video.play(); } });
 document.addEventListener('mousemove', () => { playerContainer.classList.add('show-controls'); resetControlsTimer(); });
 
@@ -444,7 +458,7 @@ settingsBtn.addEventListener('click', () => {
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
     if (settingsMenu.classList.contains('active')) {
         [mainSettingsPage, speedSettingsPage, qualitySettingsPage, subtitleSettingsPage]
-            .filter(p => p)
+        .filter(p => p)
             .forEach(p => p.classList.remove('active', 'slide-out-left', 'slide-out-right'));
         mainSettingsPage.classList.add('active');
         menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
@@ -481,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const subtitleUrl = urlParams.get('sub');
     const downloadUrl = urlParams.get('download');
     const posterUrl = urlParams.get('poster');
-
+    
     originalVideoUrl = videoUrl;
 
     if (videoUrl) {
@@ -498,8 +512,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (downloadUrl && downloadBtn) {
             downloadBtn.style.display = 'flex';
             downloadBtn.addEventListener('click', () => {
-                const a = document.createElement('a'); a.href = downloadUrl; a.download = '';
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = '';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             });
         }
         loadVideo(videoUrl);
@@ -507,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingOverlay.classList.remove('hidden');
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
-    
+
     video.addEventListener('loadedmetadata', updateProgressUI);
     video.addEventListener('loadedmetadata', setupSubtitles);
     updatePlayState();
