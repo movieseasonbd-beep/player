@@ -25,13 +25,12 @@
 
         <canvas id="frame-hold-canvas"></canvas>
 
-        <!-- === নতুন ও পরিবর্তিত: জেসচার কন্ট্রোলের জন্য === -->
+        <!-- === জেসচার কন্ট্রোলের জন্য === -->
         <div class="brightness-overlay"></div>
         <div class="fast-forward-indicator">2x »</div>
         
         <div class="gesture-indicator" id="volume-indicator">
             <div class="icon-container">
-                <!-- ভলিউম অনুযায়ী আইকন পরিবর্তন হবে -->
                 <svg class="indicator-icon volume-icon-mute" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>
                 <svg class="indicator-icon volume-icon-low" fill="currentColor" viewBox="0 0 24 24"><path d="M7 9v6h4l5 5V4l-5 5H7z"></path></svg>
                 <svg class="indicator-icon volume-icon-medium" fill="currentColor" viewBox="0 0 24 24"><path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"></path></svg>
@@ -44,7 +43,6 @@
 
         <div class="gesture-indicator" id="brightness-indicator">
             <div class="icon-container">
-                <!-- ব্রাইটনেস অনুযায়ী আইকন পরিবর্তন হবে -->
                 <svg class="indicator-icon brightness-icon-low" fill="currentColor" viewBox="0 0 24 24"><path d="M12 9c-1.65 0-3 1.35-3 3s1.35 3 3 3 3-1.35 3-3-1.35-3-3-3m0 4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1M12 7c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1m-5.66 2.34c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L6.34 6.34c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.41 1.41M12 17c-.55 0-1 .45-1 1v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1m7.07-8.47c-.39-.39-1.02-.39-1.41 0L16.24 9.95c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41M6.34 17.66c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L6.34 14.83c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.41 1.41z"></path></svg>
                 <svg class="indicator-icon brightness-icon-medium" fill="currentColor" viewBox="0 0 24 24"><path d="M12 9c-1.65 0-3 1.35-3 3s1.35 3 3 3 3-1.35 3-3-1.35-3-3-3m0 4c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69zM18 14.47V18h-3.53L12 19.94 9.53 18H6v-3.53L4.06 12 6 9.53V6h3.53L12 4.06 14.47 6H18v3.53L19.94 12 18 14.47z"></path></svg>
                 <svg class="indicator-icon brightness-icon-high" fill="currentColor" viewBox="0 0 24 24"><path d="M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69zM12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"></path></svg>
