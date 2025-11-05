@@ -424,10 +424,9 @@ function addHlsEvents() {
     });
 }
 
-// === নতুন: জেসচার কন্ট্রোল ফাংশন ===
+// === জেসচার কন্ট্রোল ফাংশন ===
 function showIndicator(indicator, text) {
     clearTimeout(indicatorTimeout);
-    // অন্য সব ইন্ডিকেটর হাইড করা
     [volumeIndicator, brightnessIndicator, fastForwardIndicator].forEach(ind => {
         if (ind !== indicator) ind.classList.remove('show');
     });
@@ -468,7 +467,7 @@ function handleTouchStart(e) {
     isTouching = true;
     initialVolume = video.volume;
     initialBrightness = currentBrightness;
-    if (touchStartX > window.innerWidth * 0.75) { // স্ক্রিনের ডান দিকের ২৫% এলাকা
+    if (touchStartX > window.innerWidth / 2) {
         longPressTimer = setTimeout(startFastForward, 200);
     }
 }
@@ -511,6 +510,10 @@ function handleTouchEnd(e) {
 
 // Event Listeners
 video.addEventListener('click', handleScreenTap);
+
+// পরিবর্তিত: ডিফল্ট মেনু বন্ধ করার জন্য ইভেন্ট লিসেনার
+video.addEventListener('contextmenu', e => e.preventDefault());
+
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); acquireWakeLock(); });
@@ -530,7 +533,7 @@ progressBar.addEventListener('mousedown', () => { isScrubbing = true; wasPlaying
 document.addEventListener('mouseup', () => { if (isScrubbing) { isScrubbing = false; if (wasPlaying) video.play(); } });
 document.addEventListener('mousemove', () => { playerContainer.classList.add('show-controls'); resetControlsTimer(); });
 
-// নতুন: জেসচার ইভেন্ট লিসেনার
+// জেসচার ইভেন্ট লিসেনার
 playerContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
 playerContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
 playerContainer.addEventListener('touchend', handleTouchEnd);
