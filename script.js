@@ -50,6 +50,7 @@ const brightnessIconLow = brightnessIndicator.querySelector('.brightness-icon-lo
 const brightnessIconMedium = brightnessIndicator.querySelector('.brightness-icon-medium');
 const brightnessIconHigh = brightnessIndicator.querySelector('.brightness-icon-high');
 
+
 let touchStartX, touchStartY;
 let isTouching = false;
 let initialVolume, initialBrightness;
@@ -59,6 +60,7 @@ let originalPlaybackRate = 1;
 let indicatorTimeout;
 let currentBrightness = 1.0; 
 let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuInitialized = false, originalVideoUrl = null, wakeLock = null;
+let lastVolume = 1; // পরিবর্তিত: আনমিউট করার জন্য শেষ ভলিউম মনে রাখবে
 
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
 const acquireWakeLock = async () => { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } };
@@ -187,7 +189,21 @@ function formatTime(seconds) {
     return hh > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
-function toggleMute() { video.muted = !video.muted; requestAnimationFrame(updateVolumeIcon); }
+// পরিবর্তিত: toggleMute ফাংশন
+function toggleMute() {
+    if (video.volume > 0 && !video.muted) {
+        lastVolume = video.volume;
+        video.muted = true;
+        video.volume = 0; // Ensure consistency
+    } else {
+        video.muted = false;
+        if (video.volume === 0) {
+            video.volume = lastVolume;
+        }
+    }
+    requestAnimationFrame(updateVolumeIcon);
+}
+
 function updateVolumeIcon() {
     const isMuted = video.muted || video.volume === 0;
     volumeBtn.querySelector('.volume-on-icon').style.display = isMuted ? 'none' : 'block';
@@ -232,9 +248,9 @@ function updateVolumeGestureIcon(level) {
 
 function updateBrightnessGestureIcon(level) {
     [brightnessIconLow, brightnessIconMedium, brightnessIconHigh].forEach(icon => icon.style.display = 'none');
-    if (level <= 0.33) { brightnessIconHigh.style.display = 'block'; } // পরিবর্তিত
+    if (level <= 0.33) { brightnessIconHigh.style.display = 'block'; }
     else if (level <= 0.66) { brightnessIconMedium.style.display = 'block'; }
-    else { brightnessIconLow.style.display = 'block'; } // পরিবর্তিত
+    else { brightnessIconLow.style.display = 'block'; }
 }
 
 function showIndicator(indicator) {
@@ -274,6 +290,9 @@ function handleTouchMove(e) {
     if (touchStartX < window.innerWidth / 2) {
         let newVolume = initialVolume + (deltaY / swipeSensitivity);
         newVolume = Math.max(0, Math.min(1, newVolume));
+        if (newVolume > 0) {
+            lastVolume = newVolume;
+        }
         video.volume = newVolume;
         video.muted = newVolume === 0;
         volumeBarFill.style.width = `${newVolume * 100}%`;
