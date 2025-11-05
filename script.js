@@ -35,7 +35,7 @@ const subtitleOptionsList = document.getElementById('subtitle-options-list');
 const subtitleCurrentValue = subtitleMenuBtn ? subtitleMenuBtn.querySelector('.current-value') : null;
 const downloadBtn = document.getElementById('download-btn');
 
-// নতুন ও পরিবর্তিত: জেসচার কন্ট্রোলের জন্য DOM Elements এবং Variables
+// জেসচার কন্ট্রোলের জন্য DOM Elements এবং Variables
 const brightnessOverlay = document.querySelector('.brightness-overlay');
 const fastForwardIndicator = document.querySelector('.fast-forward-indicator');
 const volumeIndicator = document.getElementById('volume-indicator');
@@ -50,7 +50,6 @@ const brightnessIconLow = brightnessIndicator.querySelector('.brightness-icon-lo
 const brightnessIconMedium = brightnessIndicator.querySelector('.brightness-icon-medium');
 const brightnessIconHigh = brightnessIndicator.querySelector('.brightness-icon-high');
 
-
 let touchStartX, touchStartY;
 let isTouching = false;
 let initialVolume, initialBrightness;
@@ -59,14 +58,7 @@ let isFastForwarding = false;
 let originalPlaybackRate = 1;
 let indicatorTimeout;
 let currentBrightness = 1.0; 
-
-let hls;
-let controlsTimeout;
-let isScrubbing = false;
-let wasPlaying = false;
-let qualityMenuInitialized = false;
-let originalVideoUrl = null;
-let wakeLock = null;
+let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuInitialized = false, originalVideoUrl = null, wakeLock = null;
 
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
 const acquireWakeLock = async () => { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } };
@@ -240,9 +232,9 @@ function updateVolumeGestureIcon(level) {
 
 function updateBrightnessGestureIcon(level) {
     [brightnessIconLow, brightnessIconMedium, brightnessIconHigh].forEach(icon => icon.style.display = 'none');
-    if (level <= 0.33) { brightnessIconLow.style.display = 'block'; }
+    if (level <= 0.33) { brightnessIconHigh.style.display = 'block'; } // পরিবর্তিত
     else if (level <= 0.66) { brightnessIconMedium.style.display = 'block'; }
-    else { brightnessIconHigh.style.display = 'block'; }
+    else { brightnessIconLow.style.display = 'block'; } // পরিবর্তিত
 }
 
 function showIndicator(indicator) {
