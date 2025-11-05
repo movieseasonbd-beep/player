@@ -26,16 +26,20 @@
         <!-- নতুন: ফ্রেম ধরে রাখার জন্য ক্যানভাস -->
         <canvas id="frame-hold-canvas"></canvas>
 
-        <!-- === নতুন: জেসচার কন্ট্রোলের জন্য === -->
+        <!-- === নতুন ও পরিবর্তিত: জেসচার কন্ট্রোলের জন্য === -->
         <div class="brightness-overlay"></div>
         <div class="fast-forward-indicator">2x »</div>
         <div class="gesture-indicator" id="volume-indicator">
             <svg class="indicator-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>
-            <span class="indicator-text">50%</span>
+            <div class="indicator-bar-container">
+                <div class="indicator-bar-fill" id="volume-bar-fill"></div>
+            </div>
         </div>
         <div class="gesture-indicator" id="brightness-indicator">
             <svg class="indicator-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69zM12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"></path></svg>
-            <span class="indicator-text">100%</span>
+            <div class="indicator-bar-container">
+                <div class="indicator-bar-fill" id="brightness-bar-fill"></div>
+            </div>
         </div>
         <!-- =============================== -->
 
@@ -134,15 +138,12 @@
                     </button>
 
                     <button class="control-btn" id="fullscreen-btn">
-                        <!-- আপনার পছন্দের আউটলাইন আইকন -->
                         <svg class="fullscreen-on-icon" stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
                             <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
                             <path d="M21 8V5a2 2 0 0 0-2-2h-3"></path>
                             <path d="M3 16v3a2 2 0 0 0 2 2h3"></path>
                             <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
                         </svg>
-                        
-                        <!-- আপনার ভরাট (Solid) Fullscreen Off আইকন -->
                         <svg class="fullscreen-off-icon" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display:none;">
                             <defs>
                                 <linearGradient id="activeIconGradientFullscreen" x1="0%" y1="0%" x2="100%" y2="0%">
