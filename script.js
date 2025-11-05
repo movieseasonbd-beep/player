@@ -558,4 +558,65 @@ function onTouchMove(e) {
                 video.volume = Math.max(0, Math.min(1, video.volume + volumeChange));
             } else {
                 const brightnessChange = -deltaY / 300;
-                currentBrightness = Math.max(0, Math.min(1, currentBrightne
+                currentBrightness = Math.max(0, Math.min(1, currentBrightness + brightnessChange));
+                brightnessOverlay.style.opacity = (1 - currentBrightness) * 0.8;
+            }
+            touchStartInfo.y = touch.clientY;
+        }
+    }
+}
+
+function onTouchEnd(e) {
+    if (!document.fullscreenElement) return;
+
+    clearTimeout(doubleTapHoldTimer);
+
+    if (video.playbackRate === 2.0) {
+        video.playbackRate = originalPlaybackRate;
+        speedIndicator.classList.remove('show');
+        touchStartInfo.time = 0;
+        isGestureActive = false;
+        return;
+    }
+
+    if (isGestureActive) {
+        isGestureActive = false;
+        return;
+    }
+
+    const timeSinceLastTap = Date.now() - touchStartInfo.time;
+
+    if (timeSinceLastTap < DOUBLE_TAP_TIMEOUT) {
+        touchStartInfo.time = 0;
+
+        if (touchStartInfo.x < window.innerWidth / 3) {
+            video.currentTime -= 10;
+            showSeekFeedback(seekFeedbackRewind);
+        } else if (touchStartInfo.x > (window.innerWidth * 2) / 3) {
+            video.currentTime += 10;
+            showSeekFeedback(seekFeedbackForward);
+        } else {
+            directTogglePlay();
+        }
+    } else {
+        singleTapTimer = setTimeout(() => {
+            if (getComputedStyle(controlsContainer).opacity === '1') {
+                hideControls();
+                if(settingsMenu.classList.contains('active')){
+                    settingsMenu.classList.remove('active');
+                    settingsBtn.classList.remove('active');
+                }
+            } else {
+                playerContainer.classList.add('show-controls');
+                resetControlsTimer();
+            }
+        }, DOUBLE_TAP_TIMEOUT);
+    }
+}
+
+function initializeGestures() {
+    playerContainer.addEventListener('contextmenu', e => e.preventDefault());
+    playerContainer.addEventListener('touchstart', onTouchStart, { passive: false });
+    playerContainer.addEventListener('touchmove', onTouchMove, { passive: false });
+    playerContainer.addEventListener('touchend', onTouchEnd, { passive: false });
+}
