@@ -34,11 +34,25 @@ const subtitleSettingsPage = document.querySelector('.menu-subtitle');
 const subtitleOptionsList = document.getElementById('subtitle-options-list');
 const subtitleCurrentValue = subtitleMenuBtn ? subtitleMenuBtn.querySelector('.current-value') : null;
 const downloadBtn = document.getElementById('download-btn');
-const brightnessOverlay = document.querySelector('.brightness-overlay');
-const seekFeedbackRewind = document.querySelector('.seek-feedback.rewind');
-const seekFeedbackForward = document.querySelector('.seek-feedback.forward');
-const speedIndicator = document.querySelector('.speed-indicator');
 
+// নতুন: জেসচার কন্ট্রোলের জন্য DOM Elements এবং Variables
+const brightnessOverlay = document.querySelector('.brightness-overlay');
+const fastForwardIndicator = document.querySelector('.fast-forward-indicator');
+const volumeIndicator = document.getElementById('volume-indicator');
+const brightnessIndicator = document.getElementById('brightness-indicator');
+const volumeIndicatorText = volumeIndicator.querySelector('.indicator-text');
+const brightnessIndicatorText = brightnessIndicator.querySelector('.indicator-text');
+
+let touchStartX, touchStartY;
+let isTouching = false;
+let initialVolume, initialBrightness;
+let longPressTimer;
+let isFastForwarding = false;
+let originalPlaybackRate = 1;
+let indicatorTimeout;
+let currentBrightness = 1.0; // 1.0 = 100% brightness (overlay opacity 0)
+
+// অন্যান্য ভ্যারিয়েবল
 let hls;
 let controlsTimeout;
 let isScrubbing = false;
@@ -46,9 +60,6 @@ let wasPlaying = false;
 let qualityMenuInitialized = false;
 let originalVideoUrl = null;
 let wakeLock = null;
-let currentBrightness = 1.0; // 1.0 = full brightness, 0.0 = dark
-let originalPlaybackRate = 1;
-
 
 const hlsConfig = {
     maxBufferLength: 60,
@@ -190,6 +201,20 @@ function directTogglePlay() {
     video.paused ? video.play() : video.pause();
 }
 
+function handleScreenTap() {
+    if (settingsMenu.classList.contains('active')) {
+        settingsMenu.classList.remove('active');
+        settingsBtn.classList.remove('active');
+        return;
+    }
+    const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
+    if (video.paused) { video.play(); }
+    else {
+        if (isControlsVisible) { video.pause(); }
+        else { playerContainer.classList.add('show-controls'); resetControlsTimer(); }
+    }
+}
+
 function updatePlayState() {
     const isPaused = video.paused;
     playPauseBtn.querySelector('.play-icon').style.display = isPaused ? 'block' : 'none';
@@ -245,6 +270,7 @@ function toggleMute() {
     video.muted = !video.muted;
     requestAnimationFrame(updateVolumeIcon);
 }
+
 function updateVolumeIcon() {
     const isMuted = video.muted || video.volume === 0;
     volumeBtn.querySelector('.volume-on-icon').style.display = isMuted ? 'none' : 'block';
@@ -310,7 +336,7 @@ function addHlsEvents() {
             qualityOptionsList.appendChild(autoOption);
             data.levels.forEach((level, index) => {
                 const option = document.createElement('li');
-                option.textContent = (level.height >= 1080) ? `HD 1080p` : `${level.height}p`;
+                option.textContent = (level.height >= 1080) ? `HD ${level.height}p` : `${level.height}p`;
                 option.dataset.level = index;
                 option.addEventListener('click', () => setQuality(index));
                 qualityOptionsList.appendChild(option);
@@ -329,15 +355,15 @@ function addHlsEvents() {
                         segments1080.splice(lastSegmentIndex, 0, '1080');
                         const potential1080pUrl = currentUrl.origin + segments1080.join('/') + currentUrl.search;
                         fetch(potential1080pUrl, { method: 'HEAD' })
-                        .then(response => {
-                            if (response.ok) {
-                                const option1080p = document.createElement('li');
-                                option1080p.textContent = 'HD 1080p';
-                                option1080p.dataset.level = '1080';
-                                option1080p.addEventListener('click', () => setQuality('1080', potential1080pUrl));
-                                qualityOptionsList.appendChild(option1080p);
-                            }
-                        });
+                            .then(response => {
+                                if (response.ok) {
+                                    const option1080p = document.createElement('li');
+                                    option1080p.textContent = 'HD 1080p';
+                                    option1080p.dataset.level = '1080';
+                                    option1080p.addEventListener('click', () => setQuality('1080', potential1080pUrl));
+                                    qualityOptionsList.appendChild(option1080p);
+                                }
+                            });
                     }
                 } catch (e) {}
             }
@@ -398,6 +424,93 @@ function addHlsEvents() {
     });
 }
 
+// === নতুন: জেসচার কন্ট্রোল ফাংশন ===
+function showIndicator(indicator, text) {
+    clearTimeout(indicatorTimeout);
+    // অন্য সব ইন্ডিকেটর হাইড করা
+    [volumeIndicator, brightnessIndicator, fastForwardIndicator].forEach(ind => {
+        if (ind !== indicator) ind.classList.remove('show');
+    });
+    indicator.classList.add('show');
+    if (text !== undefined) {
+        const textElement = indicator.querySelector('.indicator-text');
+        if (textElement) textElement.textContent = text;
+    }
+}
+
+function hideIndicators() {
+    indicatorTimeout = setTimeout(() => {
+        volumeIndicator.classList.remove('show');
+        brightnessIndicator.classList.remove('show');
+    }, 500);
+}
+
+function startFastForward() {
+    if (video.paused) return;
+    isFastForwarding = true;
+    originalPlaybackRate = video.playbackRate;
+    video.playbackRate = 2.0;
+    showIndicator(fastForwardIndicator);
+}
+
+function endFastForward() {
+    if (!isFastForwarding) return;
+    video.playbackRate = originalPlaybackRate;
+    fastForwardIndicator.classList.remove('show');
+    isFastForwarding = false;
+}
+
+function handleTouchStart(e) {
+    if (!document.fullscreenElement || e.target.closest('.controls-container')) return;
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    isTouching = true;
+    initialVolume = video.volume;
+    initialBrightness = currentBrightness;
+    if (touchStartX > window.innerWidth * 0.75) { // স্ক্রিনের ডান দিকের ২৫% এলাকা
+        longPressTimer = setTimeout(startFastForward, 200);
+    }
+}
+
+function handleTouchMove(e) {
+    if (!isTouching || !document.fullscreenElement) return;
+    clearTimeout(longPressTimer);
+    if (isFastForwarding) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const deltaY = touchStartY - touch.clientY;
+    const swipeSensitivity = window.innerHeight * 0.7;
+    if (touchStartX < window.innerWidth / 2) {
+        let newVolume = initialVolume + (deltaY / swipeSensitivity);
+        newVolume = Math.max(0, Math.min(1, newVolume));
+        video.volume = newVolume;
+        video.muted = newVolume === 0;
+        showIndicator(volumeIndicator, `${Math.round(newVolume * 100)}%`);
+        updateVolumeIcon();
+    } else {
+        let newBrightness = initialBrightness + (deltaY / swipeSensitivity);
+        newBrightness = Math.max(0, Math.min(1, newBrightness));
+        currentBrightness = newBrightness;
+        brightnessOverlay.style.opacity = 1 - currentBrightness;
+        showIndicator(brightnessIndicator, `${Math.round(currentBrightness * 100)}%`);
+    }
+}
+
+function handleTouchEnd(e) {
+    if (!isTouching) return;
+    clearTimeout(longPressTimer);
+    if (isFastForwarding) {
+        endFastForward();
+    } else {
+        hideIndicators();
+    }
+    isTouching = false;
+}
+// =====================================
+
+// Event Listeners
+video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); acquireWakeLock(); });
@@ -417,13 +530,20 @@ progressBar.addEventListener('mousedown', () => { isScrubbing = true; wasPlaying
 document.addEventListener('mouseup', () => { if (isScrubbing) { isScrubbing = false; if (wasPlaying) video.play(); } });
 document.addEventListener('mousemove', () => { playerContainer.classList.add('show-controls'); resetControlsTimer(); });
 
+// নতুন: জেসচার ইভেন্ট লিসেনার
+playerContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+playerContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+playerContainer.addEventListener('touchend', handleTouchEnd);
+playerContainer.addEventListener('touchcancel', handleTouchEnd);
+
+
 settingsBtn.addEventListener('click', () => {
     settingsMenu.classList.toggle('active');
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
     if (settingsMenu.classList.contains('active')) {
         [mainSettingsPage, speedSettingsPage, qualitySettingsPage, subtitleSettingsPage]
-        .filter(p => p)
-        .forEach(p => p.classList.remove('active', 'slide-out-left', 'slide-out-right'));
+            .filter(p => p)
+            .forEach(p => p.classList.remove('active', 'slide-out-left', 'slide-out-right'));
         mainSettingsPage.classList.add('active');
         menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
     }
@@ -459,6 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const subtitleUrl = urlParams.get('sub');
     const downloadUrl = urlParams.get('download');
     const posterUrl = urlParams.get('poster');
+
     originalVideoUrl = videoUrl;
 
     if (videoUrl) {
@@ -490,133 +611,4 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePlayState();
     updateVolumeIcon();
     updateFullscreenState();
-    initializeGestures(); // জেসচার ইভেন্ট শুরু করা
 });
-
-
-// ==========================================================
-// === নতুন এবং উন্নত জেসচার কন্ট্রোল ফাংশন ===
-// ==========================================================
-let touchStartInfo = { x: 0, y: 0, time: 0 };
-let isGestureActive = false;
-let singleTapTimer = null;
-let doubleTapHoldTimer = null;
-
-const DOUBLE_TAP_TIMEOUT = 300;
-const HOLD_TIMEOUT = 200;
-const SWIPE_THRESHOLD_PX = 10;
-
-function showSeekFeedback(element) {
-    element.classList.add('show');
-    setTimeout(() => {
-        element.classList.remove('show');
-    }, 600);
-}
-
-function onTouchStart(e) {
-    if (!document.fullscreenElement) return;
-    
-    const touch = e.touches[0];
-    const now = Date.now();
-    const timeSinceLastTap = now - touchStartInfo.time;
-
-    clearTimeout(singleTapTimer);
-
-    if (timeSinceLastTap < DOUBLE_TAP_TIMEOUT) {
-        // This is a double tap
-        if (touchStartInfo.x > window.innerWidth / 2) {
-            doubleTapHoldTimer = setTimeout(() => {
-                isGestureActive = true;
-                originalPlaybackRate = video.playbackRate;
-                video.playbackRate = 2.0;
-                speedIndicator.classList.add('show');
-            }, HOLD_TIMEOUT);
-        }
-    }
-    
-    touchStartInfo = { x: touch.clientX, y: touch.clientY, time: now };
-    isGestureActive = false;
-}
-
-function onTouchMove(e) {
-    if (!document.fullscreenElement || e.touches.length === 0) return;
-
-    clearTimeout(doubleTapHoldTimer); 
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - touchStartInfo.x;
-    const deltaY = touch.clientY - touchStartInfo.y;
-
-    if (!isGestureActive && (Math.abs(deltaX) > SWIPE_THRESHOLD_PX || Math.abs(deltaY) > SWIPE_THRESHOLD_PX)) {
-        isGestureActive = true;
-    }
-
-    if (isGestureActive) {
-        e.preventDefault();
-        if (Math.abs(deltaY) > Math.abs(deltaX)) {
-            if (touchStartInfo.x < window.innerWidth / 2) {
-                const volumeChange = -deltaY / 200;
-                video.volume = Math.max(0, Math.min(1, video.volume + volumeChange));
-            } else {
-                const brightnessChange = -deltaY / 300;
-                currentBrightness = Math.max(0, Math.min(1, currentBrightness + brightnessChange));
-                brightnessOverlay.style.opacity = (1 - currentBrightness) * 0.8;
-            }
-            touchStartInfo.y = touch.clientY;
-        }
-    }
-}
-
-function onTouchEnd(e) {
-    if (!document.fullscreenElement) return;
-
-    clearTimeout(doubleTapHoldTimer);
-
-    if (video.playbackRate === 2.0) {
-        video.playbackRate = originalPlaybackRate;
-        speedIndicator.classList.remove('show');
-        touchStartInfo.time = 0;
-        isGestureActive = false;
-        return;
-    }
-
-    if (isGestureActive) {
-        isGestureActive = false;
-        return;
-    }
-
-    const timeSinceLastTap = Date.now() - touchStartInfo.time;
-
-    if (timeSinceLastTap < DOUBLE_TAP_TIMEOUT) {
-        touchStartInfo.time = 0;
-
-        if (touchStartInfo.x < window.innerWidth / 3) {
-            video.currentTime -= 10;
-            showSeekFeedback(seekFeedbackRewind);
-        } else if (touchStartInfo.x > (window.innerWidth * 2) / 3) {
-            video.currentTime += 10;
-            showSeekFeedback(seekFeedbackForward);
-        } else {
-            directTogglePlay();
-        }
-    } else {
-        singleTapTimer = setTimeout(() => {
-            if (getComputedStyle(controlsContainer).opacity === '1') {
-                hideControls();
-                if(settingsMenu.classList.contains('active')){
-                    settingsMenu.classList.remove('active');
-                    settingsBtn.classList.remove('active');
-                }
-            } else {
-                playerContainer.classList.add('show-controls');
-                resetControlsTimer();
-            }
-        }, DOUBLE_TAP_TIMEOUT);
-    }
-}
-
-function initializeGestures() {
-    playerContainer.addEventListener('contextmenu', e => e.preventDefault());
-    playerContainer.addEventListener('touchstart', onTouchStart, { passive: false });
-    playerContainer.addEventListener('touchmove', onTouchMove, { passive: false });
-    playerContainer.addEventListener('touchend', onTouchEnd, { passive: false });
-}
