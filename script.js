@@ -193,8 +193,12 @@ function handleScreenTap() {
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
     if (video.paused) { video.play(); } 
     else {
-        if (isControlsVisible) { video.pause(); } 
-        else { playerContainer.classList.add('show-controls'); resetControlsTimer(); }
+        if (isControlsVisible) { 
+            playerContainer.classList.remove('show-controls');
+        } else { 
+            playerContainer.classList.add('show-controls'); 
+            resetControlsTimer(); 
+        }
     }
 }
 
@@ -251,7 +255,6 @@ function formatTime(seconds) {
 
 function toggleMute() {
     video.muted = !video.muted;
-    // UI আপডেট করার কাজটি requestAnimationFrame এর মাধ্যমে করলে প্লেব্যাক মসৃণ থাকে
     requestAnimationFrame(updateVolumeIcon);
 }
 function updateVolumeIcon() {
@@ -279,19 +282,12 @@ function updateFullscreenState() {
     fullscreenBtn.classList.toggle('active', isFullscreen);
 }
 
-// ==========================================================
-// === আপনার আসল অ্যানিমেশনসহ সঠিক showMenuPage ফাংশন ===
-// ==========================================================
 function showMenuPage(pageToShow) {
     const currentPage = menuContentWrapper.querySelector('.menu-page.active');
-    
-    // উচ্চতা ঠিক করার জন্য সঠিক কোড
     setTimeout(() => {
         const newHeight = pageToShow.scrollHeight;
         menuContentWrapper.style.height = `${newHeight}px`;
     }, 0);
-
-    // আপনার আসল অ্যানিমেশন লজিক
     if (currentPage && currentPage !== pageToShow) {
         if (pageToShow === mainSettingsPage) {
             currentPage.classList.remove('active');
@@ -418,7 +414,7 @@ function addHlsEvents() {
     });
 }
 
-video.addEventListener('click', handleScreenTap);
+// === পুরাতন ইভেন্ট লিসেনারগুলো ===
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); acquireWakeLock(); });
@@ -474,6 +470,154 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+
+// ==========================================================
+// === নতুন: মোবাইল ডিভাইসের জন্য টাচ জেসচার কন্ট্রোল ===
+// ==========================================================
+const gestureFeedback = document.querySelector('.gesture-feedback');
+const feedbackIcon = gestureFeedback.querySelector('.feedback-icon');
+const feedbackText = gestureFeedback.querySelector('.feedback-text');
+let feedbackTimeout;
+
+let lastTap = 0;
+let tapTimeout;
+let longPressTimeout;
+let touchStartX = 0;
+let touchStartY = 0;
+let currentVolumeOnDrag = video.volume;
+let isDragging = false;
+let originalPlaybackRate = 1;
+
+function showFeedback(type) {
+    clearTimeout(feedbackTimeout);
+    gestureFeedback.classList.remove('show');
+    
+    // আইকন এবং টেক্সট সেট করা
+    if (type === 'forward') {
+        feedbackIcon.innerHTML = '&#x23E9;'; // Fast forward icon
+        feedbackText.textContent = '+10s';
+    } else if (type === 'rewind') {
+        feedbackIcon.innerHTML = '&#x23EA;'; // Rewind icon
+        feedbackText.textContent = '-10s';
+    } else if (type === '2x') {
+        feedbackIcon.innerHTML = '&#x23E9;&#x23E9;';
+        feedbackText.textContent = '2x Speed';
+    } else if (type.startsWith('vol-')) {
+        feedbackIcon.innerHTML = '&#x1F50A;'; // Speaker icon
+        feedbackText.textContent = `${type.split('-')[1]}%`;
+    } else if (type.startsWith('br-')) {
+        feedbackIcon.innerHTML = '&#x2600;'; // Sun icon
+        feedbackText.textContent = `${type.split('-')[1]}%`;
+    }
+    
+    // একটি রিফ্লো ট্রিগার করা যাতে অ্যানিমেশন আবার শুরু হয়
+    void gestureFeedback.offsetWidth;
+
+    // ফিডব্যাক দেখানো এবং কিছুক্ষণ পর লুকিয়ে ফেলা
+    gestureFeedback.classList.add('show');
+    feedbackTimeout = setTimeout(() => {
+        gestureFeedback.classList.remove('show');
+    }, 800);
+}
+
+function handleTouchStart(e) {
+    const rect = playerContainer.getBoundingClientRect();
+    const touchX = e.touches[0].clientX - rect.left;
+
+    // শুধুমাত্র একটি আঙুল ব্যবহার হলে কাজ করবে
+    if (e.touches.length === 1) {
+        if (touchX > rect.width * 0.75) { // স্ক্রিনের ডান দিকের ২৫% এলাকা
+            longPressTimeout = setTimeout(() => {
+                isDragging = true; // লং প্রেসকে ড্র্যাগ হিসেবে বিবেচনা করা
+                originalPlaybackRate = video.playbackRate;
+                video.playbackRate = 2;
+                showFeedback('2x');
+            }, 500);
+        }
+    
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        currentVolumeOnDrag = video.volume;
+        isDragging = false;
+    }
+}
+
+function handleTouchMove(e) {
+    if (e.touches.length === 1) {
+        e.preventDefault();
+        clearTimeout(longPressTimeout);
+        
+        const touchCurrentX = e.touches[0].clientX;
+        const touchCurrentY = e.touches[0].clientY;
+        const deltaY = touchStartY - touchCurrentY;
+        const deltaX = touchStartX - touchCurrentX;
+        
+        // isDragging ফ্লাগ সেট করা, যদি যথেষ্ট মুভমেন্ট হয়
+        if (Math.abs(deltaY) > 10 || Math.abs(deltaX) > 10) {
+            isDragging = true;
+        }
+
+        if (Math.abs(deltaY) > Math.abs(deltaX)) { // ভার্টিকাল সোয়াইপ
+            if (touchCurrentX < playerContainer.offsetWidth / 2) {
+                // বাম দিকে: ভলিউম
+                const newVolume = currentVolumeOnDrag + deltaY / 200; // সংবেদনশীলতা কমানো হয়েছে
+                video.volume = Math.max(0, Math.min(1, newVolume));
+                showFeedback(`vol-${Math.round(video.volume * 100)}`);
+            } else {
+                // ডান দিকে: ব্রাইটনেস
+                const brightnessValue = 1 + (deltaY / 300);
+                video.style.filter = `brightness(${Math.max(0.5, Math.min(2, brightnessValue))})`;
+                showFeedback(`br-${Math.round(brightnessValue * 100)}`);
+            }
+        }
+    }
+}
+
+function handleTouchEnd(e) {
+    clearTimeout(longPressTimeout);
+    if (video.playbackRate === 2) {
+        video.playbackRate = originalPlaybackRate;
+        gestureFeedback.classList.remove('show');
+    }
+
+    if (isDragging) {
+        isDragging = false;
+        return;
+    }
+
+    // ডাবল ট্যাপ লজিক
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    clearTimeout(tapTimeout);
+
+    if (tapLength < 300 && tapLength > 0) {
+        e.preventDefault();
+        const rect = playerContainer.getBoundingClientRect();
+        const tapX = e.changedTouches[0].clientX - rect.left;
+        if (tapX > rect.width / 2) {
+            video.currentTime += 10;
+            showFeedback('forward');
+        } else {
+            video.currentTime -= 10;
+            showFeedback('rewind');
+        }
+        lastTap = 0; // রিসেট
+    } else {
+        tapTimeout = setTimeout(() => {
+            handleScreenTap();
+        }, 300);
+    }
+    lastTap = currentTime;
+}
+
+// ভিডিওতে ক্লিক ইভেন্টের পরিবর্তে টাচ ইভেন্ট ব্যবহার করা
+// video.addEventListener('click', handleScreenTap); // এই লাইনটি মুছে দিন বা কমেন্ট করুন
+video.addEventListener('touchstart', handleTouchStart, { passive: false });
+video.addEventListener('touchmove', handleTouchMove, { passive: false });
+video.addEventListener('touchend', handleTouchEnd);
+
+
+// === প্লেয়ার চালু হওয়ার ফাংশন ===
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
