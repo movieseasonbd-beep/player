@@ -34,10 +34,6 @@ const subtitleSettingsPage = document.querySelector('.menu-subtitle');
 const subtitleOptionsList = document.getElementById('subtitle-options-list');
 const subtitleCurrentValue = subtitleMenuBtn ? subtitleMenuBtn.querySelector('.current-value') : null;
 const downloadBtn = document.getElementById('download-btn');
-const brightnessOverlay = document.querySelector('.brightness-overlay');
-const seekFeedbackRewind = document.querySelector('.seek-feedback.rewind');
-const seekFeedbackForward = document.querySelector('.seek-feedback.forward');
-const speedIndicator = document.querySelector('.speed-indicator');
 
 let hls;
 let controlsTimeout;
@@ -46,17 +42,6 @@ let wasPlaying = false;
 let qualityMenuInitialized = false;
 let originalVideoUrl = null;
 let wakeLock = null;
-
-// জেসচার কন্ট্রোলের জন্য ভেরিয়েবল
-let lastTap = 0;
-let tapTimeout = 0;
-let touchStartX = 0;
-let touchStartY = 0;
-let isSwiping = false;
-let currentBrightness = 0;
-let fastForwardTimeout = null;
-let originalPlaybackRate = 1;
-
 
 const hlsConfig = {
     maxBufferLength: 60,
@@ -154,6 +139,7 @@ function setQuality(level, url = null) {
     } else {
         hls.currentLevel = parseInt(level, 10);
     }
+
     showMenuPage(mainSettingsPage);
 }
 
@@ -194,9 +180,29 @@ function setSubtitle(lang) {
     showMenuPage(mainSettingsPage);
 }
 
-function directTogglePlay() {
+function directTogglePlay() { 
     video.paused ? video.play() : video.pause();
 }
+
+function handleScreenTap() {
+    if (settingsMenu.classList.contains('active')) {
+        settingsMenu.classList.remove('active');
+        settingsBtn.classList.remove('active');
+        return;
+    }
+    const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
+    if (video.paused) { 
+        // Do nothing on tap if paused, central button should be used
+    } else {
+        if (isControlsVisible) { 
+            playerContainer.classList.remove('show-controls');
+        } else { 
+            playerContainer.classList.add('show-controls'); 
+            resetControlsTimer(); 
+        }
+    }
+}
+
 
 function updatePlayState() {
     const isPaused = video.paused;
@@ -337,15 +343,15 @@ function addHlsEvents() {
                         segments1080.splice(lastSegmentIndex, 0, '1080');
                         const potential1080pUrl = currentUrl.origin + segments1080.join('/') + currentUrl.search;
                         fetch(potential1080pUrl, { method: 'HEAD' })
-                        .then(response => {
-                            if (response.ok) {
-                                const option1080p = document.createElement('li');
-                                option1080p.textContent = 'HD 1080p';
-                                option1080p.dataset.level = '1080';
-                                option1080p.addEventListener('click', () => setQuality('1080', potential1080pUrl));
-                                qualityOptionsList.appendChild(option1080p);
-                            }
-                        });
+                            .then(response => {
+                                if (response.ok) {
+                                    const option1080p = document.createElement('li');
+                                    option1080p.textContent = 'HD 1080p';
+                                    option1080p.dataset.level = '1080';
+                                    option1080p.addEventListener('click', () => setQuality('1080', potential1080pUrl));
+                                    qualityOptionsList.appendChild(option1080p);
+                                }
+                            });
                     }
                 } catch (e) {}
             }
@@ -359,6 +365,7 @@ function addHlsEvents() {
         const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
         const allQualityOptions = qualityOptionsList.querySelectorAll('li');
         allQualityOptions.forEach(opt => opt.classList.remove('active', 'playing'));
+
         if (hls.url !== originalVideoUrl) {
             qualityCurrentValue.textContent = 'HD 1080p';
             const external1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
@@ -366,6 +373,7 @@ function addHlsEvents() {
             settingsBtn.classList.add('show-hd-badge');
             return;
         }
+
         const activeLevel = hls.levels[data.level];
         if (!activeLevel) {
             qualityCurrentValue.textContent = hls.autoLevelEnabled ? 'Auto' : '...';
@@ -374,6 +382,7 @@ function addHlsEvents() {
             settingsBtn.classList.remove('show-hd-badge');
             return;
         }
+
         if (hls.autoLevelEnabled) {
             qualityCurrentValue.textContent = `${activeLevel.height}p (Auto)`;
             const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
@@ -385,6 +394,7 @@ function addHlsEvents() {
             const currentSelectedOpt = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
             if (currentSelectedOpt) currentSelectedOpt.classList.add('active');
         }
+
         if (activeLevel.height >= 1080) {
             settingsBtn.classList.add('show-hd-badge');
             if (hls.autoLevelEnabled) {
@@ -394,7 +404,7 @@ function addHlsEvents() {
             settingsBtn.classList.remove('show-hd-badge');
         }
     });
-
+    
     hls.on(Hls.Events.ERROR, function(event, data) {
         if (data.fatal) {
             switch (data.type) {
@@ -406,7 +416,7 @@ function addHlsEvents() {
     });
 }
 
-// video.addEventListener('click', handleScreenTap); // এই লাইনটি মুছে দেওয়া হয়েছে
+// === পুরাতন ইভেন্ট লিসেনারগুলো ===
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); acquireWakeLock(); });
@@ -431,8 +441,8 @@ settingsBtn.addEventListener('click', () => {
     settingsBtn.classList.toggle('active', settingsMenu.classList.contains('active'));
     if (settingsMenu.classList.contains('active')) {
         [mainSettingsPage, speedSettingsPage, qualitySettingsPage, subtitleSettingsPage]
-        .filter(p => p)
-        .forEach(p => p.classList.remove('active', 'slide-out-left', 'slide-out-right'));
+            .filter(p => p)
+            .forEach(p => p.classList.remove('active', 'slide-out-left', 'slide-out-right'));
         mainSettingsPage.classList.add('active');
         menuContentWrapper.style.height = `${mainSettingsPage.scrollHeight}px`;
     }
@@ -462,12 +472,167 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+
+// ==========================================================
+// === নতুন: মোবাইল ডিভাইসের জন্য টাচ জেসচার কন্ট্রোল ===
+// ==========================================================
+const gestureFeedback = document.querySelector('.gesture-feedback');
+const feedbackIcon = gestureFeedback.querySelector('.feedback-icon');
+const feedbackText = gestureFeedback.querySelector('.feedback-text');
+let feedbackTimeout;
+
+let lastTap = 0;
+let tapTimeout;
+let longPressTimeout;
+let touchStartX = 0;
+let touchStartY = 0;
+let currentVolumeOnDrag = video.volume;
+let isDragging = false;
+let originalPlaybackRate = 1;
+
+function showFeedback(type) {
+    clearTimeout(feedbackTimeout);
+    gestureFeedback.classList.remove('show');
+    
+    if (type === 'forward') {
+        feedbackIcon.innerHTML = '&#x23E9;'; 
+        feedbackText.textContent = '+10s';
+    } else if (type === 'rewind') {
+        feedbackIcon.innerHTML = '&#x23EA;'; 
+        feedbackText.textContent = '-10s';
+    } else if (type === '2x') {
+        feedbackIcon.innerHTML = '&#x23E9;&#x23E9;';
+        feedbackText.textContent = '2x Speed';
+    } else if (type.startsWith('vol-')) {
+        feedbackIcon.innerHTML = '&#x1F50A;'; 
+        feedbackText.textContent = `${type.split('-')[1]}%`;
+    } else if (type.startsWith('br-')) {
+        feedbackIcon.innerHTML = '&#x2600;'; 
+        feedbackText.textContent = `${type.split('-')[1]}%`;
+    }
+    
+    void gestureFeedback.offsetWidth;
+    gestureFeedback.classList.add('show');
+    feedbackTimeout = setTimeout(() => {
+        gestureFeedback.classList.remove('show');
+    }, 800);
+}
+
+function handleTouchStart(e) {
+    // শুধুমাত্র ফুলস্ক্রিন মোডে কাজ করবে
+    if (!document.fullscreenElement) return;
+
+    const rect = playerContainer.getBoundingClientRect();
+    const touchX = e.touches[0].clientX - rect.left;
+
+    if (e.touches.length === 1) {
+        // স্ক্রিনের ডানদিকে লং প্রেস করলে স্পিড বাড়বে
+        if (touchX > rect.width / 2) { 
+            longPressTimeout = setTimeout(() => {
+                e.preventDefault(); // মেনু আসা বন্ধ করতে
+                isDragging = true;
+                originalPlaybackRate = video.playbackRate;
+                video.playbackRate = 2;
+                showFeedback('2x');
+            }, 500); // 500ms চেপে রাখলে কাজ করবে
+        }
+    
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        currentVolumeOnDrag = video.volume;
+        isDragging = false;
+    }
+}
+
+function handleTouchMove(e) {
+    // শুধুমাত্র ফুলস্ক্রিন মোডে কাজ করবে
+    if (!document.fullscreenElement) return;
+
+    if (e.touches.length === 1) {
+        e.preventDefault(); // স্ক্রল হওয়া বন্ধ করতে
+        clearTimeout(longPressTimeout);
+        
+        const touchCurrentX = e.touches[0].clientX;
+        const touchCurrentY = e.touches[0].clientY;
+        const deltaY = touchStartY - touchCurrentY;
+        const deltaX = touchStartX - touchCurrentX;
+        
+        if (Math.abs(deltaY) > 10 || Math.abs(deltaX) > 10) {
+            isDragging = true;
+        }
+
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+            if (touchCurrentX < playerContainer.offsetWidth / 2) {
+                const newVolume = currentVolumeOnDrag + deltaY / 200;
+                video.volume = Math.max(0, Math.min(1, newVolume));
+                showFeedback(`vol-${Math.round(video.volume * 100)}`);
+            } else {
+                const brightnessValue = 1 + (deltaY / 300);
+                video.style.filter = `brightness(${Math.max(0.5, Math.min(2, brightnessValue))})`;
+                showFeedback(`br-${Math.round(brightnessValue * 100)}`);
+            }
+        }
+    }
+}
+
+function handleTouchEnd(e) {
+    // শুধুমাত্র ফুলস্ক্রিন মোডে কাজ করবে
+    if (!document.fullscreenElement) return;
+    
+    clearTimeout(longPressTimeout);
+    if (video.playbackRate === 2) {
+        video.playbackRate = originalPlaybackRate;
+        gestureFeedback.classList.remove('show');
+    }
+
+    if (isDragging) {
+        isDragging = false;
+        return;
+    }
+    
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    clearTimeout(tapTimeout);
+
+    if (tapLength < 300 && tapLength > 0) {
+        e.preventDefault();
+        const rect = playerContainer.getBoundingClientRect();
+        const tapX = e.changedTouches[0].clientX - rect.left;
+        if (tapX > rect.width * 0.75) { // ডানদিকের ২৫% এলাকা
+             video.currentTime += 10;
+             showFeedback('forward');
+        } else if (tapX < rect.width * 0.25) { // বামদিকের ২৫% এলাকা
+             video.currentTime -= 10;
+             showFeedback('rewind');
+        } else { // মাঝের অংশে ডাবল ট্যাপ করলে প্লে/পজ
+            directTogglePlay();
+        }
+        lastTap = 0;
+    } else {
+        tapTimeout = setTimeout(() => {
+            handleScreenTap();
+        }, 300);
+    }
+    lastTap = currentTime;
+}
+
+// ক্লিকের পরিবর্তে টাচ ইভেন্ট ব্যবহার করা
+playerContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
+playerContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+playerContainer.addEventListener('touchend', handleTouchEnd);
+
+// নতুন: লং প্রেস করলে যেন 'Download' মেনু না আসে, তার জন্য
+video.addEventListener('contextmenu', e => e.preventDefault());
+
+
+// === প্লেয়ার চালু হওয়ার ফাংশন ===
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
     const subtitleUrl = urlParams.get('sub');
     const downloadUrl = urlParams.get('download');
     const posterUrl = urlParams.get('poster');
+
     originalVideoUrl = videoUrl;
 
     if (videoUrl) {
@@ -493,114 +658,10 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingOverlay.classList.remove('hidden');
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
     }
-
+    
     video.addEventListener('loadedmetadata', updateProgressUI);
     video.addEventListener('loadedmetadata', setupSubtitles);
     updatePlayState();
     updateVolumeIcon();
     updateFullscreenState();
 });
-
-// ==========================================================
-// === নতুন জেসচার কন্ট্রোল ফাংশন (ফুলস্ক্রিন মোডের জন্য) ===
-// ==========================================================
-
-playerContainer.addEventListener('contextmenu', e => e.preventDefault());
-
-function showFeedback(element) {
-    element.classList.add('show');
-    setTimeout(() => {
-        element.classList.remove('show');
-    }, 500);
-}
-
-function handleTouchStart(e) {
-    if (!document.fullscreenElement) return;
-    const touch = e.touches[0];
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
-    isSwiping = false;
-    const currentTime = new Date().getTime();
-    const tapLength = currentTime - lastTap;
-    clearTimeout(tapTimeout);
-    if (tapLength < 300 && tapLength > 0) {
-        if (touchStartX > window.innerWidth / 2) {
-            fastForwardTimeout = setTimeout(() => {
-                originalPlaybackRate = video.playbackRate;
-                video.playbackRate = 2;
-                speedIndicator.classList.add('show');
-                fastForwardTimeout = null;
-            }, 200);
-        }
-        lastTap = 0;
-    } else {
-        lastTap = currentTime;
-    }
-}
-
-function handleTouchMove(e) {
-    if (!document.fullscreenElement || !e.touches || e.touches.length === 0) return;
-
-    isSwiping = true;
-    const touch = e.touches[0];
-    const deltaY = touchStartY - touch.clientY;
-    const deltaX = touchStartX - touch.clientX;
-
-    if (Math.abs(deltaY) > Math.abs(deltaX)) {
-        e.preventDefault();
-        if (touchStartX < window.innerWidth / 2) {
-            const newVolume = video.volume + deltaY / 200;
-            video.volume = Math.max(0, Math.min(1, newVolume));
-        }
-        else {
-            const newBrightness = currentBrightness - deltaY / 200; // Brightness logic is inverted
-            currentBrightness = Math.max(0, Math.min(1, newBrightness));
-            brightnessOverlay.style.opacity = currentBrightness * 0.8;
-        }
-        touchStartY = touch.clientY;
-    }
-}
-
-function handleTouchEnd(e) {
-    if (!document.fullscreenElement) return;
-
-    if (fastForwardTimeout) {
-        clearTimeout(fastForwardTimeout);
-    }
-    if (video.playbackRate === 2) {
-        video.playbackRate = originalPlaybackRate;
-        speedIndicator.classList.remove('show');
-    }
-
-    if (!isSwiping) {
-        const currentTime = new Date().getTime();
-        const tapLength = currentTime - lastTap;
-
-        if (tapLength < 300 && tapLength > 0) {
-             if (touchStartX < window.innerWidth / 3) {
-                video.currentTime -= 10;
-                showFeedback(seekFeedbackRewind);
-            } else if (touchStartX > window.innerWidth * 2 / 3) {
-                video.currentTime += 10;
-                showFeedback(seekFeedbackForward);
-            } else {
-                directTogglePlay();
-            }
-             lastTap = 0;
-        } else {
-             tapTimeout = setTimeout(() => {
-                 if (getComputedStyle(controlsContainer).opacity === '1') {
-                    hideControls();
-                } else {
-                    playerContainer.classList.add('show-controls');
-                    resetControlsTimer();
-                }
-            }, 300);
-        }
-    }
-    isSwiping = false;
-}
-
-playerContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
-playerContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
-playerContainer.addEventListener('touchend', handleTouchEnd);
