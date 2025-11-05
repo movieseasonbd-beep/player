@@ -244,10 +244,11 @@ body {
 
 .fast-forward-indicator {
     position: absolute;
-    top: 50%;
+    /* পরিবর্তিত: উপরের দিকে পজিশন করা হয়েছে */
+    top: 15%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.5);
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.6);
     color: white;
     padding: 10px 20px;
     border-radius: 25px;
@@ -265,7 +266,7 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6);
     color: white;
     padding: 8px 16px;
     border-radius: 25px;
