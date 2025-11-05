@@ -46,6 +46,10 @@ const volumeIconMute = volumeIndicator.querySelector('.volume-icon-mute');
 const volumeIconLow = volumeIndicator.querySelector('.volume-icon-low');
 const volumeIconMedium = volumeIndicator.querySelector('.volume-icon-medium');
 const volumeIconHigh = volumeIndicator.querySelector('.volume-icon-high');
+const brightnessIconLow = brightnessIndicator.querySelector('.brightness-icon-low');
+const brightnessIconMedium = brightnessIndicator.querySelector('.brightness-icon-medium');
+const brightnessIconHigh = brightnessIndicator.querySelector('.brightness-icon-high');
+
 
 let touchStartX, touchStartY;
 let isTouching = false;
@@ -65,8 +69,7 @@ let originalVideoUrl = null;
 let wakeLock = null;
 
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
-
-const acquireWakeLock = async () => { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) { /* ignore */ } } };
+const acquireWakeLock = async () => { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } };
 const releaseWakeLock = () => { if (wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); } };
 function hideLoadingOverlay() { if (!loadingOverlay.classList.contains('hidden')) { loadingOverlay.classList.add('hidden'); } }
 
@@ -235,6 +238,13 @@ function updateVolumeGestureIcon(level) {
     else { volumeIconHigh.style.display = 'block'; }
 }
 
+function updateBrightnessGestureIcon(level) {
+    [brightnessIconLow, brightnessIconMedium, brightnessIconHigh].forEach(icon => icon.style.display = 'none');
+    if (level <= 0.33) { brightnessIconLow.style.display = 'block'; }
+    else if (level <= 0.66) { brightnessIconMedium.style.display = 'block'; }
+    else { brightnessIconHigh.style.display = 'block'; }
+}
+
 function showIndicator(indicator) {
     clearTimeout(indicatorTimeout);
     [volumeIndicator, brightnessIndicator, fastForwardIndicator].forEach(ind => { if (ind !== indicator) ind.classList.remove('show'); });
@@ -256,6 +266,7 @@ function handleTouchStart(e) {
     brightnessBarFill.style.width = `${initialBrightness * 100}%`;
     volumeBarFill.style.width = `${initialVolume * 100}%`;
     updateVolumeGestureIcon(initialVolume);
+    updateBrightnessGestureIcon(initialBrightness);
     if (touchStartX > window.innerWidth / 2) { longPressTimer = setTimeout(startFastForward, 200); }
 }
 
@@ -283,6 +294,7 @@ function handleTouchMove(e) {
         currentBrightness = newBrightness;
         brightnessOverlay.style.opacity = 1 - currentBrightness;
         brightnessBarFill.style.width = `${currentBrightness * 100}%`;
+        updateBrightnessGestureIcon(newBrightness);
         showIndicator(brightnessIndicator);
     }
 }
@@ -359,19 +371,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (videoUrl) {
         if (posterUrl) video.poster = posterUrl;
-        if (subtitleUrl && subtitleMenuBtn) {
-            const subtitleTrack = document.createElement('track');
-            subtitleTrack.kind = 'subtitles';
-            subtitleTrack.srclang = 'bn';
-            subtitleTrack.label = 'বাংলা';
-            subtitleTrack.src = subtitleUrl;
-            subtitleTrack.default = true;
-            video.appendChild(subtitleTrack);
-        }
-        if (downloadUrl && downloadBtn) {
-            downloadBtn.style.display = 'flex';
-            downloadBtn.addEventListener('click', () => { const a = document.createElement('a'); a.href = downloadUrl; a.download = ''; document.body.appendChild(a); a.click(); document.body.removeChild(a); });
-        }
+        if (subtitleUrl && subtitleMenuBtn) { const subtitleTrack = document.createElement('track'); subtitleTrack.kind = 'subtitles'; subtitleTrack.srclang = 'bn'; subtitleTrack.label = 'বাংলা'; subtitleTrack.src = subtitleUrl; subtitleTrack.default = true; video.appendChild(subtitleTrack); }
+        if (downloadUrl && downloadBtn) { downloadBtn.style.display = 'flex'; downloadBtn.addEventListener('click', () => { const a = document.createElement('a'); a.href = downloadUrl; a.download = ''; document.body.appendChild(a); a.click(); document.body.removeChild(a); }); }
         loadVideo(videoUrl);
     } else {
         loadingOverlay.classList.remove('hidden');
@@ -385,5 +386,5 @@ document.addEventListener('DOMContentLoaded', () => {
     updateFullscreenState();
     
     updateVolumeGestureIcon(video.volume);
-    brightnessIndicator.querySelector('.indicator-icon').style.display = 'block';
+    updateBrightnessGestureIcon(currentBrightness);
 });
