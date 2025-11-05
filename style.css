@@ -228,7 +228,7 @@ body {
 }
 .menu-quality li.playing { color: #f21111; font-weight: bold; }
 
-/* === নতুন: জেসচার কন্ট্রোলের জন্য স্টাইল === */
+/* === নতুন ও পরিবর্তিত: জেসচার কন্ট্রোলের জন্য স্টাইল === */
 .brightness-overlay {
     position: absolute;
     top: 0;
@@ -242,49 +242,60 @@ body {
     transition: opacity 0.15s linear;
 }
 
-.fast-forward-indicator {
-    position: absolute;
-    /* পরিবর্তিত: উপরের দিকে পজিশন করা হয়েছে */
-    top: 15%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.6);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-size: 18px;
-    font-weight: bold;
-    z-index: 4;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s ease;
-    pointer-events: none;
-}
-
+.fast-forward-indicator,
 .gesture-indicator {
     position: absolute;
-    top: 50%;
+    top: 7vh; /* উপরের দিকে পজিশন */
     left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.6);
+    transform: translateX(-50%);
+    background-color: rgba(30, 30, 30, 0.8);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
     color: white;
-    padding: 8px 16px;
-    border-radius: 25px;
-    font-size: 14px;
+    border-radius: 50px; /* Pill shape */
+    font-weight: 500;
     z-index: 4;
     display: flex;
     align-items: center;
-    gap: 8px;
     opacity: 0;
     visibility: hidden;
     transition: all 0.2s ease;
     pointer-events: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.fast-forward-indicator {
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+.gesture-indicator {
+    padding: 8px;
+    gap: 8px;
 }
 
 .gesture-indicator .indicator-icon {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     fill: white;
+    margin-left: 4px;
+}
+
+.indicator-bar-container {
+    width: 100px;
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-right: 8px;
+}
+
+.indicator-bar-fill {
+    height: 100%;
+    width: 50%; /* JS দিয়ে পরিবর্তন হবে */
+    background-color: white;
+    border-radius: 10px;
+    transition: width 0.05s linear;
 }
 
 .gesture-indicator.show,
