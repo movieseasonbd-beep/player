@@ -35,13 +35,13 @@ const subtitleOptionsList = document.getElementById('subtitle-options-list');
 const subtitleCurrentValue = subtitleMenuBtn ? subtitleMenuBtn.querySelector('.current-value') : null;
 const downloadBtn = document.getElementById('download-btn');
 
-// নতুন: জেসচার কন্ট্রোলের জন্য DOM Elements এবং Variables
+// নতুন ও পরিবর্তিত: জেসচার কন্ট্রোলের জন্য DOM Elements এবং Variables
 const brightnessOverlay = document.querySelector('.brightness-overlay');
 const fastForwardIndicator = document.querySelector('.fast-forward-indicator');
 const volumeIndicator = document.getElementById('volume-indicator');
 const brightnessIndicator = document.getElementById('brightness-indicator');
-const volumeIndicatorText = volumeIndicator.querySelector('.indicator-text');
-const brightnessIndicatorText = brightnessIndicator.querySelector('.indicator-text');
+const volumeBarFill = document.getElementById('volume-bar-fill');
+const brightnessBarFill = document.getElementById('brightness-bar-fill');
 
 let touchStartX, touchStartY;
 let isTouching = false;
@@ -50,7 +50,7 @@ let longPressTimer;
 let isFastForwarding = false;
 let originalPlaybackRate = 1;
 let indicatorTimeout;
-let currentBrightness = 1.0; // 1.0 = 100% brightness (overlay opacity 0)
+let currentBrightness = 1.0; 
 
 // অন্যান্য ভ্যারিয়েবল
 let hls;
@@ -113,7 +113,6 @@ function loadVideo(videoUrl) {
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
-
     const captureAndHoldFrame = () => {
         if (isPlaying && video.readyState > 2) {
             frameHoldCanvas.width = video.videoWidth;
@@ -123,7 +122,6 @@ function setQuality(level, url = null) {
             frameHoldCanvas.style.display = 'block';
         }
     };
-
     const hideCanvasOnPlay = () => {
         video.addEventListener('playing', () => {
             frameHoldCanvas.classList.add('invisible');
@@ -139,7 +137,6 @@ function setQuality(level, url = null) {
         hls.loadSource(url);
         hls.attachMedia(video);
         hideCanvasOnPlay();
-
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (qualityMenuBtn) {
             qualityMenuBtn.querySelector('.current-value').textContent = 'HD 1080p';
@@ -148,18 +145,17 @@ function setQuality(level, url = null) {
         const new1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
         if (new1080pOption) new1080pOption.classList.add('active');
         settingsBtn.classList.add('show-hd-badge');
-
         hls.once(Hls.Events.MANIFEST_PARSED, () => {
             video.currentTime = currentTime;
             if (isPlaying) video.play().catch(() => {});
         });
-
     } else {
         hls.currentLevel = parseInt(level, 10);
     }
     showMenuPage(mainSettingsPage);
 }
 
+// ... এখানে setupSubtitles, setSubtitle, directTogglePlay, handleScreenTap, updatePlayState, hideControls, resetControlsTimer, updateProgressUI, updateBufferBar, scrub, formatTime, toggleMute, updateVolumeIcon, toggleFullscreen, updateFullscreenState, showMenuPage, addHlsEvents ফাংশনগুলো আগের মতোই থাকবে ...
 function setupSubtitles() {
     if (!subtitleMenuBtn) return;
     const textTracks = video.textTracks;
@@ -424,24 +420,20 @@ function addHlsEvents() {
     });
 }
 
-// === জেসচার কন্ট্রোল ফাংশন ===
-function showIndicator(indicator, text) {
+// === নতুন ও পরিবর্তিত: জেসচার কন্ট্রোল ফাংশন ===
+function showIndicator(indicator) {
     clearTimeout(indicatorTimeout);
     [volumeIndicator, brightnessIndicator, fastForwardIndicator].forEach(ind => {
         if (ind !== indicator) ind.classList.remove('show');
     });
     indicator.classList.add('show');
-    if (text !== undefined) {
-        const textElement = indicator.querySelector('.indicator-text');
-        if (textElement) textElement.textContent = text;
-    }
 }
 
 function hideIndicators() {
     indicatorTimeout = setTimeout(() => {
         volumeIndicator.classList.remove('show');
         brightnessIndicator.classList.remove('show');
-    }, 500);
+    }, 800);
 }
 
 function startFastForward() {
@@ -480,19 +472,22 @@ function handleTouchMove(e) {
     const touch = e.touches[0];
     const deltaY = touchStartY - touch.clientY;
     const swipeSensitivity = window.innerHeight * 0.7;
-    if (touchStartX < window.innerWidth / 2) {
+
+    if (touchStartX < window.innerWidth / 2) { // ভলিউম
         let newVolume = initialVolume + (deltaY / swipeSensitivity);
         newVolume = Math.max(0, Math.min(1, newVolume));
         video.volume = newVolume;
         video.muted = newVolume === 0;
-        showIndicator(volumeIndicator, `${Math.round(newVolume * 100)}%`);
+        volumeBarFill.style.width = `${newVolume * 100}%`;
+        showIndicator(volumeIndicator);
         updateVolumeIcon();
-    } else {
+    } else { // ব্রাইটনেস
         let newBrightness = initialBrightness + (deltaY / swipeSensitivity);
         newBrightness = Math.max(0, Math.min(1, newBrightness));
         currentBrightness = newBrightness;
         brightnessOverlay.style.opacity = 1 - currentBrightness;
-        showIndicator(brightnessIndicator, `${Math.round(currentBrightness * 100)}%`);
+        brightnessBarFill.style.width = `${currentBrightness * 100}%`;
+        showIndicator(brightnessIndicator);
     }
 }
 
@@ -510,10 +505,7 @@ function handleTouchEnd(e) {
 
 // Event Listeners
 video.addEventListener('click', handleScreenTap);
-
-// পরিবর্তিত: ডিফল্ট মেনু বন্ধ করার জন্য ইভেন্ট লিসেনার
-video.addEventListener('contextmenu', e => e.preventDefault());
-
+video.addEventListener('contextmenu', e => e.preventDefault()); // ডিফল্ট মেনু বন্ধ করার জন্য
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); acquireWakeLock(); });
@@ -582,7 +574,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const subtitleUrl = urlParams.get('sub');
     const downloadUrl = urlParams.get('download');
     const posterUrl = urlParams.get('poster');
-
     originalVideoUrl = videoUrl;
 
     if (videoUrl) {
