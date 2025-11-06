@@ -102,10 +102,10 @@ function showUnlockIndicatorTemporarily() {
 }
 
 // =========================================================================
-// ==================== চূড়ান্ত এবং সঠিক ফাংশন =========================
+// ==================== আপনার সর্বশেষ চাহিদা অনুযায়ী চূড়ান্ত ফাংশন =================
 // =========================================================================
 function handleVideoClick(event) {
-    // জরুরি অবস্থাগুলো আগে পরীক্ষা করুন
+    // জরুরি অবস্থাগুলো আগে পরীক্ষা করুন (এগুলো অপরিবর্তিত)
     if (settingsMenu.classList.contains('active')) {
         settingsMenu.classList.remove('active');
         settingsBtn.classList.remove('active');
@@ -122,15 +122,11 @@ function handleVideoClick(event) {
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
 
-    // ট্যাপের আগে কন্ট্রোল বারের অবস্থা মনে রাখুন
-    const wasControlsVisible = playerContainer.classList.contains('show-controls');
-    
     // আগের যেকোনো সিঙ্গেল-ট্যাপের টাইমার বাতিল করুন
     clearTimeout(tapTimeout);
 
-    // ধাপ ১: ডাবল-ট্যাপ পরীক্ষা করুন (সর্বোচ্চ অগ্রাধিকার)
+    // ধাপ ১: ডাবল-ট্যাপ পরীক্ষা করুন (সর্বোচ্চ অগ্রাধিকার, এটি অপরিবর্তিত)
     if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
-        // শুধুমাত্র ডান বা বাম দিকে ডাবল-ট্যাপ কাজ করবে
         if (clickX < screenWidth * 0.35 || clickX > screenWidth * 0.65) {
             if (clickX < screenWidth * 0.35) {
                 video.currentTime -= 10;
@@ -145,22 +141,29 @@ function handleVideoClick(event) {
     }
 
     // ধাপ ২: যদি ডাবল-ট্যাপ না হয়, তবে এটি একটি সিঙ্গেল-ট্যাপের প্রথম ধাপ
-    lastTap = currentTime; // পরবর্তী ডাবল-ট্যাপের জন্য এই ট্যাপের সময় মনে রাখুন
+    lastTap = currentTime;
 
     // ধাপ ৩: সিঙ্গেল-ট্যাপের আসল কাজটি একটি সংক্ষিপ্ত বিলম্বের পর হবে
     tapTimeout = setTimeout(() => {
-        if (wasControlsVisible) {
-            // কন্ট্রোল বার দেখানো ছিল: মাঝখানে ট্যাপ করলে প্লে/পজ হবে
+        const areControlsVisible = playerContainer.classList.contains('show-controls');
+
+        if (areControlsVisible) {
+            // === কন্ট্রোল বার যখন দেখা যাচ্ছে ===
+            
+            // মাঝখানে ট্যাপ করলে প্লে/পজ হবে
             if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
                 directTogglePlay();
-            } else {
-                // পাশে ট্যাপ করলে কন্ট্রোল বার হাইড হয়ে যাবে
-                hideControls();
             }
-        } else {
-            // কন্ট্রোল বার লুকানো ছিল: যেকোনো জায়গায় ট্যাপ করলে শুধু কন্ট্রোল বার আসবে
-            playerContainer.classList.add('show-controls');
+            // পাশে ট্যাপ করলে এখন আর কিছুই হবে না, শুধু টাইমার রিসেট হবে যা নিচে করা আছে
+            
+            // যেকোনো ট্যাপেই টাইমার রিসেট হবে
             resetControlsTimer();
+
+        } else {
+            // === কন্ট্রোল বার যখন লুকানো ===
+            // যেকোনো জায়গায় ট্যাপ করলে শুধু কন্ট্রোল বার দেখানো হবে
+            playerContainer.classList.add('show-controls');
+            resetControlsTimer(); // ৩ সেকেন্ড পর অটো হাইড করার টাইমার চালু হবে
         }
     }, DOUBLE_TAP_DELAY);
 }
@@ -177,7 +180,6 @@ function showTapIndicator(indicator) {
 
 function updatePlayState() { const isPaused = video.paused; playPauseBtn.querySelector('.play-icon').style.display = isPaused ? 'block' : 'none'; playPauseBtn.querySelector('.pause-icon').style.display = isPaused ? 'none' : 'block'; playerContainer.classList.toggle('paused', isPaused); playerContainer.classList.toggle('playing', !isPaused); }
 
-// *** এই দুটি ফাংশনে পরিবর্তন আনা হয়েছে ***
 function hideControls() {
     // ভিডিও পজ থাকলে কন্ট্রোল বার লুকাবে না
     if (video.paused || isScreenLocked || settingsMenu.classList.contains('active') || isScrubbing) {
@@ -193,7 +195,6 @@ function resetControlsTimer() {
         controlsTimeout = setTimeout(hideControls, 3000);
     }
 }
-// *****************************************
 
 function updateProgressUI() { if (isScrubbing) return; if (video.duration && !isNaN(video.duration)) { const progressPercent = (video.currentTime / video.duration) * 100; progressFilled.style.width = `${progressPercent}%`; progressBar.value = progressPercent; timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`; } }
 function updateBufferBar() { if (video.duration > 0 && video.buffered.length > 0) { const bufferEnd = video.buffered.end(video.buffered.length - 1); bufferBar.style.width = `${(bufferEnd / video.duration) * 100}%`; } }
@@ -264,24 +265,25 @@ function handleTouchStart(e) {
 function handleTouchMove(e) { if (isScreenLocked || !isTouching || !document.fullscreenElement) return; clearTimeout(longPressTimer); if (isFastForwarding) return; e.preventDefault(); const touch = e.touches[0]; const deltaY = touchStartY - touch.clientY; const swipeSensitivity = window.innerHeight * 0.7; if (Math.abs(deltaY) < SWIPE_THRESHOLD) { return; } if (touchStartX < window.innerWidth / 2) { let newVolume = initialVolume + (deltaY / swipeSensitivity); newVolume = Math.max(0, Math.min(1, newVolume)); if (newVolume > 0) { lastVolume = newVolume; } video.volume = newVolume; video.muted = newVolume === 0; volumeBarFill.style.width = `${newVolume * 100}%`; updateVolumeGestureIcon(newVolume); showIndicator(volumeIndicator); updateVolumeIcon(); } else { let newBrightness = initialBrightness + (deltaY / swipeSensitivity); newBrightness = Math.max(0, Math.min(1, newBrightness)); currentBrightness = newBrightness; brightnessOverlay.style.opacity = 1 - currentBrightness; brightnessBarFill.style.width = `${newBrightness * 100}%`; updateBrightnessGestureIcon(newBrightness); showIndicator(brightnessIndicator); } }
 function handleTouchEnd(e) { if (isScreenLocked || !isTouching) return; clearTimeout(longPressTimer); if (isFastForwarding) { endFastForward(); } else { hideIndicators(); } isTouching = false; }
 
+
+// Event Listeners
 video.addEventListener('click', handleVideoClick);
 video.addEventListener('contextmenu', e => e.preventDefault());
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 
-// *** এই দুটি Event Listener এ পরিবর্তন আনা হয়েছে ***
 video.addEventListener('play', () => {
     updatePlayState();
     resetControlsTimer(); // ভিডিও চললে টাইমার চালু হবে
     acquireWakeLock();
 });
+
 video.addEventListener('pause', () => {
     updatePlayState();
     clearTimeout(controlsTimeout); // ভিডিও পজ হলে টাইমার বন্ধ হবে
     playerContainer.classList.add('show-controls'); // এবং কন্ট্রোল বার দেখানো হবে
     releaseWakeLock();
 });
-// ***********************************************
 
 video.addEventListener('play', () => { if (video.poster) { video.poster = ''; } }, { once: true });
 video.addEventListener('ended', releaseWakeLock);
@@ -309,6 +311,7 @@ backBtns.forEach(btn => btn.addEventListener('click', () => showMenuPage(mainSet
 speedOptions.forEach(option => { option.addEventListener('click', () => { video.playbackRate = parseFloat(option.dataset.speed); speedOptions.forEach(opt => opt.classList.remove('active')); option.classList.add('active'); speedCurrentValue.textContent = option.dataset.speed === '1' ? 'Normal' : `${option.dataset.speed}x`; showMenuPage(mainSettingsPage); }); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && wakeLock !== null) { releaseWakeLock(); } else if (document.visibilityState === 'visible' && !video.paused) { acquireWakeLock(); } });
 
+// Initialization on page load
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
