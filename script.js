@@ -77,6 +77,7 @@ let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuIn
 let lastVolume = 1;
 const aspectModes = ['fit', 'stretch', 'crop'];
 let currentAspectModeIndex = 0;
+let justShownControls = false; // <<< --- নতুন ফ্ল্যাগ ভেরিয়েবল এখানেই যোগ করা হয়েছে
 
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
 const acquireWakeLock = async () => { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } };
@@ -102,7 +103,7 @@ function showUnlockIndicatorTemporarily() {
 }
 
 // =========================================================================
-// ==================== পরিবর্তিত এবং নতুন ফাংশন =========================
+// ==================== চূড়ান্ত পরিবর্তিত ফাংশন =========================
 // =========================================================================
 function handleVideoClick(event) {
     // সেটিংস মেনু বা লক স্ক্রিন ইন্ডিকেটরে ক্লিক হলে কিছু করবে না
@@ -117,6 +118,11 @@ function handleVideoClick(event) {
         return;
     }
 
+    // যদি এইমাত্র কন্ট্রোল বার দেখানো হয়ে থাকে, তাহলে এই ট্যাপ উপেক্ষা করুন
+    if (justShownControls) {
+        return;
+    }
+
     const isControlsVisible = playerContainer.classList.contains('show-controls');
 
     // নিয়ম ১: যদি কন্ট্রোল বার লুকানো থাকে
@@ -124,6 +130,14 @@ function handleVideoClick(event) {
         // স্ক্রিনের যেকোনো জায়গায় প্রথম ট্যাপে শুধু কন্ট্রোল বার দেখানো হবে
         playerContainer.classList.add('show-controls');
         resetControlsTimer();
+        
+        // ফ্ল্যাগ সেট করুন যাতে পরবর্তী দ্রুত ট্যাপ প্লে/পজ না করে
+        justShownControls = true;
+        // অল্প সময় পর ফ্ল্যাগটি রিসেট করুন
+        setTimeout(() => {
+            justShownControls = false;
+        }, 200); // ২০০ মিলিসেকেন্ডের মধ্যে দ্বিতীয় ট্যাপ পড়লে তা উপেক্ষা করা হবে
+
         return; // এখানে ফাংশনের কাজ শেষ
     }
 
