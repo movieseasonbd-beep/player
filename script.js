@@ -121,6 +121,9 @@ function handleVideoClick(event) {
     const screenWidth = window.innerWidth;
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
+
+    // ট্যাপের আগে কন্ট্রোল বারের অবস্থা মনে রাখুন
+    const wasControlsVisible = playerContainer.classList.contains('show-controls');
     
     // আগের যেকোনো সিঙ্গেল-ট্যাপের টাইমার বাতিল করুন
     clearTimeout(tapTimeout);
@@ -146,18 +149,16 @@ function handleVideoClick(event) {
 
     // ধাপ ৩: সিঙ্গেল-ট্যাপের আসল কাজটি একটি সংক্ষিপ্ত বিলম্বের পর হবে
     tapTimeout = setTimeout(() => {
-        const isControlsVisible = playerContainer.classList.contains('show-controls');
-        
-        if (isControlsVisible) {
-            // কন্ট্রোল বার দেখানো আছে: মাঝখানে ট্যাপ করলে প্লে/পজ হবে
+        if (wasControlsVisible) {
+            // কন্ট্রোল বার দেখানো ছিল: মাঝখানে ট্যাপ করলে প্লে/পজ হবে
             if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
                 directTogglePlay();
             } else {
-                // পাশে ট্যাপ করলে শুধুমাত্র টাইমার রিসেট হবে
-                resetControlsTimer();
+                // পাশে ট্যাপ করলে কন্ট্রোল বার হাইড হয়ে যাবে
+                hideControls();
             }
         } else {
-            // কন্ট্রোল বার লুকানো আছে: যেকোনো জায়গায় ট্যাপ করলে শুধু কন্ট্রোল বার আসবে
+            // কন্ট্রোল বার লুকানো ছিল: যেকোনো জায়গায় ট্যাপ করলে শুধু কন্ট্রোল বার আসবে
             playerContainer.classList.add('show-controls');
             resetControlsTimer();
         }
