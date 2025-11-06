@@ -102,7 +102,7 @@ function showUnlockIndicatorTemporarily() {
     }, 2500);
 }
 
-// === সংশোধিত handleVideoClick ফাংশন ===
+// === চূড়ান্তভাবে সংশোধিত handleVideoClick ফাংশন ===
 function handleVideoClick(event) {
     if (settingsMenu.classList.contains('active')) {
         settingsMenu.classList.remove('active');
@@ -117,44 +117,38 @@ function handleVideoClick(event) {
 
     const clickX = event.clientX;
     const screenWidth = window.innerWidth;
-    const isControlsVisible = playerContainer.classList.contains('show-controls');
-
-    // যদি স্ক্রিনের মাঝের অংশে (৩৫% থেকে ৬৫% এর মধ্যে) ট্যাপ করা হয়
-    if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
-        directTogglePlay(); // সাথে সাথে প্লে বা পজ হবে
-        if (!isControlsVisible) {
-            playerContainer.classList.add('show-controls');
-            resetControlsTimer();
-        }
-        lastTap = 0;
-        clearTimeout(tapTimeout);
-        return; 
-    }
-
-    // যদি স্ক্রিনের বাম বা ডান দিকে ট্যাপ করা হয়
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
+    
     clearTimeout(tapTimeout);
 
     if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
-        if (clickX < screenWidth * 0.35) { 
+        if (clickX < screenWidth * 0.35) {
             video.currentTime -= 10;
             showTapIndicator(rewindIndicator);
-        } else { 
+            lastTap = 0;
+            return;
+        } else if (clickX > screenWidth * 0.65) {
             video.currentTime += 10;
             showTapIndicator(forwardIndicator);
+            lastTap = 0;
+            return;
         }
-        lastTap = 0;
-    } else {
-        tapTimeout = setTimeout(() => {
-            playerContainer.classList.toggle('show-controls');
-            if (playerContainer.classList.contains('show-controls')) {
-                resetControlsTimer();
-            }
-        }, DOUBLE_TAP_DELAY);
-        lastTap = currentTime;
     }
+    
+    lastTap = currentTime;
+
+    tapTimeout = setTimeout(() => {
+        const isControlsVisible = playerContainer.classList.contains('show-controls');
+        if (isControlsVisible) {
+            playerContainer.classList.remove('show-controls');
+        } else {
+            playerContainer.classList.add('show-controls');
+            resetControlsTimer();
+        }
+    }, DOUBLE_TAP_DELAY);
 }
+
 
 function showTapIndicator(indicator) {
     indicator.classList.add('show');
@@ -214,7 +208,7 @@ function toggleScreenLock() {
     }
 }
 
-// === সংশোধিত টাচ ফাংশনসমূহ ===
+// === সংশোধিত টাচ ফাংশনসমূহ (লক আইকন স্থির রাখার জন্য) ===
 function handleTouchStart(e) {
     isGestureActive = false;
     if (isScreenLocked) return;
