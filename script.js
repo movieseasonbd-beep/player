@@ -64,6 +64,10 @@ const aspectModes = ['fit', 'stretch', 'crop'];
 let currentAspectModeIndex = 0;
 let wakeLock = null;
 
+// লোডিং স্ক্রিন কন্ট্রোলের জন্য ফ্ল্যাগ
+let isLoadTimeElapsed = false;
+let isVideoReady = false;
+
 const acquireWakeLock = async () => {
     if ('wakeLock' in navigator) {
         try {
@@ -83,10 +87,10 @@ const releaseWakeLock = async () => {
 
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
 
-function hideLoadingOverlay() { 
-    if (!loadingOverlay.classList.contains('hidden')) { 
-        loadingOverlay.classList.add('hidden'); 
-    } 
+function tryToHideLoadingOverlay() {
+    if (isLoadTimeElapsed && isVideoReady && !loadingOverlay.classList.contains('hidden')) {
+        loadingOverlay.classList.add('hidden');
+    }
 }
 
 function initializeHls() {
@@ -96,16 +100,28 @@ function initializeHls() {
 }
 
 function loadVideo(videoUrl) {
-    setTimeout(hideLoadingOverlay, 3000); // ফলব্যাক: ৩ সেকেন্ড পরে লোডিং স্ক্রিন হাইড হবেই
+    isLoadTimeElapsed = false;
+    isVideoReady = false;
+
+    setTimeout(() => {
+        isLoadTimeElapsed = true;
+        tryToHideLoadingOverlay();
+    }, 3000);
 
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         initializeHls();
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_LOADED, hideLoadingOverlay);
+        hls.on(Hls.Events.MANIFEST_LOADED, () => {
+            isVideoReady = true;
+            tryToHideLoadingOverlay();
+        });
     } else {
         video.src = videoUrl;
-        video.addEventListener('loadeddata', hideLoadingOverlay, { once: true });
+        video.addEventListener('loadeddata', () => {
+            isVideoReady = true;
+            tryToHideLoadingOverlay();
+        }, { once: true });
     }
 }
 
