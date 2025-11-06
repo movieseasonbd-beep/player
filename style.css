@@ -218,8 +218,8 @@ body {
 
 #aspect-ratio-btn svg {
     display: none;
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     fill: currentColor; /* বাটনের রঙ ব্যবহার করবে */
 }
 
