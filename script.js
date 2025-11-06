@@ -140,15 +140,13 @@ function handleVideoClick(event) {
                 if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
                     directTogglePlay();
                 } else {
-                    playerContainer.classList.remove('show-controls');
-                    clearTimeout(controlsTimeout);
+                    resetControlsTimer();
                 }
             }
         }, DOUBLE_TAP_DELAY);
     }
     lastTap = currentTime;
 }
-
 
 function showTapIndicator(indicator) {
     indicator.classList.add('show');
