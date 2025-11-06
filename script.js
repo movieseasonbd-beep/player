@@ -109,26 +109,21 @@ function handleVideoClick(event) {
     }
 
     if (isScreenLocked) {
-        if (event.target.closest('.unlock-indicator')) return;
+        if (event.target.closest('.unlock-indicator')) {
+            return;
+        }
         showUnlockIndicatorTemporarily();
         return;
     }
 
-    const clickX = event.clientX;
-    const screenWidth = window.innerWidth;
-    
-    // মাঝখানে ট্যাপ করলে সরাসরি প্লে/পজ
-    if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
-        directTogglePlay();
-        return;
-    }
-
-    // সাইডে ট্যাপ করলে ডাবল-ট্যাপ অথবা কন্ট্রোল দেখানোর লজিক কাজ করবে
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
     clearTimeout(tapTimeout);
 
     if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
+        const clickX = event.clientX;
+        const screenWidth = window.innerWidth;
+        
         if (clickX < screenWidth * 0.35) {
             video.currentTime -= 10;
             showTapIndicator(rewindIndicator);
@@ -139,9 +134,20 @@ function handleVideoClick(event) {
         lastTap = 0;
     } else {
         tapTimeout = setTimeout(() => {
-            playerContainer.classList.toggle('show-controls');
-            if (playerContainer.classList.contains('show-controls')) {
+            const isControlsVisible = playerContainer.classList.contains('show-controls');
+            
+            if (!isControlsVisible) {
+                playerContainer.classList.add('show-controls');
                 resetControlsTimer();
+            } else {
+                const clickX = event.clientX;
+                const screenWidth = window.innerWidth;
+
+                if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
+                    directTogglePlay();
+                } else {
+                    resetControlsTimer();
+                }
             }
         }, DOUBLE_TAP_DELAY);
     }
