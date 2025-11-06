@@ -117,12 +117,11 @@ body {
 .control-btn:active { transform: scale(1); }
 .control-btn.active { color: var(--theme-color); }
 
-.control-btn svg path { fill: currentColor; } /* Changed to currentColor */
+.control-btn svg path { fill: currentColor; }
 .control-btn:hover { color: var(--theme-color); }
 .control-btn svg { transition: fill 0.1s ease; }
 #fullscreen-btn .fullscreen-on-icon path { stroke: currentColor; fill: none; }
 
-/* Active fullscreen button color */
 #fullscreen-btn.active .fullscreen-off-icon { color: var(--theme-color); }
 
 #play-pause-btn svg { width: 30px; height: 30px; }
@@ -177,56 +176,93 @@ body {
 @media (min-width: 768px) { #quality-options-list, #speed-options-list { max-height: none; } }
 .menu-quality li.playing { color: #f21111; font-weight: bold; }
 
-/* === জেসচার কন্ট্রোলের জন্য স্টাইল === */
 .brightness-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; opacity: 0; pointer-events: none; z-index: 3; transition: opacity 0.15s linear; }
 .fast-forward-indicator, .gesture-indicator { position: absolute; top: 7vh; left: 50%; transform: translateX(-50%); background-color: rgba(40, 40, 40, 0.85); color: white; border-radius: 20px; z-index: 4; display: flex; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; pointer-events: none; }
 .fast-forward-indicator { padding: 8px 16px; font-size: 14px; font-weight: 500; }
 .gesture-indicator { padding: 8px; gap: 10px; }
 .icon-container { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-left: 4px; }
-.gesture-indicator .indicator-icon { width: 20px; height: 20px; fill: #e0e0e0; display: none; }
+.gesture-indicator .indicator-icon, .gesture-indicator .gesture-volume-on-icon, .gesture-indicator .gesture-volume-off-icon { width: 24px; height: 24px; fill: #e0e0e0; display: none; }
 .indicator-bar-container { width: 120px; height: 5px; background-color: rgba(0, 0, 0, 0.4); border-radius: 10px; overflow: hidden; margin-right: 12px; }
 .indicator-bar-fill { height: 100%; width: 50%; background-color: white; border-radius: 10px; transition: width 0.05s linear; }
 .gesture-indicator.show, .fast-forward-indicator.show { opacity: 1; visibility: visible; }
 
-/* === নতুন Aspect Ratio বাটনের জন্য স্টাইল === */
-#aspect-ratio-btn {
-    display: none; /* ডিফল্টভাবে বাটন লুকানো থাকবে */
-    align-items: center;
-    gap: 8px;
-    padding: 5px 8px;
-    border-radius: 5px;
-    background-color: transparent;
-    transition: background-color 0.2s ease;
-}
-
-/* শুধুমাত্র ফুলস্ক্রিন মোডে বাটনটি দেখা যাবে */
-.player-container:fullscreen #aspect-ratio-btn {
-    display: flex;
-}
-
-#aspect-ratio-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.aspect-ratio-text {
-    font-size: 13px;
-    font-weight: 800;
-    line-height: 1;
-    color: white;
-    white-space: nowrap;
-}
-
-#aspect-ratio-btn svg {
-    display: none;
-    width: 24px;
-    height: 24px;
-    fill: currentColor; /* বাটনের রঙ ব্যবহার করবে */
-}
-
+#aspect-ratio-btn { display: none; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 5px; background-color: transparent; transition: background-color 0.2s ease; }
+.player-container:fullscreen #aspect-ratio-btn { display: flex; }
+#aspect-ratio-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
+.aspect-ratio-text { font-size: 13px; font-weight: 800; line-height: 1; color: white; white-space: nowrap; }
+#aspect-ratio-btn svg { display: none; width: 24px; height: 24px; fill: currentColor; }
 #aspect-ratio-btn.fit .fit-icon { display: block; }
 #aspect-ratio-btn.stretch .stretch-icon { display: block; }
 #aspect-ratio-btn.crop .crop-icon { display: block; }
+.controls-right { gap: 15px; }
 
-.controls-right {
-    gap: 15px;
+/* ================== স্ক্রিন লক স্টাইল শুরু ================== */
+.screen-lock-btn {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    z-index: 4;
+    padding: 10px;
+    background-color: rgba(40, 40, 40, 0.7);
+    border-radius: 50%;
+    opacity: 0;
+    visibility: hidden; /* ডিফল্টভাবে লুকানো থাকবে */
+    transition: opacity 0.25s ease, visibility 0.25s ease;
 }
+
+/* শুধুমাত্র ফুলস্ক্রিন মোডে এবং কন্ট্রোল দেখা গেলে লক বাটন দেখা যাবে */
+.player-container:fullscreen.show-controls .screen-lock-btn,
+.player-container:fullscreen.paused .screen-lock-btn {
+    opacity: 1;
+    visibility: visible;
+}
+
+.screen-lock-btn svg {
+    width: 26px;
+    height: 26px;
+    display: block;
+}
+
+.unlock-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 6; /* সবকিছুর উপরে থাকবে */
+    display: none; /* ডিফল্টভাবে লুকানো থাকবে */
+    align-items: center;
+    gap: 12px;
+    background-color: rgba(40, 40, 40, 0.85);
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 16px;
+    cursor: pointer;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.unlock-indicator svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* যখন স্ক্রিন লক হবে, তখন এই স্টাইলগুলো কাজ করবে */
+.player-container.screen-locked .controls-container,
+.player-container.screen-locked .central-play-btn,
+.player-container.screen-locked .settings-menu,
+.player-container.screen-locked .screen-lock-btn,
+.player-container.screen-locked .gesture-indicator {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none;
+}
+
+.player-container.screen-locked .unlock-indicator {
+    display: flex;
+}
+/* ================== স্ক্রিন লক স্টাইল শেষ =================== */
