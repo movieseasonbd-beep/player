@@ -57,7 +57,7 @@ let originalPlaybackRate = 1;
 let indicatorTimeout;
 let currentBrightness = 1.0;
 let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuInitialized = false, originalVideoUrl = null, wakeLock = null;
-let lastVolume = 1; // পরিবর্তিত: আনমিউট করার জন্য শেষ ভলিউম মনে রাখবে
+let lastVolume = 1;
 
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
 const acquireWakeLock = async () => { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } };
@@ -215,14 +215,13 @@ function formatTime(seconds) {
 // পরিবর্তিত: toggleMute ফাংশন
 function toggleMute() {
     if (video.volume > 0 && !video.muted) {
-        lastVolume = video.volume;
+        lastVolume = video.volume; // মিউট করার আগে বর্তমান ভলিউম সংরক্ষণ করা হচ্ছে
         video.muted = true;
-        video.volume = 0; // Ensure consistency
+        video.volume = 0;
     } else {
         video.muted = false;
-        if (video.volume === 0) {
-            video.volume = lastVolume;
-        }
+        video.volume = 1.0; // আনমিউট করার সময় ভলিউম সরাসরি 100% করে দেওয়া হচ্ছে
+        lastVolume = 1.0; // ভবিষ্যতের জন্য lastVolume আপডেট করা হচ্ছে
     }
     requestAnimationFrame(updateVolumeIcon);
 }
@@ -282,7 +281,6 @@ function addHlsEvents() {
     hls.on(Hls.Events.ERROR, function(event, data) { if (data.fatal) { switch (data.type) { case Hls.ErrorTypes.NETWORK_ERROR: hls.startLoad(); break; case Hls.ErrorTypes.MEDIA_ERROR: hls.recoverMediaError(); break; default: hls.destroy(); break; } } });
 }
 
-// === পরিবর্তিত: জেসচার কন্ট্রোল ফাংশন ===
 function updateVolumeGestureIcon(level) {
     const isMuted = level === 0;
     if (gestureVolumeOnIcon && gestureVolumeOffIcon) {
