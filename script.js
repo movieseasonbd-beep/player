@@ -34,8 +34,6 @@ const subtitleSettingsPage = document.querySelector('.menu-subtitle');
 const subtitleOptionsList = document.getElementById('subtitle-options-list');
 const subtitleCurrentValue = subtitleMenuBtn ? subtitleMenuBtn.querySelector('.current-value') : null;
 const downloadBtn = document.getElementById('download-btn');
-
-// নতুন Aspect Ratio বাটনের DOM Elements
 const aspectRatioBtn = document.getElementById('aspect-ratio-btn');
 const aspectRatioText = aspectRatioBtn.querySelector('.aspect-ratio-text');
 
@@ -60,17 +58,39 @@ let isFastForwarding = false;
 let originalPlaybackRate = 1;
 let indicatorTimeout;
 let currentBrightness = 1.0;
-let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuInitialized = false, originalVideoUrl = null, wakeLock = null;
+let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuInitialized = false, originalVideoUrl = null;
 let lastVolume = 1;
-
-// নতুন: Aspect Ratio মোড ম্যানেজমেন্ট
 const aspectModes = ['fit', 'stretch', 'crop'];
 let currentAspectModeIndex = 0;
 
+// === Wake Lock ভ্যারিয়েবল ===
+let wakeLock = null;
+
+// === Wake Lock Functions ===
+const acquireWakeLock = async () => {
+    // Wake Lock API শুধুমাত্র সাপোর্টেড ব্রাউজার এবং https-এ কাজ করে
+    if ('wakeLock' in navigator) {
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+        } catch (err) {
+            // console.error(`${err.name}, ${err.message}`);
+        }
+    }
+};
+
+const releaseWakeLock = async () => {
+    if (wakeLock !== null) {
+        try {
+            await wakeLock.release();
+            wakeLock = null;
+        } catch (err) {
+            // console.error(`${err.name}, ${err.message}`);
+        }
+    }
+};
+
+
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
-const acquireWakeLock = async () => { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } };
-const releaseWakeLock = () => { if (wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); } };
-function hideLoadingOverlay() { if (!loadingOverlay.classList.contains('hidden')) { loadingOverlay.classList.add('hidden'); } }
 
 function initializeHls() {
     if (hls) { hls.destroy(); }
@@ -260,10 +280,8 @@ function updateFullscreenState() {
     fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
     fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
     fullscreenBtn.classList.toggle('active', isFullscreen);
-
-    // নতুন: ফুলস্ক্রিন থেকে বের হলে Aspect Ratio রিসেট করা
     if (!isFullscreen) {
-        currentAspectModeIndex = 0; // 'fit' মোডে রিসেট
+        currentAspectModeIndex = 0;
         updateAspectRatio(aspectModes[currentAspectModeIndex]);
     }
 }
@@ -288,7 +306,6 @@ function showMenuPage(pageToShow) {
     }
 }
 
-// নতুন: Aspect Ratio পরিবর্তনের ফাংশন
 function updateAspectRatio(mode) {
     switch (mode) {
         case 'stretch':
@@ -303,7 +320,7 @@ function updateAspectRatio(mode) {
             break;
     }
     aspectRatioText.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
-    aspectRatioBtn.className = 'control-btn'; // Reset classes
+    aspectRatioBtn.className = 'control-btn';
     aspectRatioBtn.classList.add(mode);
 }
 
@@ -323,13 +340,9 @@ function updateVolumeGestureIcon(level) {
 
 function updateBrightnessGestureIcon(level) {
     [brightnessIconLow, brightnessIconMedium, brightnessIconHigh].forEach(icon => icon.style.display = 'none');
-    if (level <= 0.33) {
-        brightnessIconHigh.style.display = 'block';
-    } else if (level <= 0.66) {
-        brightnessIconMedium.style.display = 'block';
-    } else {
-        brightnessIconLow.style.display = 'block';
-    }
+    if (level <= 0.33) { brightnessIconHigh.style.display = 'block'; }
+    else if (level <= 0.66) { brightnessIconMedium.style.display = 'block'; }
+    else { brightnessIconLow.style.display = 'block'; }
 }
 
 function showIndicator(indicator) {
@@ -425,10 +438,24 @@ video.addEventListener('click', handleScreenTap);
 video.addEventListener('contextmenu', e => e.preventDefault());
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
-video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); acquireWakeLock(); });
+
+// Wake Lock চালু করা
+video.addEventListener('play', () => {
+    updatePlayState();
+    resetControlsTimer();
+    acquireWakeLock();
+});
 video.addEventListener('play', () => { if (video.poster) { video.poster = ''; } }, { once: true });
-video.addEventListener('pause', () => { updatePlayState(); clearTimeout(controlsTimeout); playerContainer.classList.add('show-controls'); releaseWakeLock(); });
+
+// Wake Lock বন্ধ করা
+video.addEventListener('pause', () => {
+    updatePlayState();
+    clearTimeout(controlsTimeout);
+    playerContainer.classList.add('show-controls');
+    releaseWakeLock();
+});
 video.addEventListener('ended', releaseWakeLock);
+
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 video.addEventListener('volumechange', updateVolumeIcon);
@@ -458,7 +485,7 @@ settingsBtn.addEventListener('click', () => {
 });
 
 aspectRatioBtn.addEventListener('click', () => {
-    if (!document.fullscreenElement) return; // শুধুমাত্র ফুলস্ক্রিনে কাজ করবে
+    if (!document.fullscreenElement) return;
     currentAspectModeIndex = (currentAspectModeIndex + 1) % aspectModes.length;
     const newMode = aspectModes[currentAspectModeIndex];
     updateAspectRatio(newMode);
@@ -478,8 +505,9 @@ speedOptions.forEach(option => {
     });
 });
 
+// Wake Lock ম্যানেজ করার জন্য
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden' && wakeLock !== null) {
+    if (document.visibilityState === 'hidden' && wakeLock) {
         releaseWakeLock();
     } else if (document.visibilityState === 'visible' && !video.paused) {
         acquireWakeLock();
