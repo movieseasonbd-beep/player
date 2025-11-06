@@ -66,7 +66,6 @@ const aspectModes = ['fit', 'stretch', 'crop'];
 let currentAspectModeIndex = 0;
 
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
-
 const acquireWakeLock = async () => { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } };
 const releaseWakeLock = () => { if (wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); } };
 function hideLoadingOverlay() { if (!loadingOverlay.classList.contains('hidden')) { loadingOverlay.classList.add('hidden'); } }
@@ -78,8 +77,7 @@ function initializeHls() {
 }
 
 function loadVideo(videoUrl) {
-    setTimeout(hideLoadingOverlay, 3000); // আপনার অরিজিনাল লজিক: ৩ সেকেন্ড পর লোডিং স্ক্রিন হাইড হবে
-
+    setTimeout(hideLoadingOverlay, 3000);
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         initializeHls();
         hls.loadSource(videoUrl);
