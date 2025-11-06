@@ -51,7 +51,7 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    object-fit: contain;
+    object-fit: contain; /* ডিফল্ট মোড 'fit' */
     background-color: #000;
 }
 
@@ -176,7 +176,7 @@ body {
 @media (min-width: 768px) { #quality-options-list, #speed-options-list { max-height: none; } }
 .menu-quality li.playing { color: #f21111; font-weight: bold; }
 
-/* === নতুন ও পরিবর্তিত: জেসচার কন্ট্রোলের জন্য স্টাইল === */
+/* === জেসচার কন্ট্রোলের জন্য স্টাইল === */
 .brightness-overlay {
     position: absolute;
     top: 0;
@@ -257,4 +257,50 @@ body {
     opacity: 1;
     visibility: visible;
 }
-/* ======================================= */
+
+/* === নতুন Aspect Ratio বাটনের জন্য স্টাইল === */
+#aspect-ratio-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* আইকন এবং টেক্সটের মধ্যে ফাঁকা জায়গা */
+    padding: 5px 8px;
+    border-radius: 5px;
+    background-color: transparent;
+    transition: background-color 0.2s ease;
+}
+
+#aspect-ratio-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.aspect-ratio-text {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    color: white;
+    white-space: nowrap;
+}
+
+/* আইকন দেখানোর নিয়ম */
+#aspect-ratio-btn svg {
+    display: none; /* ডিফল্টভাবে সব আইকন লুকানো থাকবে */
+    width: 22px;
+    height: 22px;
+}
+
+#aspect-ratio-btn.fit .fit-icon {
+    display: block; /* শুধুমাত্র 'fit' ক্লাসের জন্য 'fit-icon' দেখা যাবে */
+}
+
+#aspect-ratio-btn.stretch .stretch-icon {
+    display: block; /* শুধুমাত্র 'stretch' ক্লাসের জন্য 'stretch-icon' দেখা যাবে */
+}
+
+#aspect-ratio-btn.crop .crop-icon {
+    display: block; /* শুধুমাত্র 'crop' ক্লাসের জন্য 'crop-icon' দেখা যাবে */
+}
+
+/* অন্যান্য কন্ট্রোলের সাথে সামঞ্জস্য রাখার জন্য */
+.controls-right {
+    gap: 15px; /* ডানদিকের বাটনগুলোর মধ্যে ফাঁকা জায়গা বাড়ানো হয়েছে */
+}
