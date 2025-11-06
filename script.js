@@ -128,31 +128,27 @@ function handleVideoClick(event) {
         lastTap = 0;
     } else {
         tapTimeout = setTimeout(() => {
-            const clickX = event.clientX;
-            const screenWidth = window.innerWidth;
-            const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
-
-            if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
-                if (video.paused) {
-                    video.play();
-                } else {
-                    if (isControlsVisible) {
-                        video.pause();
-                    } else {
-                        playerContainer.classList.add('show-controls');
-                        resetControlsTimer();
-                    }
-                }
+            const isControlsVisible = playerContainer.classList.contains('show-controls');
+            
+            if (!isControlsVisible) {
+                playerContainer.classList.add('show-controls');
+                resetControlsTimer();
             } else {
-                playerContainer.classList.toggle('show-controls');
-                if (playerContainer.classList.contains('show-controls')) {
-                    resetControlsTimer();
+                const clickX = event.clientX;
+                const screenWidth = window.innerWidth;
+
+                if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
+                    directTogglePlay();
+                } else {
+                    playerContainer.classList.remove('show-controls');
+                    clearTimeout(controlsTimeout);
                 }
             }
         }, DOUBLE_TAP_DELAY);
     }
     lastTap = currentTime;
 }
+
 
 function showTapIndicator(indicator) {
     indicator.classList.add('show');
