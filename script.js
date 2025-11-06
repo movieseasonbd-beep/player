@@ -102,10 +102,10 @@ function showUnlockIndicatorTemporarily() {
 }
 
 // =========================================================================
-// ==================== চূড়ান্ত পরিবর্তিত ফাংশন =========================
+// ==================== চূড়ান্ত এবং সঠিক ফাংশন =========================
 // =========================================================================
 function handleVideoClick(event) {
-    // ধাপ ১: জরুরি অবস্থাগুলো আগে পরীক্ষা করুন
+    // জরুরি অবস্থাগুলো আগে পরীক্ষা করুন
     if (settingsMenu.classList.contains('active')) {
         settingsMenu.classList.remove('active');
         settingsBtn.classList.remove('active');
@@ -121,54 +121,52 @@ function handleVideoClick(event) {
     const screenWidth = window.innerWidth;
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
-
-    // পুরোনো সিঙ্গেল-ট্যাপ টাইমার মুছে দিন
+    
+    // আগের যেকোনো সিঙ্গেল-ট্যাপের টাইমার বাতিল করুন
     clearTimeout(tapTimeout);
 
-    // ধাপ ২: ডাবল-ট্যাপ পরীক্ষা করুন (সর্বাধিক গুরুত্ব)
+    // ধাপ ১: ডাবল-ট্যাপ পরীক্ষা করুন (সর্বোচ্চ অগ্রাধিকার)
     if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
-        // এটি একটি ডাবল-ট্যাপ
-        if (clickX < screenWidth * 0.35) { // বাম দিকে
-            video.currentTime -= 10;
-            showTapIndicator(rewindIndicator);
-        } else if (clickX > screenWidth * 0.65) { // ডান দিকে
-            video.currentTime += 10;
-            showTapIndicator(forwardIndicator);
+        // শুধুমাত্র ডান বা বাম দিকে ডাবল-ট্যাপ কাজ করবে
+        if (clickX < screenWidth * 0.35 || clickX > screenWidth * 0.65) {
+            if (clickX < screenWidth * 0.35) {
+                video.currentTime -= 10;
+                showTapIndicator(rewindIndicator);
+            } else {
+                video.currentTime += 10;
+                showTapIndicator(forwardIndicator);
+            }
         }
-        // মাঝখানে ডাবল-ট্যাপ করলে কিছু হবে না
-        lastTap = 0; // ট্রিপল-ট্যাপ এড়ানোর জন্য রিসেট
-        return; // ডাবল-ট্যাপের কাজ শেষ
+        // মাঝখানে ডাবল ট্যাপ করলে কিছু হবে না, কিন্তু টাইমার রিসেট হবে
+        lastTap = 0; // ডাবল-ট্যাপ হয়ে গেছে, তাই রিসেট করুন
+        return; // ডাবল-ট্যাপের কাজ এখানেই শেষ
     }
 
-    // ধাপ ৩: যদি ডাবল-ট্যাপ না হয়, তবে এটি একটি সিঙ্গেল-ট্যাপ
-    // এই ট্যাপের সময় মনে রাখুন, যাতে পরবর্তী ট্যাপ ডাবল-ট্যাপ হিসেবে ধরা যায়
-    lastTap = currentTime;
+    // ধাপ ২: যদি ডাবল-ট্যাপ না হয়, তবে এটি একটি সিঙ্গেল-ট্যাপের প্রথম ধাপ
+    lastTap = currentTime; // পরবর্তী ডাবল-ট্যাপের জন্য এই ট্যাপের সময় মনে রাখুন
 
-    // একটি টাইমার সেট করুন। যদি নির্দিষ্ট সময়ের মধ্যে আর কোনো ট্যাপ না আসে,
-    // তবে এটিকে সিঙ্গেল-ট্যাপ হিসেবে গণ্য করা হবে।
+    // ধাপ ৩: সিঙ্গেল-ট্যাপের আসল কাজটি একটি সংক্ষিপ্ত বিলম্বের পর হবে
     tapTimeout = setTimeout(() => {
         const isControlsVisible = playerContainer.classList.contains('show-controls');
         
-        // সিঙ্গেল-ট্যাপের নিয়ম:
-        // মাঝখানে ট্যাপ করলে প্লে/পজ হবে
-        if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
-            directTogglePlay();
-        } 
-        // পাশে ট্যাপ করলে কন্ট্রোল বার দেখানো/লুকানো হবে
-        else {
-            if (isControlsVisible) {
-                playerContainer.classList.remove('show-controls');
+        if (isControlsVisible) {
+            // কন্ট্রোল বার দেখানো আছে: মাঝখানে ট্যাপ করলে প্লে/পজ হবে
+            if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
+                directTogglePlay();
             } else {
-                playerContainer.classList.add('show-controls');
-                resetControlsTimer();
+                // পাশে ট্যাপ করলে কন্ট্রোল বার হাইড হয়ে যাবে
+                playerContainer.classList.remove('show-controls');
             }
+        } else {
+            // কন্ট্রোল বার লুকানো আছে: যেকোনো জায়গায় ট্যাপ করলে শুধু কন্ট্রোল বার আসবে
+            playerContainer.classList.add('show-controls');
+            resetControlsTimer();
         }
     }, DOUBLE_TAP_DELAY);
 }
 // =========================================================================
 // ========================= ফাংশন পরিবর্তন শেষ ==========================
 // =========================================================================
-
 
 function showTapIndicator(indicator) {
     indicator.classList.add('show');
