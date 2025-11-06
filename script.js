@@ -44,10 +44,8 @@ const volumeIndicator = document.getElementById('volume-indicator');
 const brightnessIndicator = document.getElementById('brightness-indicator');
 const volumeBarFill = document.getElementById('volume-bar-fill');
 const brightnessBarFill = document.getElementById('brightness-bar-fill');
-const volumeIconMute = volumeIndicator.querySelector('.volume-icon-mute');
-const volumeIconLow = volumeIndicator.querySelector('.volume-icon-low');
-const volumeIconMedium = volumeIndicator.querySelector('.volume-icon-medium');
-const volumeIconHigh = volumeIndicator.querySelector('.volume-icon-high');
+const gestureVolumeOnIcon = volumeIndicator.querySelector('.gesture-volume-on-icon');
+const gestureVolumeOffIcon = volumeIndicator.querySelector('.gesture-volume-off-icon');
 const brightnessIconLow = brightnessIndicator.querySelector('.brightness-icon-low');
 const brightnessIconMedium = brightnessIndicator.querySelector('.brightness-icon-medium');
 const brightnessIconHigh = brightnessIndicator.querySelector('.brightness-icon-high');
@@ -60,6 +58,8 @@ let isFastForwarding = false;
 let originalPlaybackRate = 1;
 let indicatorTimeout;
 let currentBrightness = 1.0;
+const SWIPE_THRESHOLD = 15; // জেসচারের সংবেদনশীলতা কমানোর জন্য থ্রেশহোল্ড
+
 let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuInitialized = false, originalVideoUrl = null, wakeLock = null;
 let lastVolume = 1;
 const aspectModes = ['fit', 'stretch', 'crop'];
@@ -275,11 +275,13 @@ function addHlsEvents() {
 }
 
 function updateVolumeGestureIcon(level) {
-    [volumeIconMute, volumeIconLow, volumeIconMedium, volumeIconHigh].forEach(icon => icon.style.display = 'none');
-    if (level === 0) { volumeIconMute.style.display = 'block'; }
-    else if (level > 0 && level <= 0.33) { volumeIconLow.style.display = 'block'; }
-    else if (level > 0.33 && level <= 0.66) { volumeIconMedium.style.display = 'block'; }
-    else { volumeIconHigh.style.display = 'block'; }
+    if (level === 0) {
+        gestureVolumeOnIcon.style.display = 'none';
+        gestureVolumeOffIcon.style.display = 'block';
+    } else {
+        gestureVolumeOnIcon.style.display = 'block';
+        gestureVolumeOffIcon.style.display = 'none';
+    }
 }
 
 function updateBrightnessGestureIcon(level) {
@@ -322,6 +324,11 @@ function handleTouchMove(e) {
     const touch = e.touches[0];
     const deltaY = touchStartY - touch.clientY;
     const swipeSensitivity = window.innerHeight * 0.7;
+
+    // যদি সোয়াইপের দূরত্ব থ্রেশহোল্ডের চেয়ে কম হয়, তাহলে ফাংশন থেকে বেরিয়ে যাও
+    if (Math.abs(deltaY) < SWIPE_THRESHOLD) {
+        return;
+    }
 
     if (touchStartX < window.innerWidth / 2) {
         let newVolume = initialVolume + (deltaY / swipeSensitivity);
