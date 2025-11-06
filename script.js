@@ -137,7 +137,6 @@ function handleVideoClick(event) {
                 showTapIndicator(forwardIndicator);
             }
         }
-        // মাঝখানে ডাবল ট্যাপ করলে কিছু হবে না, কিন্তু টাইমার রিসেট হবে
         lastTap = 0; // ডাবল-ট্যাপ হয়ে গেছে, তাই রিসেট করুন
         return; // ডাবল-ট্যাপের কাজ এখানেই শেষ
     }
@@ -154,8 +153,8 @@ function handleVideoClick(event) {
             if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
                 directTogglePlay();
             } else {
-                // পাশে ট্যাপ করলে কন্ট্রোল বার হাইড হয়ে যাবে
-                playerContainer.classList.remove('show-controls');
+                // পাশে ট্যাপ করলে শুধুমাত্র টাইমার রিসেট হবে
+                resetControlsTimer();
             }
         } else {
             // কন্ট্রোল বার লুকানো আছে: যেকোনো জায়গায় ট্যাপ করলে শুধু কন্ট্রোল বার আসবে
@@ -176,8 +175,25 @@ function showTapIndicator(indicator) {
 }
 
 function updatePlayState() { const isPaused = video.paused; playPauseBtn.querySelector('.play-icon').style.display = isPaused ? 'block' : 'none'; playPauseBtn.querySelector('.pause-icon').style.display = isPaused ? 'none' : 'block'; playerContainer.classList.toggle('paused', isPaused); playerContainer.classList.toggle('playing', !isPaused); }
-function hideControls() { if (!isScreenLocked && !video.paused && !settingsMenu.classList.contains('active') && !isScrubbing) { playerContainer.classList.remove('show-controls'); } }
-function resetControlsTimer() { clearTimeout(controlsTimeout); controlsTimeout = setTimeout(hideControls, 3000); }
+
+// *** এই দুটি ফাংশনে পরিবর্তন আনা হয়েছে ***
+function hideControls() {
+    // ভিডিও পজ থাকলে কন্ট্রোল বার লুকাবে না
+    if (video.paused || isScreenLocked || settingsMenu.classList.contains('active') || isScrubbing) {
+        return;
+    }
+    playerContainer.classList.remove('show-controls');
+}
+
+function resetControlsTimer() {
+    clearTimeout(controlsTimeout);
+    // ভিডিও চললে তবেই টাইমার সেট হবে
+    if (!video.paused) {
+        controlsTimeout = setTimeout(hideControls, 3000);
+    }
+}
+// *****************************************
+
 function updateProgressUI() { if (isScrubbing) return; if (video.duration && !isNaN(video.duration)) { const progressPercent = (video.currentTime / video.duration) * 100; progressFilled.style.width = `${progressPercent}%`; progressBar.value = progressPercent; timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`; } }
 function updateBufferBar() { if (video.duration > 0 && video.buffered.length > 0) { const bufferEnd = video.buffered.end(video.buffered.length - 1); bufferBar.style.width = `${(bufferEnd / video.duration) * 100}%`; } }
 function scrub(e) { const scrubTime = (e.target.value / 100) * video.duration; if (isNaN(scrubTime)) return; video.currentTime = scrubTime; progressFilled.style.width = `${e.target.value}%`; timeDisplay.textContent = `${formatTime(scrubTime)} / ${formatTime(video.duration)}`; }
@@ -251,9 +267,22 @@ video.addEventListener('click', handleVideoClick);
 video.addEventListener('contextmenu', e => e.preventDefault());
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
-video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); acquireWakeLock(); });
+
+// *** এই দুটি Event Listener এ পরিবর্তন আনা হয়েছে ***
+video.addEventListener('play', () => {
+    updatePlayState();
+    resetControlsTimer(); // ভিডিও চললে টাইমার চালু হবে
+    acquireWakeLock();
+});
+video.addEventListener('pause', () => {
+    updatePlayState();
+    clearTimeout(controlsTimeout); // ভিডিও পজ হলে টাইমার বন্ধ হবে
+    playerContainer.classList.add('show-controls'); // এবং কন্ট্রোল বার দেখানো হবে
+    releaseWakeLock();
+});
+// ***********************************************
+
 video.addEventListener('play', () => { if (video.poster) { video.poster = ''; } }, { once: true });
-video.addEventListener('pause', () => { updatePlayState(); clearTimeout(controlsTimeout); playerContainer.classList.add('show-controls'); releaseWakeLock(); });
 video.addEventListener('ended', releaseWakeLock);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
