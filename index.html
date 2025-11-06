@@ -134,14 +134,22 @@
                     <span class="time-display">00:00 / 00:00</span>
                 </div>
                 <div class="controls-right">
-                    <!-- নতুন বাটন -->
+                    <!-- নতুন বাটন (নতুন আইকন সহ) -->
                     <button class="control-btn" id="aspect-ratio-btn">
                         <!-- Fit Icon -->
-                        <svg class="fit-icon" viewBox="0 0 24 24"><path d="M21 17H3V7h18v10zM13 15V9h-2v6h2zM9 15V9H7v6h2zm8 0V9h-2v6h2z" fill="none" /><path d="M13 15h-2V9h2v6zm-4 0H7V9h2v6zm8 0h-2V9h2v6zM21 5H3c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 12H3V7h18v10z"/></svg>
+                        <svg class="fit-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 8C4 6.89543 4.89543 6 6 6H18C19.1046 6 20 6.89543 20 8V16C20 17.1046 19.1046 18 18 18H6C4.89543 18 4 17.1046 4 16V8Z" stroke="currentColor" stroke-width="2"/>
+                            <path d="M10 12H7M7 12L9 10M7 12L9 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14 12H17M17 12L15 10M17 12L15 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                         <!-- Stretch Icon -->
-                        <svg class="stretch-icon" viewBox="0 0 24 24"><path d="M22 6.5l-1.41-1.41L18 7.67V4h-2v6h6V8h-3.67L22 6.5zM6 4v3.67L4.59 6.09 3.08 7.5 6 10.42V14H4v2h6V10H8v2.33L3.58 8 2 9.5l1.41 1.41L6 8.33V6z"/></svg>
+                        <svg class="stretch-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 7L7 7L7 9M15 7L17 7L17 9M9 17L7 17L7 15M15 17L17 17L17 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                         <!-- Crop Icon -->
-                        <svg class="crop-icon" viewBox="0 0 24 24"><path d="M19 19V5H5v14h14zm0-16c1.1 0 2 .9 2 2v14c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h14zM17 7H7c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2z"/></svg>
+                        <svg class="crop-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5 8C5 6.89543 5.89543 6 7 6H17C18.1046 6 19 6.89543 19 8V16C19 17.1046 18.1046 18 17 18H7C5.89543 18 5 17.1046 5 16V8Z"/>
+                        </svg>
                         <span class="aspect-ratio-text">Fit</span>
                     </button>
                     <!-- শেষ -->
@@ -152,7 +160,6 @@
 
                     <button class="control-btn" id="fullscreen-btn">
                         <svg class="fullscreen-on-icon" stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
-                        <!-- আগের Fullscreen Off আইকন -->
                         <svg class="fullscreen-off-icon" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display:none;">
                             <defs>
                                 <linearGradient id="activeIconGradientFullscreen" x1="0%" y1="0%" x2="100%" y2="0%">
