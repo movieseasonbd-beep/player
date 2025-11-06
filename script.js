@@ -44,8 +44,10 @@ const volumeIndicator = document.getElementById('volume-indicator');
 const brightnessIndicator = document.getElementById('brightness-indicator');
 const volumeBarFill = document.getElementById('volume-bar-fill');
 const brightnessBarFill = document.getElementById('brightness-bar-fill');
-const gestureVolumeOnIcon = volumeIndicator.querySelector('.gesture-volume-on-icon');
-const gestureVolumeOffIcon = volumeIndicator.querySelector('.gesture-volume-off-icon');
+const volumeIconMute = volumeIndicator.querySelector('.volume-icon-mute');
+const volumeIconLow = volumeIndicator.querySelector('.volume-icon-low');
+const volumeIconMedium = volumeIndicator.querySelector('.volume-icon-medium');
+const volumeIconHigh = volumeIndicator.querySelector('.volume-icon-high');
 const brightnessIconLow = brightnessIndicator.querySelector('.brightness-icon-low');
 const brightnessIconMedium = brightnessIndicator.querySelector('.brightness-icon-medium');
 const brightnessIconHigh = brightnessIndicator.querySelector('.brightness-icon-high');
@@ -58,40 +60,16 @@ let isFastForwarding = false;
 let originalPlaybackRate = 1;
 let indicatorTimeout;
 let currentBrightness = 1.0;
-let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuInitialized = false, originalVideoUrl = null;
+let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuInitialized = false, originalVideoUrl = null, wakeLock = null;
 let lastVolume = 1;
 const aspectModes = ['fit', 'stretch', 'crop'];
 let currentAspectModeIndex = 0;
-let wakeLock = null;
-
-// লোডিং স্ক্রিন কন্ট্রোলের জন্য ফ্ল্যাগ
-let isLoadTimeElapsed = false;
-let isVideoReady = false;
-
-const acquireWakeLock = async () => {
-    if ('wakeLock' in navigator) {
-        try {
-            wakeLock = await navigator.wakeLock.request('screen');
-        } catch (err) {}
-    }
-};
-
-const releaseWakeLock = async () => {
-    if (wakeLock !== null) {
-        try {
-            await wakeLock.release();
-            wakeLock = null;
-        } catch (err) {}
-    }
-};
 
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
 
-function tryToHideLoadingOverlay() {
-    if (isLoadTimeElapsed && isVideoReady && !loadingOverlay.classList.contains('hidden')) {
-        loadingOverlay.classList.add('hidden');
-    }
-}
+const acquireWakeLock = async () => { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } };
+const releaseWakeLock = () => { if (wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); } };
+function hideLoadingOverlay() { if (!loadingOverlay.classList.contains('hidden')) { loadingOverlay.classList.add('hidden'); } }
 
 function initializeHls() {
     if (hls) { hls.destroy(); }
@@ -100,28 +78,14 @@ function initializeHls() {
 }
 
 function loadVideo(videoUrl) {
-    isLoadTimeElapsed = false;
-    isVideoReady = false;
-
-    setTimeout(() => {
-        isLoadTimeElapsed = true;
-        tryToHideLoadingOverlay();
-    }, 3000);
+    setTimeout(hideLoadingOverlay, 3000); // আপনার অরিজিনাল লজিক: ৩ সেকেন্ড পর লোডিং স্ক্রিন হাইড হবে
 
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         initializeHls();
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_LOADED, () => {
-            isVideoReady = true;
-            tryToHideLoadingOverlay();
-        });
     } else {
         video.src = videoUrl;
-        video.addEventListener('loadeddata', () => {
-            isVideoReady = true;
-            tryToHideLoadingOverlay();
-        }, { once: true });
     }
 }
 
@@ -214,15 +178,8 @@ function updatePlayState() {
     playerContainer.classList.toggle('playing', !isPaused);
 }
 
-function hideControls() {
-    if (!video.paused && !settingsMenu.classList.contains('active') && !isScrubbing) {
-        playerContainer.classList.remove('show-controls');
-    }
-}
-function resetControlsTimer() {
-    clearTimeout(controlsTimeout);
-    controlsTimeout = setTimeout(hideControls, 3000);
-}
+function hideControls() { if (!video.paused && !settingsMenu.classList.contains('active') && !isScrubbing) { playerContainer.classList.remove('show-controls'); } }
+function resetControlsTimer() { clearTimeout(controlsTimeout); controlsTimeout = setTimeout(hideControls, 3000); }
 
 function updateProgressUI() {
     if (isScrubbing) return;
@@ -234,12 +191,7 @@ function updateProgressUI() {
     }
 }
 
-function updateBufferBar() {
-    if (video.duration > 0 && video.buffered.length > 0) {
-        const bufferEnd = video.buffered.end(video.buffered.length - 1);
-        bufferBar.style.width = `${(bufferEnd / video.duration) * 100}%`;
-    }
-}
+function updateBufferBar() { if (video.duration > 0 && video.buffered.length > 0) { const bufferEnd = video.buffered.end(video.buffered.length - 1); bufferBar.style.width = `${(bufferEnd / video.duration) * 100}%`; } }
 
 function scrub(e) {
     const scrubTime = (e.target.value / 100) * video.duration;
@@ -277,17 +229,7 @@ function updateVolumeIcon() {
 }
 
 async function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        await playerContainer.requestFullscreen();
-        try {
-            if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
-        } catch (err) {}
-    } else {
-        await document.exitFullscreen();
-        try {
-            if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
-        } catch (err) {}
-    }
+    if (!document.fullscreenElement) { await playerContainer.requestFullscreen(); try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (err) {} } else { await document.exitFullscreen(); try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (err) {} }
 }
 
 function updateFullscreenState() {
@@ -304,21 +246,9 @@ function updateFullscreenState() {
 
 function showMenuPage(pageToShow) {
     const currentPage = menuContentWrapper.querySelector('.menu-page.active');
-    setTimeout(() => {
-        menuContentWrapper.style.height = `${pageToShow.scrollHeight}px`;
-    }, 0);
+    setTimeout(() => { menuContentWrapper.style.height = `${pageToShow.scrollHeight}px`; }, 0);
     if (currentPage && currentPage !== pageToShow) {
-        if (pageToShow === mainSettingsPage) {
-            currentPage.classList.remove('active');
-            currentPage.classList.add('slide-out-right');
-            mainSettingsPage.classList.remove('slide-out-left');
-            mainSettingsPage.classList.add('active');
-        } else {
-            mainSettingsPage.classList.remove('active');
-            mainSettingsPage.classList.add('slide-out-left');
-            pageToShow.classList.remove('slide-out-right');
-            pageToShow.classList.add('active');
-        }
+        if (pageToShow === mainSettingsPage) { currentPage.classList.remove('active'); currentPage.classList.add('slide-out-right'); mainSettingsPage.classList.remove('slide-out-left'); mainSettingsPage.classList.add('active'); } else { mainSettingsPage.classList.remove('active'); mainSettingsPage.classList.add('slide-out-left'); pageToShow.classList.remove('slide-out-right'); pageToShow.classList.add('active'); }
     }
 }
 
@@ -347,11 +277,11 @@ function addHlsEvents() {
 }
 
 function updateVolumeGestureIcon(level) {
-    const isMuted = level === 0;
-    if (gestureVolumeOnIcon && gestureVolumeOffIcon) {
-        gestureVolumeOnIcon.style.display = isMuted ? 'none' : 'block';
-        gestureVolumeOffIcon.style.display = isMuted ? 'block' : 'none';
-    }
+    [volumeIconMute, volumeIconLow, volumeIconMedium, volumeIconHigh].forEach(icon => icon.style.display = 'none');
+    if (level === 0) { volumeIconMute.style.display = 'block'; }
+    else if (level > 0 && level <= 0.33) { volumeIconLow.style.display = 'block'; }
+    else if (level > 0.33 && level <= 0.66) { volumeIconMedium.style.display = 'block'; }
+    else { volumeIconHigh.style.display = 'block'; }
 }
 
 function updateBrightnessGestureIcon(level) {
@@ -363,31 +293,13 @@ function updateBrightnessGestureIcon(level) {
 
 function showIndicator(indicator) {
     clearTimeout(indicatorTimeout);
-    [volumeIndicator, brightnessIndicator, fastForwardIndicator].forEach(ind => {
-        if (ind !== indicator) ind.classList.remove('show');
-    });
+    [volumeIndicator, brightnessIndicator, fastForwardIndicator].forEach(ind => { if (ind !== indicator) ind.classList.remove('show'); });
     indicator.classList.add('show');
 }
 
-function hideIndicators() {
-    indicatorTimeout = setTimeout(() => {
-        volumeIndicator.classList.remove('show');
-        brightnessIndicator.classList.remove('show');
-    }, 800);
-}
-function startFastForward() {
-    if (video.paused) return;
-    isFastForwarding = true;
-    originalPlaybackRate = video.playbackRate;
-    video.playbackRate = 2.0;
-    showIndicator(fastForwardIndicator);
-}
-function endFastForward() {
-    if (!isFastForwarding) return;
-    video.playbackRate = originalPlaybackRate;
-    fastForwardIndicator.classList.remove('show');
-    isFastForwarding = false;
-}
+function hideIndicators() { indicatorTimeout = setTimeout(() => { volumeIndicator.classList.remove('show'); brightnessIndicator.classList.remove('show'); }, 800); }
+function startFastForward() { if (video.paused) return; isFastForwarding = true; originalPlaybackRate = video.playbackRate; video.playbackRate = 2.0; showIndicator(fastForwardIndicator); }
+function endFastForward() { if (!isFastForwarding) return; video.playbackRate = originalPlaybackRate; fastForwardIndicator.classList.remove('show'); isFastForwarding = false; }
 
 function handleTouchStart(e) {
     if (!document.fullscreenElement || e.target.closest('.controls-container')) return;
@@ -401,9 +313,7 @@ function handleTouchStart(e) {
     volumeBarFill.style.width = `${initialVolume * 100}%`;
     updateVolumeGestureIcon(initialVolume);
     updateBrightnessGestureIcon(initialBrightness);
-    if (touchStartX > window.innerWidth / 2) {
-        longPressTimer = setTimeout(startFastForward, 200);
-    }
+    if (touchStartX > window.innerWidth / 2) { longPressTimer = setTimeout(startFastForward, 200); }
 }
 
 function handleTouchMove(e) {
@@ -441,11 +351,7 @@ function handleTouchMove(e) {
 function handleTouchEnd(e) {
     if (!isTouching) return;
     clearTimeout(longPressTimer);
-    if (isFastForwarding) {
-        endFastForward();
-    } else {
-        hideIndicators();
-    }
+    if (isFastForwarding) { endFastForward(); } else { hideIndicators(); }
     isTouching = false;
 }
 
@@ -454,18 +360,9 @@ video.addEventListener('click', handleScreenTap);
 video.addEventListener('contextmenu', e => e.preventDefault());
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
-video.addEventListener('play', () => {
-    updatePlayState();
-    resetControlsTimer();
-    acquireWakeLock();
-});
+video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); acquireWakeLock(); });
 video.addEventListener('play', () => { if (video.poster) { video.poster = ''; } }, { once: true });
-video.addEventListener('pause', () => {
-    updatePlayState();
-    clearTimeout(controlsTimeout);
-    playerContainer.classList.add('show-controls');
-    releaseWakeLock();
-});
+video.addEventListener('pause', () => { updatePlayState(); clearTimeout(controlsTimeout); playerContainer.classList.add('show-controls'); releaseWakeLock(); });
 video.addEventListener('ended', releaseWakeLock);
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
@@ -517,11 +414,7 @@ speedOptions.forEach(option => {
 });
 
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden' && wakeLock) {
-        releaseWakeLock();
-    } else if (document.visibilityState === 'visible' && !video.paused) {
-        acquireWakeLock();
-    }
+    if (document.visibilityState === 'hidden' && wakeLock !== null) { releaseWakeLock(); } else if (document.visibilityState === 'visible' && !video.paused) { acquireWakeLock(); }
 });
 
 document.addEventListener('DOMContentLoaded', () => {
