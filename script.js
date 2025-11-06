@@ -35,6 +35,10 @@ const subtitleOptionsList = document.getElementById('subtitle-options-list');
 const subtitleCurrentValue = subtitleMenuBtn ? subtitleMenuBtn.querySelector('.current-value') : null;
 const downloadBtn = document.getElementById('download-btn');
 
+// নতুন Aspect Ratio বাটনের DOM Elements
+const aspectRatioBtn = document.getElementById('aspect-ratio-btn');
+const aspectRatioText = aspectRatioBtn.querySelector('.aspect-ratio-text');
+
 // জেসচার কন্ট্রোলের জন্য DOM Elements এবং Variables
 const brightnessOverlay = document.querySelector('.brightness-overlay');
 const fastForwardIndicator = document.querySelector('.fast-forward-indicator');
@@ -58,6 +62,10 @@ let indicatorTimeout;
 let currentBrightness = 1.0;
 let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuInitialized = false, originalVideoUrl = null, wakeLock = null;
 let lastVolume = 1;
+
+// নতুন: Aspect Ratio মোড ম্যানেজমেন্ট
+const aspectModes = ['fit', 'stretch', 'crop'];
+let currentAspectModeIndex = 0;
 
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
 const acquireWakeLock = async () => { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } };
@@ -212,16 +220,15 @@ function formatTime(seconds) {
     return hh > 0 ? `${hh}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
-// পরিবর্তিত: toggleMute ফাংশন
 function toggleMute() {
     if (video.volume > 0 && !video.muted) {
-        lastVolume = video.volume; // মিউট করার আগে বর্তমান ভলিউম সংরক্ষণ করা হচ্ছে
+        lastVolume = video.volume;
         video.muted = true;
         video.volume = 0;
     } else {
         video.muted = false;
-        video.volume = 1.0; // আনমিউট করার সময় ভলিউম সরাসরি 100% করে দেওয়া হচ্ছে
-        lastVolume = 1.0; // ভবিষ্যতের জন্য lastVolume আপডেট করা হচ্ছে
+        video.volume = 1.0;
+        lastVolume = 1.0;
     }
     requestAnimationFrame(updateVolumeIcon);
 }
@@ -253,6 +260,12 @@ function updateFullscreenState() {
     fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
     fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
     fullscreenBtn.classList.toggle('active', isFullscreen);
+
+    // নতুন: ফুলস্ক্রিন থেকে বের হলে Aspect Ratio রিসেট করা
+    if (!isFullscreen) {
+        currentAspectModeIndex = 0; // 'fit' মোডে রিসেট
+        updateAspectRatio(aspectModes[currentAspectModeIndex]);
+    }
 }
 
 function showMenuPage(pageToShow) {
@@ -273,6 +286,25 @@ function showMenuPage(pageToShow) {
             pageToShow.classList.add('active');
         }
     }
+}
+
+// নতুন: Aspect Ratio পরিবর্তনের ফাংশন
+function updateAspectRatio(mode) {
+    switch (mode) {
+        case 'stretch':
+            video.style.objectFit = 'fill';
+            break;
+        case 'crop':
+            video.style.objectFit = 'cover';
+            break;
+        case 'fit':
+        default:
+            video.style.objectFit = 'contain';
+            break;
+    }
+    aspectRatioText.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+    aspectRatioBtn.className = 'control-btn'; // Reset classes
+    aspectRatioBtn.classList.add(mode);
 }
 
 function addHlsEvents() {
@@ -425,6 +457,13 @@ settingsBtn.addEventListener('click', () => {
     }
 });
 
+aspectRatioBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) return; // শুধুমাত্র ফুলস্ক্রিনে কাজ করবে
+    currentAspectModeIndex = (currentAspectModeIndex + 1) % aspectModes.length;
+    const newMode = aspectModes[currentAspectModeIndex];
+    updateAspectRatio(newMode);
+});
+
 speedMenuBtn.addEventListener('click', () => { showMenuPage(speedSettingsPage); });
 if (subtitleMenuBtn) { subtitleMenuBtn.addEventListener('click', () => { showMenuPage(subtitleSettingsPage); }); }
 backBtns.forEach(btn => btn.addEventListener('click', () => showMenuPage(mainSettingsPage)));
@@ -470,6 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePlayState();
     updateVolumeIcon();
     updateFullscreenState();
+    updateAspectRatio(aspectModes[currentAspectModeIndex]);
 
     updateVolumeGestureIcon(video.volume);
     updateBrightnessGestureIcon(currentBrightness);
