@@ -130,9 +130,19 @@ function handleVideoClick(event) {
         tapTimeout = setTimeout(() => {
             const clickX = event.clientX;
             const screenWidth = window.innerWidth;
-            
+            const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
+
             if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
-                directTogglePlay();
+                if (video.paused) {
+                    video.play();
+                } else {
+                    if (isControlsVisible) {
+                        video.pause();
+                    } else {
+                        playerContainer.classList.add('show-controls');
+                        resetControlsTimer();
+                    }
+                }
             } else {
                 playerContainer.classList.toggle('show-controls');
                 if (playerContainer.classList.contains('show-controls')) {
