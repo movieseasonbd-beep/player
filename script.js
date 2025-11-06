@@ -117,11 +117,13 @@ function handleVideoClick(event) {
     const clickX = event.clientX;
     const screenWidth = window.innerWidth;
     
+    // মাঝখানে ট্যাপ করলে সরাসরি প্লে/পজ
     if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
         directTogglePlay();
         return;
     }
 
+    // সাইডে ট্যাপ করলে ডাবল-ট্যাপ অথবা কন্ট্রোল দেখানোর লজিক কাজ করবে
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
     clearTimeout(tapTimeout);
@@ -205,10 +207,10 @@ function toggleScreenLock() {
 }
 
 function handleTouchStart(e) {
+    if (isScreenLocked) return;
     if (e.target.closest('.screen-lock-btn') || e.target.closest('.unlock-indicator')) {
         return;
     }
-    if (isScreenLocked) return;
     if (!document.fullscreenElement || e.target.closest('.controls-container')) return;
     const touch = e.touches[0];
     touchStartX = touch.clientX;
