@@ -61,10 +61,11 @@ const rewindIndicator = document.getElementById('rewind-indicator');
 const forwardIndicator = document.getElementById('forward-indicator');
 let lastTap = 0;
 let tapTimeout;
-const DOUBLE_TAP_DELAY = 300; // ms
+const DOUBLE_TAP_DELAY = 250; // Delay for double tap
 
 let touchStartX, touchStartY;
 let isTouching = false;
+let isGestureActive = false; // Flag to activate gesture controls
 let initialVolume, initialBrightness;
 let longPressTimer;
 let isFastForwarding = false;
@@ -101,57 +102,58 @@ function showUnlockIndicatorTemporarily() {
     }, 2500);
 }
 
+// === সংশোধিত handleVideoClick ফাংশন ===
 function handleVideoClick(event) {
     if (settingsMenu.classList.contains('active')) {
         settingsMenu.classList.remove('active');
         settingsBtn.classList.remove('active');
         return;
     }
-
     if (isScreenLocked) {
-        if (event.target.closest('.unlock-indicator')) {
-            return;
-        }
+        if (event.target.closest('.unlock-indicator')) return;
         showUnlockIndicatorTemporarily();
         return;
     }
 
+    const clickX = event.clientX;
+    const screenWidth = window.innerWidth;
+    const isControlsVisible = playerContainer.classList.contains('show-controls');
+
+    // যদি স্ক্রিনের মাঝের অংশে (৩৫% থেকে ৬৫% এর মধ্যে) ট্যাপ করা হয়
+    if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
+        directTogglePlay(); // সাথে সাথে প্লে বা পজ হবে
+        if (!isControlsVisible) {
+            playerContainer.classList.add('show-controls');
+            resetControlsTimer();
+        }
+        lastTap = 0;
+        clearTimeout(tapTimeout);
+        return; 
+    }
+
+    // যদি স্ক্রিনের বাম বা ডান দিকে ট্যাপ করা হয়
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
     clearTimeout(tapTimeout);
 
     if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
-        const clickX = event.clientX;
-        const screenWidth = window.innerWidth;
-        
-        if (clickX < screenWidth * 0.35) {
+        if (clickX < screenWidth * 0.35) { 
             video.currentTime -= 10;
             showTapIndicator(rewindIndicator);
-        } else if (clickX > screenWidth * 0.65) {
+        } else { 
             video.currentTime += 10;
             showTapIndicator(forwardIndicator);
         }
         lastTap = 0;
     } else {
         tapTimeout = setTimeout(() => {
-            const isControlsVisible = playerContainer.classList.contains('show-controls');
-            
-            if (!isControlsVisible) {
-                playerContainer.classList.add('show-controls');
+            playerContainer.classList.toggle('show-controls');
+            if (playerContainer.classList.contains('show-controls')) {
                 resetControlsTimer();
-            } else {
-                const clickX = event.clientX;
-                const screenWidth = window.innerWidth;
-
-                if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
-                    directTogglePlay();
-                } else {
-                    resetControlsTimer();
-                }
             }
         }, DOUBLE_TAP_DELAY);
+        lastTap = currentTime;
     }
-    lastTap = currentTime;
 }
 
 function showTapIndicator(indicator) {
@@ -212,16 +214,23 @@ function toggleScreenLock() {
     }
 }
 
+// === সংশোধিত টাচ ফাংশনসমূহ ===
 function handleTouchStart(e) {
+    isGestureActive = false;
     if (isScreenLocked) return;
-    if (e.target.closest('.screen-lock-btn') || e.target.closest('.unlock-indicator')) {
+
+    if (e.target.closest('.screen-lock-btn') || e.target.closest('.unlock-indicator') || e.target.closest('.controls-container')) {
         return;
     }
-    if (!document.fullscreenElement || e.target.closest('.controls-container')) return;
+    
+    if (!document.fullscreenElement) return;
+
+    isGestureActive = true; 
+    isTouching = true;
+
     const touch = e.touches[0];
     touchStartX = touch.clientX;
     touchStartY = touch.clientY;
-    isTouching = true;
     initialVolume = video.volume;
     initialBrightness = currentBrightness;
     brightnessBarFill.style.width = `${initialBrightness * 100}%`;
@@ -230,8 +239,59 @@ function handleTouchStart(e) {
     updateBrightnessGestureIcon(initialBrightness);
     if (touchStartX > window.innerWidth / 2) { longPressTimer = setTimeout(startFastForward, 200); }
 }
-function handleTouchMove(e) { if (isScreenLocked || !isTouching || !document.fullscreenElement) return; clearTimeout(longPressTimer); if (isFastForwarding) return; e.preventDefault(); const touch = e.touches[0]; const deltaY = touchStartY - touch.clientY; const swipeSensitivity = window.innerHeight * 0.7; if (Math.abs(deltaY) < SWIPE_THRESHOLD) { return; } if (touchStartX < window.innerWidth / 2) { let newVolume = initialVolume + (deltaY / swipeSensitivity); newVolume = Math.max(0, Math.min(1, newVolume)); if (newVolume > 0) { lastVolume = newVolume; } video.volume = newVolume; video.muted = newVolume === 0; volumeBarFill.style.width = `${newVolume * 100}%`; updateVolumeGestureIcon(newVolume); showIndicator(volumeIndicator); updateVolumeIcon(); } else { let newBrightness = initialBrightness + (deltaY / swipeSensitivity); newBrightness = Math.max(0, Math.min(1, newBrightness)); currentBrightness = newBrightness; brightnessOverlay.style.opacity = 1 - currentBrightness; brightnessBarFill.style.width = `${currentBrightness * 100}%`; updateBrightnessGestureIcon(newBrightness); showIndicator(brightnessIndicator); } }
-function handleTouchEnd(e) { if (isScreenLocked || !isTouching) return; clearTimeout(longPressTimer); if (isFastForwarding) { endFastForward(); } else { hideIndicators(); } isTouching = false; }
+
+function handleTouchMove(e) {
+    if (!isGestureActive) return;
+
+    if (isScreenLocked || !isTouching || !document.fullscreenElement) return;
+    clearTimeout(longPressTimer);
+    if (isFastForwarding) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const deltaY = touchStartY - touch.clientY;
+    const swipeSensitivity = window.innerHeight * 0.7;
+    
+    if (Math.abs(deltaY) < SWIPE_THRESHOLD) return;
+
+    if (touchStartX < window.innerWidth / 2) {
+        let newVolume = initialVolume + (deltaY / swipeSensitivity);
+        newVolume = Math.max(0, Math.min(1, newVolume));
+        if (newVolume > 0) lastVolume = newVolume;
+        video.volume = newVolume;
+        video.muted = newVolume === 0;
+        volumeBarFill.style.width = `${newVolume * 100}%`;
+        updateVolumeGestureIcon(newVolume);
+        showIndicator(volumeIndicator);
+        updateVolumeIcon();
+    } else {
+        let newBrightness = initialBrightness + (deltaY / swipeSensitivity);
+        newBrightness = Math.max(0, Math.min(1, newBrightness));
+        currentBrightness = newBrightness;
+        brightnessOverlay.style.opacity = 1 - currentBrightness;
+        brightnessBarFill.style.width = `${currentBrightness * 100}%`;
+        updateBrightnessGestureIcon(newBrightness);
+        showIndicator(brightnessIndicator);
+    }
+}
+
+function handleTouchEnd(e) {
+    if (!isGestureActive) {
+        isTouching = false;
+        return;
+    }
+
+    if (isScreenLocked || !isTouching) return;
+    
+    clearTimeout(longPressTimer);
+    if (isFastForwarding) {
+        endFastForward();
+    } else {
+        hideIndicators();
+    }
+    
+    isTouching = false;
+    isGestureActive = false;
+}
 
 video.addEventListener('click', handleVideoClick);
 video.addEventListener('contextmenu', e => e.preventDefault());
