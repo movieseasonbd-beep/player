@@ -62,7 +62,6 @@ let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuIn
 let lastVolume = 1;
 const aspectModes = ['fit', 'stretch', 'crop'];
 let currentAspectModeIndex = 0;
-
 let wakeLock = null;
 
 const acquireWakeLock = async () => {
@@ -82,7 +81,6 @@ const releaseWakeLock = async () => {
     }
 };
 
-
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
 
 function hideLoadingOverlay() { 
@@ -98,6 +96,8 @@ function initializeHls() {
 }
 
 function loadVideo(videoUrl) {
+    setTimeout(hideLoadingOverlay, 3000); // ফলব্যাক: ৩ সেকেন্ড পরে লোডিং স্ক্রিন হাইড হবেই
+
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         initializeHls();
         hls.loadSource(videoUrl);
@@ -108,7 +108,6 @@ function loadVideo(videoUrl) {
         video.addEventListener('loadeddata', hideLoadingOverlay, { once: true });
     }
 }
-
 
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
@@ -439,14 +438,12 @@ video.addEventListener('click', handleScreenTap);
 video.addEventListener('contextmenu', e => e.preventDefault());
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
-
 video.addEventListener('play', () => {
     updatePlayState();
     resetControlsTimer();
     acquireWakeLock();
 });
 video.addEventListener('play', () => { if (video.poster) { video.poster = ''; } }, { once: true });
-
 video.addEventListener('pause', () => {
     updatePlayState();
     clearTimeout(controlsTimeout);
@@ -454,7 +451,6 @@ video.addEventListener('pause', () => {
     releaseWakeLock();
 });
 video.addEventListener('ended', releaseWakeLock);
-
 video.addEventListener('timeupdate', updateProgressUI);
 video.addEventListener('progress', updateBufferBar);
 video.addEventListener('volumechange', updateVolumeIcon);
