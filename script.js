@@ -50,6 +50,11 @@ const brightnessIconLow = brightnessIndicator.querySelector('.brightness-icon-lo
 const brightnessIconMedium = brightnessIndicator.querySelector('.brightness-icon-medium');
 const brightnessIconHigh = brightnessIndicator.querySelector('.brightness-icon-high');
 
+// স্ক্রিন লক ফিচার এর জন্য DOM Elements এবং Variables
+const screenLockBtn = document.getElementById('screen-lock-btn');
+const unlockIndicator = document.querySelector('.unlock-indicator');
+let isScreenLocked = false;
+
 let touchStartX, touchStartY;
 let isTouching = false;
 let initialVolume, initialBrightness;
@@ -176,6 +181,7 @@ function setSubtitle(lang) {
 function directTogglePlay() { video.paused ? video.play() : video.pause(); }
 
 function handleScreenTap() {
+    if (isScreenLocked) return;
     if (settingsMenu.classList.contains('active')) {
         settingsMenu.classList.remove('active');
         settingsBtn.classList.remove('active');
@@ -262,6 +268,12 @@ function updateFullscreenState() {
     fullscreenBtn.querySelector('.fullscreen-off-icon').style.display = isFullscreen ? 'block' : 'none';
     fullscreenTooltip.textContent = isFullscreen ? 'Exit Fullscreen' : 'Fullscreen';
     fullscreenBtn.classList.toggle('active', isFullscreen);
+    
+    // ফুলস্ক্রিন থেকে বের হলে স্ক্রিন আনলক করে দেওয়া হবে
+    if (!isFullscreen && isScreenLocked) {
+        toggleScreenLock(); 
+    }
+    
     if (!isFullscreen) {
         currentAspectModeIndex = 0;
         updateAspectRatio(aspectModes[currentAspectModeIndex]);
@@ -327,7 +339,22 @@ function hideIndicators() { indicatorTimeout = setTimeout(() => { volumeIndicato
 function startFastForward() { if (video.paused) return; isFastForwarding = true; originalPlaybackRate = video.playbackRate; video.playbackRate = 2.0; showIndicator(fastForwardIndicator); }
 function endFastForward() { if (!isFastForwarding) return; video.playbackRate = originalPlaybackRate; fastForwardIndicator.classList.remove('show'); isFastForwarding = false; }
 
+function toggleScreenLock() {
+    if (!document.fullscreenElement) return;
+    isScreenLocked = !isScreenLocked;
+    playerContainer.classList.toggle('screen-locked', isScreenLocked);
+
+    if (isScreenLocked) {
+        clearTimeout(controlsTimeout);
+        playerContainer.classList.remove('show-controls');
+    } else {
+        playerContainer.classList.add('show-controls');
+        resetControlsTimer();
+    }
+}
+
 function handleTouchStart(e) {
+    if (isScreenLocked) return;
     if (!document.fullscreenElement || e.target.closest('.controls-container')) return;
     const touch = e.touches[0];
     touchStartX = touch.clientX;
@@ -343,7 +370,7 @@ function handleTouchStart(e) {
 }
 
 function handleTouchMove(e) {
-    if (!isTouching || !document.fullscreenElement) return;
+    if (isScreenLocked || !isTouching || !document.fullscreenElement) return;
     clearTimeout(longPressTimer);
     if (isFastForwarding) return;
     e.preventDefault();
@@ -358,9 +385,7 @@ function handleTouchMove(e) {
     if (touchStartX < window.innerWidth / 2) {
         let newVolume = initialVolume + (deltaY / swipeSensitivity);
         newVolume = Math.max(0, Math.min(1, newVolume));
-        if (newVolume > 0) {
-            lastVolume = newVolume;
-        }
+        if (newVolume > 0) { lastVolume = newVolume; }
         video.volume = newVolume;
         video.muted = newVolume === 0;
         volumeBarFill.style.width = `${newVolume * 100}%`;
@@ -379,7 +404,7 @@ function handleTouchMove(e) {
 }
 
 function handleTouchEnd(e) {
-    if (!isTouching) return;
+    if (isScreenLocked || !isTouching) return;
     clearTimeout(longPressTimer);
     if (isFastForwarding) { endFastForward(); } else { hideIndicators(); }
     isTouching = false;
@@ -405,7 +430,7 @@ document.addEventListener('fullscreenchange', updateFullscreenState);
 progressBar.addEventListener('input', scrub);
 progressBar.addEventListener('mousedown', () => { isScrubbing = true; wasPlaying = !video.paused; if (wasPlaying) video.pause(); });
 document.addEventListener('mouseup', () => { if (isScrubbing) { isScrubbing = false; if (wasPlaying) video.play(); } });
-document.addEventListener('mousemove', () => { playerContainer.classList.add('show-controls'); resetControlsTimer(); });
+document.addEventListener('mousemove', () => { if (!isScreenLocked) { playerContainer.classList.add('show-controls'); resetControlsTimer(); } });
 
 playerContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
 playerContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -463,18 +488,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         loadVideo(videoUrl);
         
-        // m3u8 স্ট্রিম না হলেই শুধুমাত্র এই ফিচার কাজ করবে
         if (!isHlsStream) {
             console.log("Not an HLS stream, enabling Resume Playback.");
-            // প্রতি ১০ সেকেন্ড পর পর ভিডিওর সময় সেভ করা হবে
-            setInterval(() => {
-                saveVideoProgress(videoUrl);
-            }, 10000); 
-
-            // ব্যবহারকারী পেজ বন্ধ করলে বা অন্য পেজে গেলে সময় সেভ হবে
-            window.addEventListener('beforeunload', () => {
-                saveVideoProgress(videoUrl);
-            });
+            setInterval(() => { saveVideoProgress(videoUrl); }, 10000); 
+            window.addEventListener('beforeunload', () => { saveVideoProgress(videoUrl); });
         }
 
     } else {
@@ -485,7 +502,6 @@ document.addEventListener('DOMContentLoaded', () => {
     video.addEventListener('loadedmetadata', updateProgressUI);
     video.addEventListener('loadedmetadata', setupSubtitles);
     video.addEventListener('loadedmetadata', () => {
-        // m3u8 স্ট্রিম না হলেই শুধুমাত্র সেভ করা সময় লোড হবে
         if (videoUrl && !isHlsStream) {
             loadVideoProgress(videoUrl);
         }
@@ -498,4 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateVolumeGestureIcon(video.volume);
     updateBrightnessGestureIcon(currentBrightness);
+    
+    screenLockBtn.addEventListener('click', toggleScreenLock);
+    unlockIndicator.addEventListener('click', toggleScreenLock);
 });
