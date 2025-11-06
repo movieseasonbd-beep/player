@@ -207,11 +207,10 @@ body {
     background-color: rgba(40, 40, 40, 0.7);
     border-radius: 50%;
     opacity: 0;
-    visibility: hidden; /* ডিফল্টভাবে লুকানো থাকবে */
+    visibility: hidden;
     transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
-/* শুধুমাত্র ফুলস্ক্রিন মোডে এবং কন্ট্রোল দেখা গেলে লক বাটন দেখা যাবে */
 .player-container:fullscreen.show-controls .screen-lock-btn,
 .player-container:fullscreen.paused .screen-lock-btn {
     opacity: 1;
@@ -227,10 +226,10 @@ body {
 .unlock-indicator {
     position: absolute;
     top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 6; /* সবকিছুর উপরে থাকবে */
-    display: none; /* ডিফল্টভাবে লুকানো থাকবে */
+    left: 25px; /* বাম পাশে সেট করা হলো */
+    transform: translateY(-50%); /* শুধুমাত্র ভার্টিকালি সেন্টারে রাখা হলো */
+    z-index: 6;
+    display: flex;
     align-items: center;
     gap: 12px;
     background-color: rgba(40, 40, 40, 0.85);
@@ -238,12 +237,14 @@ body {
     border-radius: 50px;
     font-size: 16px;
     cursor: pointer;
-    animation: fadeIn 0.3s ease;
+    opacity: 0; /* ডিফল্টভাবে স্বচ্ছ থাকবে */
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.unlock-indicator.show {
+    opacity: 1;
+    visibility: visible;
 }
 
 .unlock-indicator svg {
@@ -251,7 +252,6 @@ body {
     height: 24px;
 }
 
-/* যখন স্ক্রিন লক হবে, তখন এই স্টাইলগুলো কাজ করবে */
 .player-container.screen-locked .controls-container,
 .player-container.screen-locked .central-play-btn,
 .player-container.screen-locked .settings-menu,
@@ -260,9 +260,5 @@ body {
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none;
-}
-
-.player-container.screen-locked .unlock-indicator {
-    display: flex;
 }
 /* ================== স্ক্রিন লক স্টাইল শেষ =================== */
