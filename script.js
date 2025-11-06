@@ -63,18 +63,13 @@ let lastVolume = 1;
 const aspectModes = ['fit', 'stretch', 'crop'];
 let currentAspectModeIndex = 0;
 
-// === Wake Lock ভ্যারিয়েবল ===
 let wakeLock = null;
 
-// === Wake Lock Functions ===
 const acquireWakeLock = async () => {
-    // Wake Lock API শুধুমাত্র সাপোর্টেড ব্রাউজার এবং https-এ কাজ করে
     if ('wakeLock' in navigator) {
         try {
             wakeLock = await navigator.wakeLock.request('screen');
-        } catch (err) {
-            // console.error(`${err.name}, ${err.message}`);
-        }
+        } catch (err) {}
     }
 };
 
@@ -83,14 +78,18 @@ const releaseWakeLock = async () => {
         try {
             await wakeLock.release();
             wakeLock = null;
-        } catch (err) {
-            // console.error(`${err.name}, ${err.message}`);
-        }
+        } catch (err) {}
     }
 };
 
 
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
+
+function hideLoadingOverlay() { 
+    if (!loadingOverlay.classList.contains('hidden')) { 
+        loadingOverlay.classList.add('hidden'); 
+    } 
+}
 
 function initializeHls() {
     if (hls) { hls.destroy(); }
@@ -99,15 +98,17 @@ function initializeHls() {
 }
 
 function loadVideo(videoUrl) {
-    setTimeout(hideLoadingOverlay, 3000);
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         initializeHls();
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_LOADED, hideLoadingOverlay);
     } else {
         video.src = videoUrl;
+        video.addEventListener('loadeddata', hideLoadingOverlay, { once: true });
     }
 }
+
 
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
@@ -439,7 +440,6 @@ video.addEventListener('contextmenu', e => e.preventDefault());
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 
-// Wake Lock চালু করা
 video.addEventListener('play', () => {
     updatePlayState();
     resetControlsTimer();
@@ -447,7 +447,6 @@ video.addEventListener('play', () => {
 });
 video.addEventListener('play', () => { if (video.poster) { video.poster = ''; } }, { once: true });
 
-// Wake Lock বন্ধ করা
 video.addEventListener('pause', () => {
     updatePlayState();
     clearTimeout(controlsTimeout);
@@ -505,7 +504,6 @@ speedOptions.forEach(option => {
     });
 });
 
-// Wake Lock ম্যানেজ করার জন্য
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden' && wakeLock) {
         releaseWakeLock();
