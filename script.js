@@ -109,10 +109,16 @@ function handleVideoClick(event) {
     }
 
     if (isScreenLocked) {
-        if (event.target.closest('.unlock-indicator')) {
-            return;
-        }
+        if (event.target.closest('.unlock-indicator')) return;
         showUnlockIndicatorTemporarily();
+        return;
+    }
+
+    const clickX = event.clientX;
+    const screenWidth = window.innerWidth;
+    
+    if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
+        directTogglePlay();
         return;
     }
 
@@ -121,9 +127,6 @@ function handleVideoClick(event) {
     clearTimeout(tapTimeout);
 
     if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
-        const clickX = event.clientX;
-        const screenWidth = window.innerWidth;
-        
         if (clickX < screenWidth * 0.35) {
             video.currentTime -= 10;
             showTapIndicator(rewindIndicator);
@@ -134,20 +137,9 @@ function handleVideoClick(event) {
         lastTap = 0;
     } else {
         tapTimeout = setTimeout(() => {
-            const isControlsVisible = playerContainer.classList.contains('show-controls');
-            
-            if (!isControlsVisible) {
-                playerContainer.classList.add('show-controls');
+            playerContainer.classList.toggle('show-controls');
+            if (playerContainer.classList.contains('show-controls')) {
                 resetControlsTimer();
-            } else {
-                const clickX = event.clientX;
-                const screenWidth = window.innerWidth;
-
-                if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
-                    directTogglePlay();
-                } else {
-                    resetControlsTimer();
-                }
             }
         }, DOUBLE_TAP_DELAY);
     }
@@ -213,10 +205,10 @@ function toggleScreenLock() {
 }
 
 function handleTouchStart(e) {
-    if (isScreenLocked) return;
     if (e.target.closest('.screen-lock-btn') || e.target.closest('.unlock-indicator')) {
         return;
     }
+    if (isScreenLocked) return;
     if (!document.fullscreenElement || e.target.closest('.controls-container')) return;
     const touch = e.touches[0];
     touchStartX = touch.clientX;
