@@ -51,7 +51,7 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    object-fit: contain; /* ডিফল্ট মোড 'fit' */
+    object-fit: contain;
     background-color: #000;
 }
 
@@ -117,12 +117,13 @@ body {
 .control-btn:active { transform: scale(1); }
 .control-btn.active { color: var(--theme-color); }
 
-.control-btn svg path { fill: white; }
-.control-btn:hover svg path { fill: var(--theme-color); }
-.control-btn.active svg path { fill: var(--theme-color); }
+.control-btn svg path { fill: currentColor; } /* Changed to currentColor */
+.control-btn:hover { color: var(--theme-color); }
 .control-btn svg { transition: fill 0.1s ease; }
-#fullscreen-btn .fullscreen-on-icon path { stroke: white; fill: none; }
-#fullscreen-btn:hover .fullscreen-on-icon path { stroke: var(--theme-color); }
+#fullscreen-btn .fullscreen-on-icon path { stroke: currentColor; fill: none; }
+
+/* Active fullscreen button color */
+#fullscreen-btn.active .fullscreen-off-icon { color: var(--theme-color); }
 
 #play-pause-btn svg { width: 30px; height: 30px; }
 #play-pause-btn { transform: translateX(-9px); }
@@ -177,96 +178,30 @@ body {
 .menu-quality li.playing { color: #f21111; font-weight: bold; }
 
 /* === জেসচার কন্ট্রোলের জন্য স্টাইল === */
-.brightness-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 3;
-    transition: opacity 0.15s linear;
-}
-
-.fast-forward-indicator,
-.gesture-indicator {
-    position: absolute;
-    top: 7vh;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(40, 40, 40, 0.85);
-    color: white;
-    border-radius: 20px;
-    z-index: 4;
-    display: flex;
-    align-items: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
-    pointer-events: none;
-}
-
-.fast-forward-indicator {
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.gesture-indicator {
-    padding: 8px;
-    gap: 10px;
-}
-
-.icon-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    margin-left: 4px;
-}
-
-.gesture-indicator .indicator-icon {
-    width: 20px;
-    height: 20px;
-    fill: #e0e0e0;
-    display: none;
-}
-
-.indicator-bar-container {
-    width: 120px;
-    height: 5px;
-    background-color: rgba(0, 0, 0, 0.4);
-    border-radius: 10px;
-    overflow: hidden;
-    margin-right: 12px;
-}
-
-.indicator-bar-fill {
-    height: 100%;
-    width: 50%;
-    background-color: white;
-    border-radius: 10px;
-    transition: width 0.05s linear;
-}
-
-.gesture-indicator.show,
-.fast-forward-indicator.show {
-    opacity: 1;
-    visibility: visible;
-}
+.brightness-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; opacity: 0; pointer-events: none; z-index: 3; transition: opacity 0.15s linear; }
+.fast-forward-indicator, .gesture-indicator { position: absolute; top: 7vh; left: 50%; transform: translateX(-50%); background-color: rgba(40, 40, 40, 0.85); color: white; border-radius: 20px; z-index: 4; display: flex; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; pointer-events: none; }
+.fast-forward-indicator { padding: 8px 16px; font-size: 14px; font-weight: 500; }
+.gesture-indicator { padding: 8px; gap: 10px; }
+.icon-container { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-left: 4px; }
+.gesture-indicator .indicator-icon { width: 20px; height: 20px; fill: #e0e0e0; display: none; }
+.indicator-bar-container { width: 120px; height: 5px; background-color: rgba(0, 0, 0, 0.4); border-radius: 10px; overflow: hidden; margin-right: 12px; }
+.indicator-bar-fill { height: 100%; width: 50%; background-color: white; border-radius: 10px; transition: width 0.05s linear; }
+.gesture-indicator.show, .fast-forward-indicator.show { opacity: 1; visibility: visible; }
 
 /* === নতুন Aspect Ratio বাটনের জন্য স্টাইল === */
 #aspect-ratio-btn {
-    display: flex;
+    display: none; /* ডিফল্টভাবে বাটন লুকানো থাকবে */
     align-items: center;
-    gap: 8px; /* আইকন এবং টেক্সটের মধ্যে ফাঁকা জায়গা */
+    gap: 8px;
     padding: 5px 8px;
     border-radius: 5px;
     background-color: transparent;
     transition: background-color 0.2s ease;
+}
+
+/* শুধুমাত্র ফুলস্ক্রিন মোডে বাটনটি দেখা যাবে */
+.player-container:fullscreen #aspect-ratio-btn {
+    display: flex;
 }
 
 #aspect-ratio-btn:hover {
@@ -281,26 +216,17 @@ body {
     white-space: nowrap;
 }
 
-/* আইকন দেখানোর নিয়ম */
 #aspect-ratio-btn svg {
-    display: none; /* ডিফল্টভাবে সব আইকন লুকানো থাকবে */
+    display: none;
     width: 22px;
     height: 22px;
+    fill: currentColor; /* বাটনের রঙ ব্যবহার করবে */
 }
 
-#aspect-ratio-btn.fit .fit-icon {
-    display: block; /* শুধুমাত্র 'fit' ক্লাসের জন্য 'fit-icon' দেখা যাবে */
-}
+#aspect-ratio-btn.fit .fit-icon { display: block; }
+#aspect-ratio-btn.stretch .stretch-icon { display: block; }
+#aspect-ratio-btn.crop .crop-icon { display: block; }
 
-#aspect-ratio-btn.stretch .stretch-icon {
-    display: block; /* শুধুমাত্র 'stretch' ক্লাসের জন্য 'stretch-icon' দেখা যাবে */
-}
-
-#aspect-ratio-btn.crop .crop-icon {
-    display: block; /* শুধুমাত্র 'crop' ক্লাসের জন্য 'crop-icon' দেখা যাবে */
-}
-
-/* অন্যান্য কন্ট্রোলের সাথে সামঞ্জস্য রাখার জন্য */
 .controls-right {
-    gap: 15px; /* ডানদিকের বাটনগুলোর মধ্যে ফাঁকা জায়গা বাড়ানো হয়েছে */
+    gap: 15px;
 }
