@@ -77,7 +77,6 @@ let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuIn
 let lastVolume = 1;
 const aspectModes = ['fit', 'stretch', 'crop'];
 let currentAspectModeIndex = 0;
-let justShownControls = false; // <<< --- নতুন ফ্ল্যাগ ভেরিয়েবল এখানেই যোগ করা হয়েছে
 
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
 const acquireWakeLock = async () => { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } };
@@ -106,7 +105,7 @@ function showUnlockIndicatorTemporarily() {
 // ==================== চূড়ান্ত পরিবর্তিত ফাংশন =========================
 // =========================================================================
 function handleVideoClick(event) {
-    // সেটিংস মেনু বা লক স্ক্রিন ইন্ডিকেটরে ক্লিক হলে কিছু করবে না
+    // ধাপ ১: জরুরি অবস্থাগুলো আগে পরীক্ষা করুন
     if (settingsMenu.classList.contains('active')) {
         settingsMenu.classList.remove('active');
         settingsBtn.classList.remove('active');
@@ -118,62 +117,53 @@ function handleVideoClick(event) {
         return;
     }
 
-    // যদি এইমাত্র কন্ট্রোল বার দেখানো হয়ে থাকে, তাহলে এই ট্যাপ উপেক্ষা করুন
-    if (justShownControls) {
-        return;
-    }
-
-    const isControlsVisible = playerContainer.classList.contains('show-controls');
-
-    // নিয়ম ১: যদি কন্ট্রোল বার লুকানো থাকে
-    if (!isControlsVisible) {
-        // স্ক্রিনের যেকোনো জায়গায় প্রথম ট্যাপে শুধু কন্ট্রোল বার দেখানো হবে
-        playerContainer.classList.add('show-controls');
-        resetControlsTimer();
-        
-        // ফ্ল্যাগ সেট করুন যাতে পরবর্তী দ্রুত ট্যাপ প্লে/পজ না করে
-        justShownControls = true;
-        // অল্প সময় পর ফ্ল্যাগটি রিসেট করুন
-        setTimeout(() => {
-            justShownControls = false;
-        }, 200); // ২০০ মিলিসেকেন্ডের মধ্যে দ্বিতীয় ট্যাপ পড়লে তা উপেক্ষা করা হবে
-
-        return; // এখানে ফাংশনের কাজ শেষ
-    }
-
-    // --- যদি কন্ট্রোল বার আগে থেকেই দেখানো থাকে ---
     const clickX = event.clientX;
     const screenWidth = window.innerWidth;
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
 
-    // নিয়ম ২: মাঝখানে ট্যাপ করলে প্লে/পজ হবে
-    if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
-        directTogglePlay();
-        resetControlsTimer();
-    }
-    // নিয়ম ৩: পাশে ট্যাপ করলে ডাবল-ট্যাপের জন্য প্রস্তুত হবে
-    else {
-        const currentTime = new Date().getTime();
-        const tapLength = currentTime - lastTap;
-        clearTimeout(tapTimeout);
+    // পুরোনো সিঙ্গেল-ট্যাপ টাইমার মুছে দিন
+    clearTimeout(tapTimeout);
 
-        if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
-            // ডাবল-ট্যাপ সফল হয়েছে
-            if (clickX < screenWidth * 0.35) { // বাম দিকে
-                video.currentTime -= 10;
-                showTapIndicator(rewindIndicator);
-            } else { // ডান দিকে
-                video.currentTime += 10;
-                showTapIndicator(forwardIndicator);
-            }
-            lastTap = 0; // ডাবল-ট্যাপ রিসেট
-        } else {
-            // এটি একটি সিঙ্গেল ট্যাপ (পাশের দিকে), তাই শুধু টাইমার রিসেট হবে
-            tapTimeout = setTimeout(() => {
-                resetControlsTimer();
-            }, DOUBLE_TAP_DELAY);
+    // ধাপ ২: ডাবল-ট্যাপ পরীক্ষা করুন (সর্বাধিক গুরুত্ব)
+    if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
+        // এটি একটি ডাবল-ট্যাপ
+        if (clickX < screenWidth * 0.35) { // বাম দিকে
+            video.currentTime -= 10;
+            showTapIndicator(rewindIndicator);
+        } else if (clickX > screenWidth * 0.65) { // ডান দিকে
+            video.currentTime += 10;
+            showTapIndicator(forwardIndicator);
         }
-        lastTap = currentTime;
+        // মাঝখানে ডাবল-ট্যাপ করলে কিছু হবে না
+        lastTap = 0; // ট্রিপল-ট্যাপ এড়ানোর জন্য রিসেট
+        return; // ডাবল-ট্যাপের কাজ শেষ
     }
+
+    // ধাপ ৩: যদি ডাবল-ট্যাপ না হয়, তবে এটি একটি সিঙ্গেল-ট্যাপ
+    // এই ট্যাপের সময় মনে রাখুন, যাতে পরবর্তী ট্যাপ ডাবল-ট্যাপ হিসেবে ধরা যায়
+    lastTap = currentTime;
+
+    // একটি টাইমার সেট করুন। যদি নির্দিষ্ট সময়ের মধ্যে আর কোনো ট্যাপ না আসে,
+    // তবে এটিকে সিঙ্গেল-ট্যাপ হিসেবে গণ্য করা হবে।
+    tapTimeout = setTimeout(() => {
+        const isControlsVisible = playerContainer.classList.contains('show-controls');
+        
+        // সিঙ্গেল-ট্যাপের নিয়ম:
+        // মাঝখানে ট্যাপ করলে প্লে/পজ হবে
+        if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
+            directTogglePlay();
+        } 
+        // পাশে ট্যাপ করলে কন্ট্রোল বার দেখানো/লুকানো হবে
+        else {
+            if (isControlsVisible) {
+                playerContainer.classList.remove('show-controls');
+            } else {
+                playerContainer.classList.add('show-controls');
+                resetControlsTimer();
+            }
+        }
+    }, DOUBLE_TAP_DELAY);
 }
 // =========================================================================
 // ========================= ফাংশন পরিবর্তন শেষ ==========================
@@ -256,7 +246,7 @@ function handleTouchStart(e) {
     updateBrightnessGestureIcon(initialBrightness);
     if (touchStartX > window.innerWidth / 2) { longPressTimer = setTimeout(startFastForward, 200); }
 }
-function handleTouchMove(e) { if (isScreenLocked || !isTouching || !document.fullscreenElement) return; clearTimeout(longPressTimer); if (isFastForwarding) return; e.preventDefault(); const touch = e.touches[0]; const deltaY = touchStartY - touch.clientY; const swipeSensitivity = window.innerHeight * 0.7; if (Math.abs(deltaY) < SWIPE_THRESHOLD) { return; } if (touchStartX < window.innerWidth / 2) { let newVolume = initialVolume + (deltaY / swipeSensitivity); newVolume = Math.max(0, Math.min(1, newVolume)); if (newVolume > 0) { lastVolume = newVolume; } video.volume = newVolume; video.muted = newVolume === 0; volumeBarFill.style.width = `${newVolume * 100}%`; updateVolumeGestureIcon(newVolume); showIndicator(volumeIndicator); updateVolumeIcon(); } else { let newBrightness = initialBrightness + (deltaY / swipeSensitivity); newBrightness = Math.max(0, Math.min(1, newBrightness)); currentBrightness = newBrightness; brightnessOverlay.style.opacity = 1 - currentBrightness; brightnessBarFill.style.width = `${currentBrightness * 100}%`; updateBrightnessGestureIcon(newBrightness); showIndicator(brightnessIndicator); } }
+function handleTouchMove(e) { if (isScreenLocked || !isTouching || !document.fullscreenElement) return; clearTimeout(longPressTimer); if (isFastForwarding) return; e.preventDefault(); const touch = e.touches[0]; const deltaY = touchStartY - touch.clientY; const swipeSensitivity = window.innerHeight * 0.7; if (Math.abs(deltaY) < SWIPE_THRESHOLD) { return; } if (touchStartX < window.innerWidth / 2) { let newVolume = initialVolume + (deltaY / swipeSensitivity); newVolume = Math.max(0, Math.min(1, newVolume)); if (newVolume > 0) { lastVolume = newVolume; } video.volume = newVolume; video.muted = newVolume === 0; volumeBarFill.style.width = `${newVolume * 100}%`; updateVolumeGestureIcon(newVolume); showIndicator(volumeIndicator); updateVolumeIcon(); } else { let newBrightness = initialBrightness + (deltaY / swipeSensitivity); newBrightness = Math.max(0, Math.min(1, newBrightness)); currentBrightness = newBrightness; brightnessOverlay.style.opacity = 1 - currentBrightness; brightnessBarFill.style.width = `${newBrightness * 100}%`; updateBrightnessGestureIcon(newBrightness); showIndicator(brightnessIndicator); } }
 function handleTouchEnd(e) { if (isScreenLocked || !isTouching) return; clearTimeout(longPressTimer); if (isFastForwarding) { endFastForward(); } else { hideIndicators(); } isTouching = false; }
 
 video.addEventListener('click', handleVideoClick);
