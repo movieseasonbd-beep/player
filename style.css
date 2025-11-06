@@ -226,8 +226,8 @@ body {
 .unlock-indicator {
     position: absolute;
     top: 50%;
-    left: 25px; /* বাম পাশে সেট করা হলো */
-    transform: translateY(-50%); /* শুধুমাত্র ভার্টিকালি সেন্টারে রাখা হলো */
+    left: 25px;
+    transform: translateY(-50%);
     z-index: 6;
     display: flex;
     align-items: center;
@@ -237,7 +237,7 @@ body {
     border-radius: 50px;
     font-size: 16px;
     cursor: pointer;
-    opacity: 0; /* ডিফল্টভাবে স্বচ্ছ থাকবে */
+    opacity: 0;
     visibility: hidden;
     transition: opacity 0.25s ease, visibility 0.25s ease;
 }
@@ -262,3 +262,45 @@ body {
     pointer-events: none;
 }
 /* ================== স্ক্রিন লক স্টাইল শেষ =================== */
+
+/* ================== ডাবল-ট্যাপ ইন্ডিকেটর স্টাইল শুরু ================== */
+.double-tap-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    background-color: rgba(40, 40, 40, 0.7);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.double-tap-indicator svg {
+    width: 36px;
+    height: 36px;
+    color: white;
+}
+
+#rewind-indicator {
+    left: 20%;
+}
+
+#forward-indicator {
+    right: 20%;
+}
+
+.double-tap-indicator.show {
+    animation: tap-indicator-anim 0.5s ease-out forwards;
+}
+
+@keyframes tap-indicator-anim {
+    0% { transform: translateY(-50%) scale(0.8); opacity: 1; }
+    50% { transform: translateY(-50%) scale(1.1); }
+    100% { transform: translateY(-50%) scale(1); opacity: 0; }
+}
+/* ================== ডাবল-ট্যাপ ইন্ডিকেটর স্টাইল শেষ =================== */
