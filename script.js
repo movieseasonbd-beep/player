@@ -1,5 +1,5 @@
 // DOM Elements
-
+const playerContainer = document.querySelector('.player-container');
 const loadingOverlay = document.querySelector('.loading-overlay');
 const video = document.querySelector('.video');
 const frameHoldCanvas = document.getElementById('frame-hold-canvas');
@@ -88,6 +88,7 @@ const releaseWakeLock = async () => {
         }
     }
 };
+
 
 const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1, abrBandWidthFactor: 0.95, abrBandWidthUpFactor: 0.8, maxStarveDuration: 2, maxBufferHole: 0.5, };
 
