@@ -58,7 +58,7 @@ let isFastForwarding = false;
 let originalPlaybackRate = 1;
 let indicatorTimeout;
 let currentBrightness = 1.0;
-const SWIPE_THRESHOLD = 25; // জেসচারের সংবেদনশীলতা কমানোর জন্য থ্রেশহোল্ড
+const SWIPE_THRESHOLD = 40;
 
 let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuInitialized = false, originalVideoUrl = null, wakeLock = null;
 let lastVolume = 1;
@@ -69,6 +69,32 @@ const hlsConfig = { maxBufferLength: 60, maxMaxBufferLength: 900, startLevel: -1
 const acquireWakeLock = async () => { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } };
 const releaseWakeLock = () => { if (wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); } };
 function hideLoadingOverlay() { if (!loadingOverlay.classList.contains('hidden')) { loadingOverlay.classList.add('hidden'); } }
+
+// ভিডিওর বর্তমান সময় localStorage-এ সেভ করার ফাংশন
+function saveVideoProgress(videoId) {
+    if (!video.duration || video.currentTime < 5) return;
+    const progress = {
+        time: video.currentTime,
+        duration: video.duration
+    };
+    if ((progress.time / progress.duration) > 0.98) {
+        localStorage.removeItem(videoId);
+    } else {
+        localStorage.setItem(videoId, JSON.stringify(progress));
+    }
+}
+
+// localStorage থেকে সেভ করা সময় লোড করার ফাংশন
+function loadVideoProgress(videoId) {
+    const savedProgressJSON = localStorage.getItem(videoId);
+    if (savedProgressJSON) {
+        const savedProgress = JSON.parse(savedProgressJSON);
+        if (video.duration && Math.abs(video.duration - savedProgress.duration) < 5) {
+             video.currentTime = savedProgress.time;
+             console.log(`Resuming video from ${formatTime(savedProgress.time)}`);
+        }
+    }
+}
 
 function initializeHls() {
     if (hls) { hls.destroy(); }
@@ -325,7 +351,6 @@ function handleTouchMove(e) {
     const deltaY = touchStartY - touch.clientY;
     const swipeSensitivity = window.innerHeight * 0.7;
 
-    // যদি সোয়াইপের দূরত্ব থ্রেশহোল্ডের চেয়ে কম হয়, তাহলে ফাংশন থেকে বেরিয়ে যাও
     if (Math.abs(deltaY) < SWIPE_THRESHOLD) {
         return;
     }
@@ -425,6 +450,7 @@ document.addEventListener('visibilitychange', () => {
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const videoUrl = urlParams.get('id');
+    const isHlsStream = Hls.isSupported() && videoUrl && videoUrl.includes('.m3u8');
     const subtitleUrl = urlParams.get('sub');
     const downloadUrl = urlParams.get('download');
     const posterUrl = urlParams.get('poster');
@@ -434,7 +460,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (posterUrl) video.poster = posterUrl;
         if (subtitleUrl && subtitleMenuBtn) { const subtitleTrack = document.createElement('track'); subtitleTrack.kind = 'subtitles'; subtitleTrack.srclang = 'bn'; subtitleTrack.label = 'বাংলা'; subtitleTrack.src = subtitleUrl; subtitleTrack.default = true; video.appendChild(subtitleTrack); }
         if (downloadUrl && downloadBtn) { downloadBtn.style.display = 'flex'; downloadBtn.addEventListener('click', () => { const a = document.createElement('a'); a.href = downloadUrl; a.download = ''; document.body.appendChild(a); a.click(); document.body.removeChild(a); }); }
+        
         loadVideo(videoUrl);
+        
+        // m3u8 স্ট্রিম না হলেই শুধুমাত্র এই ফিচার কাজ করবে
+        if (!isHlsStream) {
+            console.log("Not an HLS stream, enabling Resume Playback.");
+            // প্রতি ১০ সেকেন্ড পর পর ভিডিওর সময় সেভ করা হবে
+            setInterval(() => {
+                saveVideoProgress(videoUrl);
+            }, 10000); 
+
+            // ব্যবহারকারী পেজ বন্ধ করলে বা অন্য পেজে গেলে সময় সেভ হবে
+            window.addEventListener('beforeunload', () => {
+                saveVideoProgress(videoUrl);
+            });
+        }
+
     } else {
         loadingOverlay.classList.remove('hidden');
         loadingOverlay.querySelector('.loading-text').textContent = "No video source found.";
@@ -442,6 +484,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     video.addEventListener('loadedmetadata', updateProgressUI);
     video.addEventListener('loadedmetadata', setupSubtitles);
+    video.addEventListener('loadedmetadata', () => {
+        // m3u8 স্ট্রিম না হলেই শুধুমাত্র সেভ করা সময় লোড হবে
+        if (videoUrl && !isHlsStream) {
+            loadVideoProgress(videoUrl);
+        }
+    });
+
     updatePlayState();
     updateVolumeIcon();
     updateFullscreenState();
