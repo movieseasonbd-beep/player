@@ -44,8 +44,10 @@ const volumeIndicator = document.getElementById('volume-indicator');
 const brightnessIndicator = document.getElementById('brightness-indicator');
 const volumeBarFill = document.getElementById('volume-bar-fill');
 const brightnessBarFill = document.getElementById('brightness-bar-fill');
-const gestureVolumeOnIcon = volumeIndicator.querySelector('.gesture-volume-on-icon');
-const gestureVolumeOffIcon = volumeIndicator.querySelector('.gesture-volume-off-icon');
+const volumeIconMute = volumeIndicator.querySelector('.volume-icon-mute');
+const volumeIconLow = volumeIndicator.querySelector('.volume-icon-low');
+const volumeIconMedium = volumeIndicator.querySelector('.volume-icon-medium');
+const volumeIconHigh = volumeIndicator.querySelector('.volume-icon-high');
 const brightnessIconLow = brightnessIndicator.querySelector('.brightness-icon-low');
 const brightnessIconMedium = brightnessIndicator.querySelector('.brightness-icon-medium');
 const brightnessIconHigh = brightnessIndicator.querySelector('.brightness-icon-high');
@@ -273,11 +275,11 @@ function addHlsEvents() {
 }
 
 function updateVolumeGestureIcon(level) {
-    const isMuted = level === 0;
-    if (gestureVolumeOnIcon && gestureVolumeOffIcon) {
-        gestureVolumeOnIcon.style.display = isMuted ? 'none' : 'block';
-        gestureVolumeOffIcon.style.display = isMuted ? 'block' : 'none';
-    }
+    [volumeIconMute, volumeIconLow, volumeIconMedium, volumeIconHigh].forEach(icon => icon.style.display = 'none');
+    if (level === 0) { volumeIconMute.style.display = 'block'; }
+    else if (level > 0 && level <= 0.33) { volumeIconLow.style.display = 'block'; }
+    else if (level > 0.33 && level <= 0.66) { volumeIconMedium.style.display = 'block'; }
+    else { volumeIconHigh.style.display = 'block'; }
 }
 
 function updateBrightnessGestureIcon(level) {
