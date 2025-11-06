@@ -1,5 +1,5 @@
 // DOM Elements
-const playerContainer = document.querySelector('.player-container');
+
 const loadingOverlay = document.querySelector('.loading-overlay');
 const video = document.querySelector('.video');
 const frameHoldCanvas = document.getElementById('frame-hold-canvas');
