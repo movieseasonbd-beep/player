@@ -56,6 +56,13 @@ const unlockIndicator = document.querySelector('.unlock-indicator');
 let isScreenLocked = false;
 let unlockIndicatorTimeout;
 
+// ডাবল-ট্যাপের জন্য নতুন ভেরিয়েবল
+const rewindIndicator = document.getElementById('rewind-indicator');
+const forwardIndicator = document.getElementById('forward-indicator');
+let lastTap = 0;
+let tapTimeout;
+const DOUBLE_TAP_DELAY = 300; // ms
+
 let touchStartX, touchStartY;
 let isTouching = false;
 let initialVolume, initialBrightness;
@@ -91,20 +98,57 @@ function showUnlockIndicatorTemporarily() {
     clearTimeout(unlockIndicatorTimeout);
     unlockIndicatorTimeout = setTimeout(() => {
         unlockIndicator.classList.remove('show');
-    }, 2500); // 2.5 সেকেন্ড পর ইন্ডিকেটরটি হাইড হয়ে যাবে
+    }, 2500);
 }
 
-function handleScreenTap(event) {
+function handleVideoClick(event) {
     if (isScreenLocked) {
         if (event.target.closest('.unlock-indicator')) {
-            return; 
+            return;
         }
         showUnlockIndicatorTemporarily();
         return;
     }
-    if (settingsMenu.classList.contains('active')) { settingsMenu.classList.remove('active'); settingsBtn.classList.remove('active'); return; }
-    const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
-    if (video.paused) { video.play(); } else { if (isControlsVisible) { video.pause(); } else { playerContainer.classList.add('show-controls'); resetControlsTimer(); } }
+
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    clearTimeout(tapTimeout);
+
+    if (tapLength < DOUBLE_TAP_DELAY && tapLength > 0) {
+        const clickX = event.clientX;
+        const screenWidth = window.innerWidth;
+        
+        if (clickX < screenWidth * 0.35) {
+            video.currentTime -= 10;
+            showTapIndicator(rewindIndicator);
+        } else if (clickX > screenWidth * 0.65) {
+            video.currentTime += 10;
+            showTapIndicator(forwardIndicator);
+        }
+        lastTap = 0;
+    } else {
+        tapTimeout = setTimeout(() => {
+            const clickX = event.clientX;
+            const screenWidth = window.innerWidth;
+            
+            if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
+                directTogglePlay();
+            } else {
+                playerContainer.classList.toggle('show-controls');
+                if (playerContainer.classList.contains('show-controls')) {
+                    resetControlsTimer();
+                }
+            }
+        }, DOUBLE_TAP_DELAY);
+    }
+    lastTap = currentTime;
+}
+
+function showTapIndicator(indicator) {
+    indicator.classList.add('show');
+    setTimeout(() => {
+        indicator.classList.remove('show');
+    }, 500);
 }
 
 function updatePlayState() { const isPaused = video.paused; playPauseBtn.querySelector('.play-icon').style.display = isPaused ? 'block' : 'none'; playPauseBtn.querySelector('.pause-icon').style.display = isPaused ? 'none' : 'block'; playerContainer.classList.toggle('paused', isPaused); playerContainer.classList.toggle('playing', !isPaused); }
@@ -162,7 +206,7 @@ function handleTouchStart(e) { if (isScreenLocked) return; if (!document.fullscr
 function handleTouchMove(e) { if (isScreenLocked || !isTouching || !document.fullscreenElement) return; clearTimeout(longPressTimer); if (isFastForwarding) return; e.preventDefault(); const touch = e.touches[0]; const deltaY = touchStartY - touch.clientY; const swipeSensitivity = window.innerHeight * 0.7; if (Math.abs(deltaY) < SWIPE_THRESHOLD) { return; } if (touchStartX < window.innerWidth / 2) { let newVolume = initialVolume + (deltaY / swipeSensitivity); newVolume = Math.max(0, Math.min(1, newVolume)); if (newVolume > 0) { lastVolume = newVolume; } video.volume = newVolume; video.muted = newVolume === 0; volumeBarFill.style.width = `${newVolume * 100}%`; updateVolumeGestureIcon(newVolume); showIndicator(volumeIndicator); updateVolumeIcon(); } else { let newBrightness = initialBrightness + (deltaY / swipeSensitivity); newBrightness = Math.max(0, Math.min(1, newBrightness)); currentBrightness = newBrightness; brightnessOverlay.style.opacity = 1 - currentBrightness; brightnessBarFill.style.width = `${currentBrightness * 100}%`; updateBrightnessGestureIcon(newBrightness); showIndicator(brightnessIndicator); } }
 function handleTouchEnd(e) { if (isScreenLocked || !isTouching) return; clearTimeout(longPressTimer); if (isFastForwarding) { endFastForward(); } else { hideIndicators(); } isTouching = false; }
 
-video.addEventListener('click', handleScreenTap);
+video.addEventListener('click', handleVideoClick);
 video.addEventListener('contextmenu', e => e.preventDefault());
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
