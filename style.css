@@ -36,7 +36,7 @@ body {
 .player-container.playing .central-play-btn {
     opacity: 0;
     visibility: hidden;
-    pointer-events: none; /* এই লাইনটি অত্যন্ত গুরুত্বপূর্ণ */
+    pointer-events: none; /* এই লাইনটি কনফ্লিক্ট এড়াতে সাহায্য করে */
 }
 
 .player-container.paused .controls-container,
