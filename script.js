@@ -269,19 +269,20 @@ function handleTouchEnd(e) { if (isScreenLocked || !isTouching) return; clearTim
 // Event Listeners
 video.addEventListener('click', handleVideoClick);
 video.addEventListener('contextmenu', e => e.preventDefault());
-centralPlayBtn.addEventListener('click', directTogglePlay);
+
+// centralPlayBtn.addEventListener('click', directTogglePlay); // <--- এই লাইনটি মুছে ফেলা হয়েছে
 playPauseBtn.addEventListener('click', directTogglePlay);
 
 video.addEventListener('play', () => {
     updatePlayState();
-    resetControlsTimer(); // ভিডিও চললে টাইমার চালু হবে
+    resetControlsTimer();
     acquireWakeLock();
 });
 
 video.addEventListener('pause', () => {
     updatePlayState();
-    clearTimeout(controlsTimeout); // ভিডিও পজ হলে টাইমার বন্ধ হবে
-    playerContainer.classList.add('show-controls'); // এবং কন্ট্রোল বার দেখানো হবে
+    clearTimeout(controlsTimeout);
+    playerContainer.classList.add('show-controls');
     releaseWakeLock();
 });
 
