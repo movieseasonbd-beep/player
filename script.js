@@ -143,20 +143,17 @@ function handleVideoClick(event) {
         const areControlsVisible = playerContainer.classList.contains('show-controls');
 
         if (areControlsVisible) {
-            // কন্ট্রোল বার দেখা যাচ্ছে: মাঝখানে ট্যাপ করলে প্লে/পজ হবে, পাশে হলে হাইড হবে
             if (clickX >= screenWidth * 0.35 && clickX <= screenWidth * 0.65) {
                 directTogglePlay();
             } else {
                 hideControls();
             }
         } else {
-            // কন্ট্রোল বার লুকানো: যেকোনো ট্যাপে শুধু কন্ট্রোল বার দেখা যাবে
             playerContainer.classList.add('show-controls');
             resetControlsTimer();
         }
     }, DOUBLE_TAP_DELAY);
 }
-// =========================================================================
 
 function showTapIndicator(indicator) {
     indicator.classList.add('show');
@@ -256,7 +253,7 @@ video.addEventListener('click', handleVideoClick);
 video.addEventListener('contextmenu', e => e.preventDefault());
 
 centralPlayBtn.addEventListener('click', (event) => {
-    event.stopPropagation(); // এই লাইনটি ভিডিওর ক্লিক ইভেন্টকে কাজ করতে দেয় না
+    event.stopPropagation(); 
     directTogglePlay();
 });
 
