@@ -154,6 +154,7 @@ function handleVideoClick(event) {
         }
     }, DOUBLE_TAP_DELAY);
 }
+// =========================================================================
 
 function showTapIndicator(indicator) {
     indicator.classList.add('show');
