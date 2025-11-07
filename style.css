@@ -230,3 +230,9 @@ fill: currentColor; /* বাটনের রঙ ব্যবহার করব
 .controls-right {
 gap: 15px;
 }
+/* Gesture Volume Icon Size Fix */
+.gesture-indicator .gesture-volume-on-icon,
+.gesture-indicator .gesture-volume-off-icon {
+    width: 20px;  /* ব্রাইটনেস আইকনের সমান করা হলো */
+    height: 20px; /* ব্রাইটনেস আইকনের সমান করা হলো */
+}
