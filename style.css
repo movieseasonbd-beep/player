@@ -88,11 +88,11 @@ body {
 .central-play-btn:active { transform: translate(-50%, -50%) scale(1.0); }
 .central-play-btn svg { width: 80px; height: 80px; fill: none; filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.7)); }
 
-/* 2x স্পিড ইন্ডিকেটরের জন্য নতুন স্টাইল */
+/* 2x স্পিড ইন্ডিকেটরের জন্য পরিবর্তিত স্টাইল (মাঝখানে দেখানোর জন্য) */
 .speed-indicator {
     position: absolute;
     top: 20px;
-    right: 20px;
+    left: 50%; /* ডানের বদলে বাম থেকে ৫০% দূরে */
     background-color: rgba(30, 30, 30, 0.7);
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
@@ -105,15 +105,17 @@ body {
     gap: 4px;
     z-index: 3;
     opacity: 0;
-    transform: scale(0.9);
+    /* transform-এ translateX(-50%) যোগ করা হয়েছে সেন্টারে আনার জন্য */
+    transform: translate(-50%, 0) scale(0.9); 
     transition: opacity 0.2s ease, transform 0.2s ease;
-    display: none; /* ডিফল্টভাবে লুকানো থাকবে */
+    display: none; 
 }
 
 .speed-indicator.visible {
-    display: flex; /* দেখানোর জন্য */
+    display: flex; 
     opacity: 1;
-    transform: scale(1);
+    /* এখানেও translateX(-50%) যোগ করা হয়েছে */
+    transform: translate(-50%, 0) scale(1); 
 }
 
 .speed-indicator svg {
