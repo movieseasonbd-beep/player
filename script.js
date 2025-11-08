@@ -58,7 +58,7 @@ let isFastForwarding = false;
 let originalPlaybackRate = 1;
 let indicatorTimeout;
 let currentBrightness = 1.0;
-const SWIPE_THRESHOLD = 25; // জেসচারের সংবেদনশীলতা কমানোর জন্য থ্রেশহোল্ড (আপনার ইচ্ছামত পরিবর্তন করতে পারেন)
+const SWIPE_THRESHOLD = 30; // জেসচারের সংবেদনশীলতা কমানোর জন্য থ্রেশহোল্ড (আপনার ইচ্ছামত পরিবর্তন করতে পারেন)
 
 let hls, controlsTimeout, isScrubbing = false, wasPlaying = false, qualityMenuInitialized = false, originalVideoUrl = null, wakeLock = null;
 let lastVolume = 1;
