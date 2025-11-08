@@ -43,6 +43,49 @@ let qualityMenuInitialized = false;
 let originalVideoUrl = null;
 let wakeLock = null;
 
+// ==========================================================
+// === প্লেব্যাক পজিশন সেভ এবং লোড করার নতুন ফাংশন ===
+// ==========================================================
+
+function savePlaybackPosition() {
+    const videoId = originalVideoUrl; 
+    if (videoId && video.currentTime > 5 && !video.ended) {
+        localStorage.setItem(`video-progress-${videoId}`, video.currentTime);
+    }
+}
+
+function loadPlaybackPosition() {
+    const videoId = originalVideoUrl;
+    if (videoId) {
+        const savedTime = localStorage.getItem(`video-progress-${videoId}`);
+        if (savedTime) {
+            video.currentTime = parseFloat(savedTime);
+        }
+    }
+}
+
+function clearPlaybackPositionOnEnd() {
+    const videoId = originalVideoUrl;
+    if (videoId) {
+        localStorage.removeItem(`video-progress-${videoId}`);
+    }
+}
+
+// প্লেব্যাক পজিশন মনে রাখার জন্য ইভেন্ট লিসেনার যোগ করার ফাংশন
+function addResumePlaybackListeners() {
+    video.addEventListener('timeupdate', savePlaybackPosition);
+    video.addEventListener('loadedmetadata', loadPlaybackPosition);
+    video.addEventListener('ended', clearPlaybackPositionOnEnd);
+}
+
+// প্লেব্যাক পজিশন মনে রাখার ইভেন্ট লিসেনার মুছে ফেলার ফাংশন
+function removeResumePlaybackListeners() {
+    video.removeEventListener('timeupdate', savePlaybackPosition);
+    video.removeEventListener('loadedmetadata', loadPlaybackPosition);
+    video.removeEventListener('ended', clearPlaybackPositionOnEnd);
+}
+
+
 const hlsConfig = {
     maxBufferLength: 60,
     maxMaxBufferLength: 900,
@@ -81,13 +124,18 @@ function initializeHls() {
     addHlsEvents();
 }
 
+// === পরিবর্তিত loadVideo ফাংশন ===
 function loadVideo(videoUrl) {
     setTimeout(hideLoadingOverlay, 3000);
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
+        // এটি HLS স্ট্রিম, তাই পজিশন সেভ করার ফিচার বন্ধ থাকবে
+        removeResumePlaybackListeners(); // যদি আগে থেকে কোনো লিসেনার থাকে, তা মুছে ফেলবে
         initializeHls();
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
     } else {
+        // এটি সাধারণ ভিডিও (MKV, MP4), তাই পজিশন সেভ করার ফিচার চালু হবে
+        addResumePlaybackListeners();
         video.src = videoUrl;
     }
 }
@@ -251,7 +299,6 @@ function formatTime(seconds) {
 
 function toggleMute() {
     video.muted = !video.muted;
-    // UI আপডেট করার কাজটি requestAnimationFrame এর মাধ্যমে করলে প্লেব্যাক মসৃণ থাকে
     requestAnimationFrame(updateVolumeIcon);
 }
 function updateVolumeIcon() {
@@ -279,19 +326,14 @@ function updateFullscreenState() {
     fullscreenBtn.classList.toggle('active', isFullscreen);
 }
 
-// ==========================================================
-// === আপনার আসল অ্যানিমেশনসহ সঠিক showMenuPage ফাংশন ===
-// ==========================================================
 function showMenuPage(pageToShow) {
     const currentPage = menuContentWrapper.querySelector('.menu-page.active');
     
-    // উচ্চতা ঠিক করার জন্য সঠিক কোড
     setTimeout(() => {
         const newHeight = pageToShow.scrollHeight;
         menuContentWrapper.style.height = `${newHeight}px`;
     }, 0);
 
-    // আপনার আসল অ্যানিমেশন লজিক
     if (currentPage && currentPage !== pageToShow) {
         if (pageToShow === mainSettingsPage) {
             currentPage.classList.remove('active');
@@ -513,3 +555,5 @@ document.addEventListener('DOMContentLoaded', () => {
     updateVolumeIcon();
     updateFullscreenState();
 });
+
+// শেষে আর কোনো addEventListener যোগ করার প্রয়োজন নেই।
