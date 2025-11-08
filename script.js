@@ -46,6 +46,7 @@ let wakeLock = null;
 let holdTimeout;
 let isHolding = false;
 let originalPlaybackRate = 1.0;
+let ignoreTap = false;
 
 // ==========================================================
 // === প্লেব্যাক পজিশন সেভ এবং লোড করার ফাংশন ===
@@ -245,8 +246,11 @@ function handleScreenTap() {
 }
 
 function handlePressStart(e) {
+    ignoreTap = false; // প্রতিটি নতুন ক্লিকের শুরুতে ফ্ল্যাগ রিসেট করুন
+
     const ignoredSelectors = ['.controls-container', '.settings-menu', '.central-play-btn'];
     if (ignoredSelectors.some(selector => e.target.closest(selector))) {
+        ignoreTap = true; // যদি নিষিদ্ধ জায়গায় ক্লিক হয়, ট্যাপটিকে উপেক্ষা করতে বলুন
         return;
     }
 
@@ -271,10 +275,11 @@ function handlePressEnd() {
         video.playbackRate = originalPlaybackRate;
         speedIndicator.classList.remove('visible');
         isHolding = false;
-    } else {
+    } else if (!ignoreTap) { // যদি ট্যাপটি উপেক্ষা করার মতো না হয়, তবেই কাজ করবে
         handleScreenTap();
     }
 }
+
 
 function updatePlayState() {
     const isPaused = video.paused;
