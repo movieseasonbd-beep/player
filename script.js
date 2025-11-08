@@ -34,6 +34,7 @@ const subtitleSettingsPage = document.querySelector('.menu-subtitle');
 const subtitleOptionsList = document.getElementById('subtitle-options-list');
 const subtitleCurrentValue = subtitleMenuBtn ? subtitleMenuBtn.querySelector('.current-value') : null;
 const downloadBtn = document.getElementById('download-btn');
+const speedIndicator = document.querySelector('.speed-indicator');
 
 let hls;
 let controlsTimeout;
@@ -42,9 +43,12 @@ let wasPlaying = false;
 let qualityMenuInitialized = false;
 let originalVideoUrl = null;
 let wakeLock = null;
+let holdTimeout;
+let isHolding = false;
+let originalPlaybackRate = 1.0;
 
 // ==========================================================
-// === প্লেব্যাক পজিশন সেভ এবং লোড করার নতুন ফাংশন ===
+// === প্লেব্যাক পজিশন সেভ এবং লোড করার ফাংশন ===
 // ==========================================================
 
 function savePlaybackPosition() {
@@ -71,20 +75,17 @@ function clearPlaybackPositionOnEnd() {
     }
 }
 
-// প্লেব্যাক পজিশন মনে রাখার জন্য ইভেন্ট লিসেনার যোগ করার ফাংশন
 function addResumePlaybackListeners() {
     video.addEventListener('timeupdate', savePlaybackPosition);
     video.addEventListener('loadedmetadata', loadPlaybackPosition);
     video.addEventListener('ended', clearPlaybackPositionOnEnd);
 }
 
-// প্লেব্যাক পজিশন মনে রাখার ইভেন্ট লিসেনার মুছে ফেলার ফাংশন
 function removeResumePlaybackListeners() {
     video.removeEventListener('timeupdate', savePlaybackPosition);
     video.removeEventListener('loadedmetadata', loadPlaybackPosition);
     video.removeEventListener('ended', clearPlaybackPositionOnEnd);
 }
-
 
 const hlsConfig = {
     maxBufferLength: 60,
@@ -124,17 +125,14 @@ function initializeHls() {
     addHlsEvents();
 }
 
-// === পরিবর্তিত loadVideo ফাংশন ===
 function loadVideo(videoUrl) {
     setTimeout(hideLoadingOverlay, 3000);
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
-        // এটি HLS স্ট্রিম, তাই পজিশন সেভ করার ফিচার বন্ধ থাকবে
-        removeResumePlaybackListeners(); // যদি আগে থেকে কোনো লিসেনার থাকে, তা মুছে ফেলবে
+        removeResumePlaybackListeners();
         initializeHls();
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
     } else {
-        // এটি সাধারণ ভিডিও (MKV, MP4), তাই পজিশন সেভ করার ফিচার চালু হবে
         addResumePlaybackListeners();
         video.src = videoUrl;
     }
@@ -243,6 +241,39 @@ function handleScreenTap() {
     else {
         if (isControlsVisible) { video.pause(); } 
         else { playerContainer.classList.add('show-controls'); resetControlsTimer(); }
+    }
+}
+
+// === ট্যাপ করে ধরে রাখলে স্পিড বাড়ানোর নতুন ফাংশন ===
+function handlePressStart(e) {
+    const ignoredSelectors = ['.controls-container', '.settings-menu', '.central-play-btn'];
+    if (ignoredSelectors.some(selector => e.target.closest(selector))) {
+        return;
+    }
+
+    if (e.type === 'touchstart') {
+        e.preventDefault();
+    }
+
+    isHolding = false;
+    holdTimeout = setTimeout(() => {
+        if (video.paused) return;
+        
+        isHolding = true;
+        originalPlaybackRate = video.playbackRate;
+        video.playbackRate = 2.0;
+        speedIndicator.classList.add('visible');
+    }, 200);
+}
+
+function handlePressEnd() {
+    clearTimeout(holdTimeout);
+    if (isHolding) {
+        video.playbackRate = originalPlaybackRate;
+        speedIndicator.classList.remove('visible');
+        isHolding = false;
+    } else {
+        handleScreenTap();
     }
 }
 
@@ -460,7 +491,6 @@ function addHlsEvents() {
     });
 }
 
-video.addEventListener('click', handleScreenTap);
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); acquireWakeLock(); });
@@ -556,4 +586,11 @@ document.addEventListener('DOMContentLoaded', () => {
     updateFullscreenState();
 });
 
-// শেষে আর কোনো addEventListener যোগ করার প্রয়োজন নেই।
+// === ট্যাপ এবং হোল্ড সনাক্ত করার জন্য নতুন ইভেন্ট লিসেনার ===
+playerContainer.addEventListener('mousedown', handlePressStart);
+playerContainer.addEventListener('mouseup', handlePressEnd);
+playerContainer.addEventListener('mouseleave', handlePressEnd);
+
+playerContainer.addEventListener('touchstart', handlePressStart, { passive: false });
+playerContainer.addEventListener('touchend', handlePressEnd);
+playerContainer.addEventListener('touchcancel', handlePressEnd);
