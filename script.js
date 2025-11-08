@@ -246,22 +246,18 @@ function handleScreenTap() {
 }
 
 function handlePressStart(e) {
-    ignoreTap = false; // প্রতিটি নতুন ক্লিকের শুরুতে ফ্ল্যাগ রিসেট করুন
-
+    ignoreTap = false;
     const ignoredSelectors = ['.controls-container', '.settings-menu', '.central-play-btn'];
     if (ignoredSelectors.some(selector => e.target.closest(selector))) {
-        ignoreTap = true; // যদি নিষিদ্ধ জায়গায় ক্লিক হয়, ট্যাপটিকে উপেক্ষা করতে বলুন
+        ignoreTap = true;
         return;
     }
-
     if (e.type === 'touchstart') {
         e.preventDefault();
     }
-
     isHolding = false;
     holdTimeout = setTimeout(() => {
         if (video.paused) return;
-        
         isHolding = true;
         originalPlaybackRate = video.playbackRate;
         video.playbackRate = 2.0;
@@ -275,11 +271,10 @@ function handlePressEnd() {
         video.playbackRate = originalPlaybackRate;
         speedIndicator.classList.remove('visible');
         isHolding = false;
-    } else if (!ignoreTap) { // যদি ট্যাপটি উপেক্ষা করার মতো না হয়, তবেই কাজ করবে
+    } else if (!ignoreTap) {
         handleScreenTap();
     }
 }
-
 
 function updatePlayState() {
     const isPaused = video.paused;
@@ -509,10 +504,29 @@ forwardBtn.addEventListener('click', () => { video.currentTime += 10; });
 volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
-progressBar.addEventListener('input', scrub);
-progressBar.addEventListener('mousedown', () => { isScrubbing = true; wasPlaying = !video.paused; if (wasPlaying) video.pause(); });
-document.addEventListener('mouseup', () => { if (isScrubbing) { isScrubbing = false; if (wasPlaying) video.play(); } });
-document.addEventListener('mousemove', () => { playerContainer.classList.add('show-controls'); resetControlsTimer(); });
+
+// === প্রোগ্রেস বার ইন্টার‍্যাকশনের জন্য আপডেট করা কোড ===
+progressBar.addEventListener('input', (e) => {
+    resetControlsTimer();
+    scrub(e);
+});
+progressBar.addEventListener('mousedown', () => {
+    resetControlsTimer();
+    isScrubbing = true;
+    wasPlaying = !video.paused;
+    if (wasPlaying) video.pause();
+});
+document.addEventListener('mouseup', () => {
+    if (isScrubbing) {
+        resetControlsTimer();
+        isScrubbing = false;
+        if (wasPlaying) video.play();
+    }
+});
+document.addEventListener('mousemove', () => {
+    playerContainer.classList.add('show-controls');
+    resetControlsTimer();
+});
 
 settingsBtn.addEventListener('click', () => {
     settingsMenu.classList.toggle('active');
@@ -590,7 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateFullscreenState();
 });
 
-// === ট্যাপ এবং হোল্ড সনাক্ত করার জন্য নতুন ইভেন্ট লিসেনার ===
+// === ট্যাপ এবং হোল্ড সনাক্ত করার জন্য ইভেন্ট লিসেনার ===
 playerContainer.addEventListener('mousedown', handlePressStart);
 playerContainer.addEventListener('mouseup', handlePressEnd);
 playerContainer.addEventListener('mouseleave', handlePressEnd);
