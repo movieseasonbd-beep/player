@@ -244,7 +244,6 @@ function handleScreenTap() {
     }
 }
 
-// === ট্যাপ করে ধরে রাখলে স্পিড বাড়ানোর নতুন ফাংশন ===
 function handlePressStart(e) {
     const ignoredSelectors = ['.controls-container', '.settings-menu', '.central-play-btn'];
     if (ignoredSelectors.some(selector => e.target.closest(selector))) {
