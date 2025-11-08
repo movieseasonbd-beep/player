@@ -236,3 +236,14 @@ gap: 15px;
     width: 20px;  /* ব্রাইটনেস আইকনের সমান করা হলো */
     height: 20px; /* ব্রাইটনেস আইকনের সমান করা হলো */
 }
+
+
+
+
+
+/* Gesture Volume Icon Size Fix */
+.gesture-indicator .gesture-volume-on-icon,
+.gesture-indicator .gesture-volume-off-icon {
+    width: 20px;  /* ব্রাইটনেস আইকনের সমান করা হলো */
+    height: 20px; /* ব্রাইটনেস আইকনের সমান করা হলো */
+}
