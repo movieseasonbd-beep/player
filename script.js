@@ -50,7 +50,7 @@ let ignoreTap = false;
 let isMouseDown = false;
 
 // ==========================================================
-// === প্লেব্যাক পজিশন সেভ এবং লোড করার ফাংশন (আপডেট করা) ===
+// === প্লেব্যাক পজিশন সেভ এবং লোড করার ফাংশন ===
 // ==========================================================
 function savePlaybackPosition() {
     const videoId = originalVideoUrl;
@@ -81,18 +81,6 @@ function clearPlaybackPositionOnEnd() {
     if (videoId) {
         localStorage.removeItem(`video-progress-${videoId}`);
     }
-}
-
-function addResumePlaybackListeners() {
-    video.addEventListener('timeupdate', savePlaybackPosition);
-    video.addEventListener('loadedmetadata', loadPlaybackPosition);
-    video.addEventListener('ended', clearPlaybackPositionOnEnd);
-}
-
-function removeResumePlaybackListeners() {
-    video.removeEventListener('timeupdate', savePlaybackPosition);
-    video.removeEventListener('loadedmetadata', loadPlaybackPosition);
-    video.removeEventListener('ended', clearPlaybackPositionOnEnd);
 }
 
 const hlsConfig = {
@@ -576,11 +564,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (videoUrl) {
         if (!videoUrl.includes('.m3u8')) {
-            addResumePlaybackListeners();
-        } else {
-            removeResumePlaybackListeners();
+            video.addEventListener('loadedmetadata', loadPlaybackPosition, { once: true });
+            video.addEventListener('timeupdate', savePlaybackPosition);
+            video.addEventListener('ended', clearPlaybackPositionOnEnd);
         }
-
+        
         if (posterUrl) video.poster = posterUrl;
         if (subtitleUrl && subtitleMenuBtn) {
             const subtitleTrack = document.createElement('track');
