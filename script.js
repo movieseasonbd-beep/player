@@ -50,11 +50,18 @@ let ignoreTap = false;
 let isMouseDown = false;
 
 // ==========================================================
-// === প্লেব্যাক পজিশন সেভ এবং লোড করার ফাংশন ===
+// === প্লেব্যাক পজিশন সেভ এবং লোড করার ফাংশন (আপডেট করা) ===
 // ==========================================================
 function savePlaybackPosition() {
-    const videoId = originalVideoUrl; 
-    if (videoId && video.currentTime > 5 && !video.ended) {
+    const videoId = originalVideoUrl;
+    if (!videoId || video.ended) {
+        return;
+    }
+    if (video.currentTime < 5) {
+        if (localStorage.getItem(`video-progress-${videoId}`)) {
+            localStorage.removeItem(`video-progress-${videoId}`);
+        }
+    } else {
         localStorage.setItem(`video-progress-${videoId}`, video.currentTime);
     }
 }
@@ -127,7 +134,7 @@ function initializeHls() {
 }
 
 function loadVideo(videoUrl) {
-    setTimeout(hideLoadingOverlay, 2500);
+    setTimeout(hideLoadingOverlay, 3000);
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         removeResumePlaybackListeners();
         initializeHls();
