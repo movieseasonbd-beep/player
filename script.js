@@ -53,15 +53,8 @@ let isMouseDown = false;
 // === প্লেব্যাক পজিশন সেভ এবং লোড করার ফাংশন ===
 // ==========================================================
 function savePlaybackPosition() {
-    const videoId = originalVideoUrl;
-    if (!videoId || video.ended) {
-        return;
-    }
-    if (video.currentTime < 5) {
-        if (localStorage.getItem(`video-progress-${videoId}`)) {
-            localStorage.removeItem(`video-progress-${videoId}`);
-        }
-    } else {
+    const videoId = originalVideoUrl; 
+    if (videoId && video.currentTime > 5 && !video.ended) {
         localStorage.setItem(`video-progress-${videoId}`, video.currentTime);
     }
 }
@@ -81,6 +74,18 @@ function clearPlaybackPositionOnEnd() {
     if (videoId) {
         localStorage.removeItem(`video-progress-${videoId}`);
     }
+}
+
+function addResumePlaybackListeners() {
+    video.addEventListener('timeupdate', savePlaybackPosition);
+    video.addEventListener('loadedmetadata', loadPlaybackPosition);
+    video.addEventListener('ended', clearPlaybackPositionOnEnd);
+}
+
+function removeResumePlaybackListeners() {
+    video.removeEventListener('timeupdate', savePlaybackPosition);
+    video.removeEventListener('loadedmetadata', loadPlaybackPosition);
+    video.removeEventListener('ended', clearPlaybackPositionOnEnd);
 }
 
 const hlsConfig = {
@@ -124,10 +129,12 @@ function initializeHls() {
 function loadVideo(videoUrl) {
     setTimeout(hideLoadingOverlay, 3000);
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
+        removeResumePlaybackListeners();
         initializeHls();
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
     } else {
+        addResumePlaybackListeners();
         video.src = videoUrl;
     }
 }
@@ -563,12 +570,6 @@ document.addEventListener('DOMContentLoaded', () => {
     originalVideoUrl = videoUrl;
 
     if (videoUrl) {
-        if (!videoUrl.includes('.m3u8')) {
-            video.addEventListener('loadedmetadata', loadPlaybackPosition, { once: true });
-            video.addEventListener('timeupdate', savePlaybackPosition);
-            video.addEventListener('ended', clearPlaybackPositionOnEnd);
-        }
-        
         if (posterUrl) video.poster = posterUrl;
         if (subtitleUrl && subtitleMenuBtn) {
             const subtitleTrack = document.createElement('track');
