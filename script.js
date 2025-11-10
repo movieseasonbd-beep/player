@@ -47,6 +47,7 @@ let holdTimeout;
 let isHolding = false;
 let originalPlaybackRate = 1.0;
 let ignoreTap = false;
+let isMouseDown = false;
 
 // ==========================================================
 // === প্লেব্যাক পজিশন সেভ এবং লোড করার ফাংশন ===
@@ -141,7 +142,6 @@ function loadVideo(videoUrl) {
 function setQuality(level, url = null) {
     const currentTime = video.currentTime;
     const isPlaying = !video.paused;
-
     const captureAndHoldFrame = () => {
         if (isPlaying && video.readyState > 2) {
             frameHoldCanvas.width = video.videoWidth;
@@ -151,7 +151,6 @@ function setQuality(level, url = null) {
             frameHoldCanvas.style.display = 'block';
         }
     };
-
     const hideCanvasOnPlay = () => {
         video.addEventListener('playing', () => {
             frameHoldCanvas.classList.add('invisible');
@@ -160,14 +159,12 @@ function setQuality(level, url = null) {
             }, 300);
         }, { once: true });
     };
-
     if (url) {
         captureAndHoldFrame();
         initializeHls();
         hls.loadSource(url);
         hls.attachMedia(video);
         hideCanvasOnPlay();
-
         const qualityMenuBtn = document.getElementById('quality-menu-btn');
         if (qualityMenuBtn) {
             qualityMenuBtn.querySelector('.current-value').textContent = 'HD 1080p';
@@ -176,16 +173,13 @@ function setQuality(level, url = null) {
         const new1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
         if (new1080pOption) new1080pOption.classList.add('active');
         settingsBtn.classList.add('show-hd-badge');
-
         hls.once(Hls.Events.MANIFEST_PARSED, () => {
             video.currentTime = currentTime;
             if (isPlaying) video.play().catch(() => {});
         });
-
     } else {
         hls.currentLevel = parseInt(level, 10);
     }
-
     showMenuPage(mainSettingsPage);
 }
 
@@ -222,11 +216,11 @@ function setSubtitle(lang) {
         opt.classList.toggle('active', opt.dataset.lang === lang);
     });
     const activeTrack = [...textTracks].find(t => t.mode === 'showing');
-    if(subtitleCurrentValue) subtitleCurrentValue.textContent = activeTrack ? activeTrack.label : 'Off';
+    if (subtitleCurrentValue) subtitleCurrentValue.textContent = activeTrack ? activeTrack.label : 'Off';
     showMenuPage(mainSettingsPage);
 }
 
-function directTogglePlay() { 
+function directTogglePlay() {
     video.paused ? video.play() : video.pause();
 }
 
@@ -237,14 +231,20 @@ function handleScreenTap() {
         return;
     }
     const isControlsVisible = getComputedStyle(controlsContainer).opacity === '1';
-    if (video.paused) { video.play(); } 
-    else {
-        if (isControlsVisible) { video.pause(); } 
-        else { playerContainer.classList.add('show-controls'); resetControlsTimer(); }
+    if (video.paused) {
+        video.play();
+    } else {
+        if (isControlsVisible) {
+            video.pause();
+        } else {
+            playerContainer.classList.add('show-controls');
+            resetControlsTimer();
+        }
     }
 }
 
 function handlePressStart(e) {
+    isMouseDown = true;
     ignoreTap = false;
     const ignoredSelectors = ['.controls-container', '.settings-menu', '.central-play-btn'];
     if (ignoredSelectors.some(selector => e.target.closest(selector))) {
@@ -265,6 +265,7 @@ function handlePressStart(e) {
 }
 
 function handlePressEnd() {
+    isMouseDown = false;
     clearTimeout(holdTimeout);
     if (isHolding) {
         video.playbackRate = originalPlaybackRate;
@@ -439,7 +440,6 @@ function addHlsEvents() {
         const qualityCurrentValue = qualityMenuBtn.querySelector('.current-value');
         const allQualityOptions = qualityOptionsList.querySelectorAll('li');
         allQualityOptions.forEach(opt => opt.classList.remove('active', 'playing'));
-
         if (hls.url !== originalVideoUrl) {
             qualityCurrentValue.textContent = 'HD 1080p';
             const external1080pOption = qualityOptionsList.querySelector('li[data-level="1080"]');
@@ -447,7 +447,6 @@ function addHlsEvents() {
             settingsBtn.classList.add('show-hd-badge');
             return;
         }
-
         const activeLevel = hls.levels[data.level];
         if (!activeLevel) {
             qualityCurrentValue.textContent = hls.autoLevelEnabled ? 'Auto' : '...';
@@ -456,7 +455,6 @@ function addHlsEvents() {
             settingsBtn.classList.remove('show-hd-badge');
             return;
         }
-
         if (hls.autoLevelEnabled) {
             qualityCurrentValue.textContent = `${activeLevel.height}p (Auto)`;
             const autoOpt = qualityOptionsList.querySelector('li[data-level="-1"]');
@@ -468,7 +466,6 @@ function addHlsEvents() {
             const currentSelectedOpt = qualityOptionsList.querySelector(`li[data-level="${data.level}"]`);
             if (currentSelectedOpt) currentSelectedOpt.classList.add('active');
         }
-
         if (activeLevel.height >= 1080) {
             settingsBtn.classList.add('show-hd-badge');
             if (hls.autoLevelEnabled) {
@@ -489,8 +486,6 @@ function addHlsEvents() {
         }
     });
 }
-
-// === পুরনো এবং অপ্রয়োজনীয় video.addEventListener('click', ...) লাইনটি এখান থেকে মুছে দেওয়া হয়েছে ===
 
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
@@ -605,10 +600,14 @@ document.addEventListener('DOMContentLoaded', () => {
     updateFullscreenState();
 });
 
-// === ট্যাপ এবং হোল্ড সনাক্ত করার জন্য নতুন ইভেন্ট লিসেনার ===
+// === ট্যাপ এবং হোল্ড সনাক্ত করার জন্য ইভেন্ট লিসেনার ===
 playerContainer.addEventListener('mousedown', handlePressStart);
 playerContainer.addEventListener('mouseup', handlePressEnd);
-playerContainer.addEventListener('mouseleave', handlePressEnd);
+playerContainer.addEventListener('mouseleave', () => {
+    if (isMouseDown) {
+        handlePressEnd();
+    }
+});
 
 playerContainer.addEventListener('touchstart', handlePressStart, { passive: false });
 playerContainer.addEventListener('touchend', handlePressEnd);
