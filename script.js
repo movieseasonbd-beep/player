@@ -127,7 +127,7 @@ function initializeHls() {
 }
 
 function loadVideo(videoUrl) {
-    setTimeout(hideLoadingOverlay, 3000);
+    setTimeout(hideLoadingOverlay, 2500);
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
         removeResumePlaybackListeners();
         initializeHls();
