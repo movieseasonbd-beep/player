@@ -51,7 +51,6 @@ let ignoreTap = false;
 // ==========================================================
 // === প্লেব্যাক পজিশন সেভ এবং লোড করার ফাংশন ===
 // ==========================================================
-
 function savePlaybackPosition() {
     const videoId = originalVideoUrl; 
     if (videoId && video.currentTime > 5 && !video.ended) {
@@ -331,6 +330,7 @@ function toggleMute() {
     video.muted = !video.muted;
     requestAnimationFrame(updateVolumeIcon);
 }
+
 function updateVolumeIcon() {
     const isMuted = video.muted || video.volume === 0;
     volumeBtn.querySelector('.volume-on-icon').style.display = isMuted ? 'none' : 'block';
@@ -490,6 +490,8 @@ function addHlsEvents() {
     });
 }
 
+// === পুরনো এবং অপ্রয়োজনীয় video.addEventListener('click', ...) লাইনটি এখান থেকে মুছে দেওয়া হয়েছে ===
+
 centralPlayBtn.addEventListener('click', directTogglePlay);
 playPauseBtn.addEventListener('click', directTogglePlay);
 video.addEventListener('play', () => { updatePlayState(); resetControlsTimer(); acquireWakeLock(); });
@@ -505,7 +507,6 @@ volumeBtn.addEventListener('click', toggleMute);
 fullscreenBtn.addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', updateFullscreenState);
 
-// === প্রোগ্রেস বার ইন্টার‍্যাকশনের জন্য আপডেট করা কোড ===
 progressBar.addEventListener('input', (e) => {
     resetControlsTimer();
     scrub(e);
@@ -604,7 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateFullscreenState();
 });
 
-// === ট্যাপ এবং হোল্ড সনাক্ত করার জন্য ইভেন্ট লিসেনার ===
+// === ট্যাপ এবং হোল্ড সনাক্ত করার জন্য নতুন ইভেন্ট লিসেনার ===
 playerContainer.addEventListener('mousedown', handlePressStart);
 playerContainer.addEventListener('mouseup', handlePressEnd);
 playerContainer.addEventListener('mouseleave', handlePressEnd);
