@@ -136,12 +136,10 @@ function initializeHls() {
 function loadVideo(videoUrl) {
     setTimeout(hideLoadingOverlay, 3000);
     if (Hls.isSupported() && videoUrl.includes('.m3u8')) {
-        removeResumePlaybackListeners();
         initializeHls();
         hls.loadSource(videoUrl);
         hls.attachMedia(video);
     } else {
-        addResumePlaybackListeners();
         video.src = videoUrl;
     }
 }
@@ -577,6 +575,12 @@ document.addEventListener('DOMContentLoaded', () => {
     originalVideoUrl = videoUrl;
 
     if (videoUrl) {
+        if (!videoUrl.includes('.m3u8')) {
+            addResumePlaybackListeners();
+        } else {
+            removeResumePlaybackListeners();
+        }
+
         if (posterUrl) video.poster = posterUrl;
         if (subtitleUrl && subtitleMenuBtn) {
             const subtitleTrack = document.createElement('track');
